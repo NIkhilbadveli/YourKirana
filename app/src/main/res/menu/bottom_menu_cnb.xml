@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cnb_unselectedColor="#666666">
+    <item
+        android:id="@+id/dashboardFragment"
+        android:title="Dashboard"
+        android:icon="@drawable/ic_dashboard_24px"
+        app:cnb_iconColor="#000"
+        />
+
+    <item
+        android:id="@+id/myStoreFragment"
+        android:title="My Store"
+        android:icon="@drawable/ic_storefront_24px"
+        app:cnb_iconColor="#000"/>
+
+    <item
+        android:id="@+id/scannerFragment"
+        android:title="Scan"
+        android:icon="@drawable/ic_view_week_24px"
+        app:cnb_iconColor="#000" />
+
+    <item
+        android:id="@+id/historyFragment"
+        android:title="History"
+        android:icon="@drawable/ic_history_24px"
+        app:cnb_iconColor="#000" />
+
+    <item
+        android:id="@+id/profileFragment"
+        android:title="Profile"
+        android:icon="@drawable/ic_person_outline_24px"
+        app:cnb_iconColor="#000"
+        />
+</menu>

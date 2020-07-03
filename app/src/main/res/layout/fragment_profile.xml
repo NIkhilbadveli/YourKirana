@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    tools:context=".profileFeature.ProfileFragment">
+
+    <ImageView
+        android:id="@+id/profile_background"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:src="@drawable/ic_profile_bg"
+        android:scaleType="centerCrop"
+        android:contentDescription="Profile Background"/>
+
+    <agency.tango.android.avatarview.views.AvatarView
+        android:id="@+id/profile_avatar"
+        android:layout_width="130dp"
+        android:layout_height="130dp"
+        android:layout_marginTop="20dp"
+        app:av_border_color="@color/textColorWhite"
+        app:av_border_width="3dp"
+        android:layout_centerHorizontal="true"
+        app:av_text_size_percentage="35"
+        android:elevation="8dp"
+        />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/settings_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="-80dp"
+        android:layout_below="@+id/profile_avatar"
+        android:layout_above="@+id/customer_requests"
+        android:padding="5dp"
+        app:cardElevation="7dp"
+        app:cardCornerRadius="20dp">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="10dp"
+            android:layout_gravity="center">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_settings_black_24dp"
+                android:layout_margin="10dp"/>
+
+            <TextView
+                android:id="@+id/store_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="General Store"
+                android:textSize="18sp"
+                android:textColor="@color/textColorBlack"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="40dp"/>
+
+            <TextView
+                android:id="@+id/profile_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="User Name"
+                android:textStyle="italic"
+                android:textSize="14sp"
+                android:textColor="@color/textColorBlack"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="15dp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_profile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:listitem="@layout/item_profile"
+                android:layout_marginTop="20dp"
+                tools:itemCount="6"/>
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <Button
+        android:id="@+id/customer_requests"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Customer Requests"
+        android:textSize="18sp"
+        android:textColor="@color/textColorWhite"
+        android:background="@color/colorPrimaryDark"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="10dp"
+        android:padding="5dp"/>
+</RelativeLayout>

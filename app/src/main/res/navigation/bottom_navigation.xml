@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/bottom_navigation"
+    app:startDestination="@id/scannerFragment">
+
+    <fragment
+        android:id="@+id/scannerFragment"
+        android:name="com.titos.barcodescanner.scannerFeature.ScannerFragment"
+        android:label="Scanner"
+        tools:layout="@layout/fragment_scanner" >
+    </fragment>
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="com.titos.barcodescanner.dashboardFeature.DashboardFragment"
+        android:label="Dashboard"
+        tools:layout="@layout/fragment_dashboard" >
+    </fragment>
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.titos.barcodescanner.profileFeature.ProfileFragment"
+        android:label="My Account"
+        tools:layout="@layout/fragment_profile" >
+        <action
+            android:id="@+id/action_profileFragment_to_customerRequestsFragment"
+            app:destination="@id/customerRequestsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/historyFragment"
+        android:name="com.titos.barcodescanner.historyFeature.HistoryFragment"
+        android:label="History"
+        tools:layout="@layout/fragment_history" >
+        <action
+            android:id="@+id/action_historyFragment_to_orderItemsFragment"
+            app:destination="@id/orderItemsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/myStoreFragment"
+        android:name="com.titos.barcodescanner.inventoryFeature.InventoryFragment"
+        android:label="My Store"
+        tools:layout="@layout/fragment_inventory">
+        <action
+            android:id="@+id/action_myStoreFragment_to_dashboardFragment"
+            app:destination="@id/dashboardFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/orderItemsFragment"
+        android:name="com.titos.barcodescanner.historyFeature.OrderItemsFragment"
+        android:label="OrderItemsFragment"
+        tools:layout="@layout/fragment_items_order"/>
+    <fragment
+        android:id="@+id/scannerListFragment"
+        android:name="com.titos.barcodescanner.scannerFeature.ScannerListFragment"
+        android:label="ScannerListFragment"
+        tools:layout="@layout/fragment_list_scanner"/>
+    <fragment
+        android:id="@+id/barcodeFragment"
+        android:name="com.titos.barcodescanner.scannerFeature.BarcodeFragment"
+        android:label="fragment_barcode"
+        tools:layout="@layout/fragment_barcode" />
+    <fragment
+        android:id="@+id/customerRequestsFragment"
+        android:name="com.titos.barcodescanner.profileFeature.CustomerRequestsFragment"
+        android:label="CustomerRequestsFragment"
+        tools:layout="@layout/fragment_customer_requests"/>
+</navigation>

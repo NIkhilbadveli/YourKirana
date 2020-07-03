@@ -1,0 +1,80 @@
+{
+  "project_info": {
+    "project_number": "136355428047",
+    "firebase_url": "https://barcode-scanner-b4a04.firebaseio.com",
+    "project_id": "barcode-scanner-b4a04",
+    "storage_bucket": "barcode-scanner-b4a04.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:136355428047:android:53f6e4d2aeb1d2d789a9ba",
+        "android_client_info": {
+          "package_name": "com.titos.barcodescanner"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "136355428047-5s1j1pcj069477009fqlfpth16b5pdp0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.titos.barcodescanner",
+            "certificate_hash": "c1e19da2697bac1b13893a387159eefcfba5b917"
+          }
+        },
+        {
+          "client_id": "136355428047-0n2hbs3o662qslnau5jf06d3ud2i1if8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.titos.barcodescanner",
+            "certificate_hash": "ea564649f0e4191375e982b80a1c5e729bce6972"
+          }
+        },
+        {
+          "client_id": "136355428047-0aacf0kdaak2huobne448j1qccql6lad.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.titos.barcodescanner",
+            "certificate_hash": "7146730216eab8e03805ccdb8c26ee164dbcfc72"
+          }
+        },
+        {
+          "client_id": "136355428047-mpf1nojrt8r5310obf8otftvlbspqere.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.titos.barcodescanner",
+            "certificate_hash": "e93136bde0ae1b0b2d2826f75929af5c386bf07d"
+          }
+        },
+        {
+          "client_id": "136355428047-tpvccr1i695285b63b9a9p280vlleake.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.titos.barcodescanner",
+            "certificate_hash": "11717be612f3df53df5e45092b9e92b214501cb9"
+          }
+        },
+        {
+          "client_id": "136355428047-936furb8190get3b4o510j7clark74m1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKkH6-QGKMd0o28OaOwJQkiCpQ12LbmPk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "136355428047-936furb8190get3b4o510j7clark74m1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
