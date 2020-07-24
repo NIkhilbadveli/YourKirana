@@ -10,6 +10,9 @@
         android:name="com.titos.barcodescanner.scannerFeature.ScannerFragment"
         android:label="Scanner"
         tools:layout="@layout/fragment_scanner" >
+        <action
+            android:id="@+id/action_scannerFragment_to_agreementFragment"
+            app:destination="@id/agreementFragment" />
     </fragment>
     <fragment
         android:id="@+id/dashboardFragment"
@@ -53,7 +56,8 @@
         android:id="@+id/scannerListFragment"
         android:name="com.titos.barcodescanner.scannerFeature.ScannerListFragment"
         android:label="ScannerListFragment"
-        tools:layout="@layout/fragment_list_scanner"/>
+        tools:layout="@layout/fragment_list_scanner">
+    </fragment>
     <fragment
         android:id="@+id/barcodeFragment"
         android:name="com.titos.barcodescanner.scannerFeature.BarcodeFragment"
@@ -64,4 +68,9 @@
         android:name="com.titos.barcodescanner.profileFeature.CustomerRequestsFragment"
         android:label="CustomerRequestsFragment"
         tools:layout="@layout/fragment_customer_requests"/>
+    <fragment
+        android:id="@+id/agreementFragment"
+        android:name="com.titos.barcodescanner.scannerFeature.AgreementFragment"
+        android:label="AgreementFragment"
+        tools:layout="@layout/fragment_agreement"/>
 </navigation>

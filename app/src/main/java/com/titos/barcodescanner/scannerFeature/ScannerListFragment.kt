@@ -221,7 +221,7 @@ class ScannerListFragment : Fragment() {
     }
 
     private fun tryWithInventoryData(barcode: String){
-        val viewGroup = activity!!.findViewById<ViewGroup>(android.R.id.content)
+
         val dialogview = LayoutInflater.from(context).inflate(R.layout.add_product_dialog, null)
 
         val builder = AlertDialog.Builder(context)
@@ -396,7 +396,27 @@ class ScannerListFragment : Fragment() {
         val snack = Snackbar.make(view!!, "Added to Transaction History!", Snackbar.LENGTH_SHORT)
         //snack.setAction("View History", getTohistory())
         snack.setAnchorView(floatingActionButton)
-        snack.show()
+        //snack.show()
+
+        val dialogview = LayoutInflater.from(context).inflate(R.layout.choice_dialog, null)
+
+        val builder = AlertDialog.Builder(context)
+        builder.setView(dialogview)
+        val alertDialog = builder.create()
+        alertDialog.setCanceledOnTouchOutside(false)
+
+        alertDialog.show()
+        dialogview.findViewById<Button>(R.id.btn_choice_notpaid).setOnClickListener {
+            val bundle = Bundle()
+            bundle.putString("amountDue", tvTotal?.text.toString().split(' ').last())
+            findNavController().navigate(R.id.action_scannerFragment_to_agreementFragment, bundle)
+            alertDialog.dismiss()
+        }
+
+        dialogview.findViewById<Button>(R.id.btn_choice_paid).setOnClickListener {
+            Toast.makeText(context, "Marked as paid", Toast.LENGTH_SHORT).show()
+            alertDialog.dismiss()
+        }
 
         listValues.clear()
         recyclerViewAdapter!!.notifyDataSetChanged()
@@ -596,8 +616,7 @@ class ScannerListFragment : Fragment() {
 
             dialogBuilder.setMessage("Do you want to skip the tutorial?")
                     .setCancelable(false)
-                    .setPositiveButton("Yes", DialogInterface.OnClickListener {
-                        _, _ ->
+                    .setPositiveButton("Yes") { _, _ ->
                         with (sharedPref.edit()) {
                             putBoolean("skipInvTutorial", true)
                             commit()
@@ -605,10 +624,9 @@ class ScannerListFragment : Fragment() {
                         skipTutorial = true
                         simpleTooltip.dismiss()
                         Toast.makeText(context,"App tutorial is skipped", Toast.LENGTH_SHORT).show()
-                    })
-                    .setNegativeButton("No", DialogInterface.OnClickListener {
-                        dialog, id -> dialog.dismiss()
-                    })
+                    }
+                    .setNegativeButton("No") { dialog, id -> dialog.dismiss()
+                    }
 
             val alert = dialogBuilder.create()
             alert.setTitle("Skip Tutorial")

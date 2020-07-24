@@ -15,6 +15,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "136355428047-2rcmgvii286n5gnlh7j0lnhf12ds9rlg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.titos.barcodescanner",
+            "certificate_hash": "4e0e96ce54ee61a74a28809524f5b10ebc084478"
+          }
+        },
+        {
+          "client_id": "136355428047-2nqnhghgu0o9i6hnig30sv4e92dd3488.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.titos.barcodescanner",
+            "certificate_hash": "a051ad17e168aeb98f365ab18748ac1489f50e55"
+          }
+        },
+        {
           "client_id": "136355428047-5s1j1pcj069477009fqlfpth16b5pdp0.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

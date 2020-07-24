@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
@@ -70,6 +71,15 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
 
         navController.saveState()
         NavigationUI.setupWithNavController(bottomNavigationView, navController)
+
+        val toolbar = findViewById<Toolbar>(R.id.toolbar_main)
+        setSupportActionBar(toolbar)
+
+        // add back arrow to toolbar
+        if (supportActionBar != null) {
+            supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+            supportActionBar!!.setDisplayShowHomeEnabled(true)
+        }
 
         val user = FirebaseAuth.getInstance().currentUser
 

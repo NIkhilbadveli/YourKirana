@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="20dp"
-    android:background="@color/chartBackground"
+    android:layout_margin="16dp"
     android:layout_gravity="center">
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
+        android:gravity="center"
         android:text="Choose one from below"
         android:textAppearance="@android:style/TextAppearance.Medium"
         tools:ignore="RtlHardcoded"
@@ -20,29 +20,33 @@
         android:layout_gravity="center_horizontal"/>
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:layout_gravity="center_horizontal"
-        android:orientation="vertical"
+        android:layout_gravity="center_vertical"
+        android:orientation="horizontal"
         android:padding="10dp">
         <Button
-            android:id="@+id/btn_choice_inventory"
-            android:layout_width="wrap_content"
+            android:id="@+id/btn_choice_paid"
+            android:layout_width="0dp"
+            android:layout_weight="0.5"
             android:layout_height="wrap_content"
             android:textColor="@color/textColorWhite"
-            android:padding="10dp"
-            android:text="How to do Inventory"
-            android:background="@drawable/thin_border"
-            android:layout_marginTop="10dp" />
+            android:padding="20dp"
+            android:text="Paid \u20B9"
+            android:background="@drawable/button_background"
+            android:layout_margin="10dp"
+            />
         <Button
-            android:id="@+id/btn_choice_billing"
-            android:layout_width="wrap_content"
+            android:id="@+id/btn_choice_notpaid"
+            android:layout_width="0dp"
+            android:layout_weight="0.5"
             android:layout_height="wrap_content"
             android:textColor="@color/textColorWhite"
-            android:padding="10dp"
-            android:text="How to do Billing"
-            android:background="@drawable/thin_border"
-            android:layout_marginTop="20dp"/>
+            android:padding="20dp"
+            android:text="Not Paid \u20B9"
+            android:background="@drawable/button_background_red"
+            android:layout_margin="10dp"
+            />
     </LinearLayout>
 </LinearLayout>
