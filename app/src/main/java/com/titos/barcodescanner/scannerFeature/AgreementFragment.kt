@@ -9,6 +9,7 @@ import androidx.fragment.app.FragmentTransaction
 import com.titos.barcodescanner.R
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
+import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.widget.*
@@ -61,16 +62,19 @@ class AgreementFragment : Fragment() {
         }
 
         val amountDue = arguments?.getString("amountDue")
+        val sharedPref = activity?.getSharedPreferences("sharedPref", Context.MODE_PRIVATE)
+        val shopName = sharedPref?.getString("shopName","shop")!!
 
         layoutView.findViewById<Button>(R.id.saveButton).setOnClickListener {
             if (etcustId.text.isNotEmpty() && etcustName.text.isNotEmpty() && etMobileNumber.text.isNotEmpty()
                     && tvDueDate.text!="00-00-0000" && amountDue!=null) {
 
-                database.child("khataBook/$addedTime/customerId").setValue(etcustId.text.toString())
-                database.child("khataBook/$addedTime/customerName").setValue(etcustName.text.toString())
-                database.child("khataBook/$addedTime/mobileNumber").setValue(etMobileNumber.text.toString())
-                database.child("khataBook/$addedTime/dueDate").setValue(tvDueDate.text.toString())
-                database.child("khataBook/$addedTime/amountDue").setValue(amountDue)
+                database.child("khataBook/$shopName/$addedTime/customerId").setValue(etcustId.text.toString())
+                database.child("khataBook/$shopName/$addedTime/customerName").setValue(etcustName.text.toString())
+                database.child("khataBook/$shopName/$addedTime/mobileNumber").setValue(etMobileNumber.text.toString())
+                database.child("khataBook/$shopName/$addedTime/dueDate").setValue(tvDueDate.text.toString())
+                database.child("khataBook/$shopName/$addedTime/amountDue").setValue(amountDue)
+                database.child("khataBook/$shopName/$addedTime/status").setValue("notPaid")
                 Toast.makeText(context, "Added to database", Toast.LENGTH_SHORT).show()
                 findNavController().navigateUp()
             }

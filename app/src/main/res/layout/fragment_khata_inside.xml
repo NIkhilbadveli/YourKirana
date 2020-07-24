@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".KhataFragmentInside">
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="10dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+                <SearchView
+                    android:id="@+id/search_bar_khata"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:queryHint="Search for customers"
+                    android:background="@drawable/thin_border"
+                    android:iconifiedByDefault="false"
+                    />
+                <TextView
+                    android:id="@+id/tv_empty"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="It's so empty here :)"
+                    android:textSize="24sp"
+                    android:visibility="gone"
+                    android:textColor="@color/textColorBlack"
+                    />
+                <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/rv_khata_customers"
+                    tools:listitem="@layout/item_customer"
+                    />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+</LinearLayout>
+

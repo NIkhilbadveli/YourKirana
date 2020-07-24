@@ -411,16 +411,17 @@ class ScannerListFragment : Fragment() {
             bundle.putString("amountDue", tvTotal?.text.toString().split(' ').last())
             findNavController().navigate(R.id.action_scannerFragment_to_agreementFragment, bundle)
             alertDialog.dismiss()
+            tvTotal!!.text = "Rs."
         }
 
         dialogview.findViewById<Button>(R.id.btn_choice_paid).setOnClickListener {
             Toast.makeText(context, "Marked as paid", Toast.LENGTH_SHORT).show()
             alertDialog.dismiss()
+            tvTotal!!.text = "Rs."
         }
 
         listValues.clear()
         recyclerViewAdapter!!.notifyDataSetChanged()
-        tvTotal!!.text = "Rs."
     }
 
     private fun addToInventoryData(){

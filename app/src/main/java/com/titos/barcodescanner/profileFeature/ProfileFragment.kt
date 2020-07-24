@@ -55,26 +55,17 @@ class ProfileFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_profile, container, false)
 
         val profileAvatar = view.findViewById<AvatarView>(R.id.profile_avatar)
-        val user = FirebaseAuth.getInstance().currentUser
-        val userRef = FirebaseDatabase.getInstance().reference.child("userData").child(user!!.uid)
+        val user = FirebaseAuth.getInstance().currentUser!!
+
         val picassoLoader = PicassoLoader()
 
-        userRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(p0: DataSnapshot) {
-                val userName = p0.child("userName").value.toString()
+        val sharedPref = activity?.getSharedPreferences("sharedPref", Context.MODE_PRIVATE)
+        val shopName = sharedPref?.getString("shopName","shop")!!
+        val userName = sharedPref.getString("userName","UserName")!!
 
-
-                if (userName.isNotEmpty()) {
-                    view.findViewById<TextView>(R.id.profile_name).text = userName.split(' ').joinToString(" ") { it.capitalize() }
-                    picassoLoader.loadImage(profileAvatar, user.photoUrl.toString(), userName)
-                } else
-                    picassoLoader.loadImage(profileAvatar, user.photoUrl.toString(), "UserName")
-            }
-
-            override fun onCancelled(p0: DatabaseError) {
-
-            }
-        })
+        view.findViewById<TextView>(R.id.profile_name).text = userName.split(' ').joinToString(" ") { it.capitalize() }
+        view.findViewById<TextView>(R.id.store_name).text = shopName.split(' ').joinToString(" ") { it.capitalize() }
+        picassoLoader.loadImage(profileAvatar, user.photoUrl.toString(), userName)
 
         val recyclerView = view.findViewById<RecyclerView>(R.id.rv_profile)
         val groupAdapter = GroupAdapter<GroupieViewHolder>()
@@ -101,20 +92,6 @@ class ProfileFragment : Fragment() {
                 5 -> logoutFromApp(dialog)
             }
         }
-
-        /*var shopName = "Temp Store"
-        var message = "message"
-        userRef.child("shopName").addListenerForSingleValueEvent(object: ValueEventListener{
-            override fun onDataChange(p0: DataSnapshot) {
-                shopName = p0.value.toString()
-                findViewById<TextView>(R.id.store_name).text = shopName
-                message = "Join $shopName on YourKirana app through this link \n"
-            }
-
-            override fun onCancelled(p0: DatabaseError) {
-
-            }
-        })*/
 
         val customerRequestsButton = view.findViewById<Button>(R.id.customer_requests)
         customerRequestsButton.setOnClickListener {

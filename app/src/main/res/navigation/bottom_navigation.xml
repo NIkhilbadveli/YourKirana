@@ -73,4 +73,9 @@
         android:name="com.titos.barcodescanner.scannerFeature.AgreementFragment"
         android:label="AgreementFragment"
         tools:layout="@layout/fragment_agreement"/>
+    <fragment
+        android:id="@+id/khataFragment"
+        android:name="com.titos.barcodescanner.KhataFragmentOutside"
+        android:label="KhataFragment"
+        tools:layout="@layout/fragment_khata_outside"/>
 </navigation>

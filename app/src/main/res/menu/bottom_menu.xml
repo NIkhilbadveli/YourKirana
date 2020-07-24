@@ -28,9 +28,9 @@
         app:cnb_iconColor="#000" />
 
     <item
-        android:id="@+id/profileFragment"
-        android:title="Profile"
-        android:icon="@drawable/ic_person_outline_24px"
+        android:id="@+id/khataFragment"
+        android:title="KhataBook"
+        android:icon="@drawable/ic_baseline_menu_book_24"
         app:cnb_iconColor="#000"
         />
 </menu>

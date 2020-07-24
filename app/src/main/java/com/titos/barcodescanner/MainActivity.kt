@@ -13,11 +13,13 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
+import androidx.core.content.edit
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
+import androidx.navigation.findNavController
 import androidx.navigation.ui.NavigationUI
 import androidx.work.*
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -73,57 +75,41 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         NavigationUI.setupWithNavController(bottomNavigationView, navController)
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar_main)
-        setSupportActionBar(toolbar)
-
-        // add back arrow to toolbar
-        if (supportActionBar != null) {
-            supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-            supportActionBar!!.setDisplayShowHomeEnabled(true)
-        }
-
         val user = FirebaseAuth.getInstance().currentUser
 
         //Adding member count to storeStats in realtime database & sharedPref
-        val sharedPref = getSharedPreferences("sharedPref",Context.MODE_PRIVATE) ?: return
+        val sharedPref = getSharedPreferences("sharedPref", Context.MODE_PRIVATE) ?: return
 
-        val userDataRef = FirebaseDatabase.getInstance().reference.child("userData")
-        userDataRef.child(user!!.uid).child("shopName").addListenerForSingleValueEvent(object : ValueEventListener{
+        //Setting Profile Avatar
+        val profileAvatar = toolbar.findViewById<AvatarView>(R.id.profile_avatar)
+        val userRef = FirebaseDatabase.getInstance().reference.child("userData").child(user?.uid!!)
+        val picassoLoader = PicassoLoader()
+
+        userRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(p0: DataSnapshot) {
-                shopName = p0.value.toString()
-                var memberCount = 1
-                val searchQuery = userDataRef.orderByChild("shopName").equalTo(shopName)
-                searchQuery.addListenerForSingleValueEvent(object : ValueEventListener{
-                    override fun onDataChange(users: DataSnapshot) {
-                        if (users.exists()){
-                            FirebaseDatabase.getInstance().reference.child("storeStats").
-                                    child(shopName).child("memberCount").setValue(users.childrenCount)
+                shopName = p0.child("shopName").value.toString()
+                val userName = p0.child("userName").value.toString()
+                sharedPref.edit {
+                    putString("shopName", shopName)
+                    putString("userName", userName)
+                    commit()
+                }
 
-                            with (sharedPref.edit()) {
-                                putString("shopName", shopName)
-                                putInt("memberCount",users.childrenCount.toInt())
-                                commit()
-                            }
-
-                            memberCount = users.childrenCount.toInt()
-                        }
-                    }
-                    override fun onCancelled(p0: DatabaseError) {
-                    }
-                })
-
-                //Scheduling daily backup job
-                createDailyBackupJob()
-
-                /*//Merging oneDayTransactions with offline data
-                createHourlyMergeJob()*/
+                if (userName!="null") {
+                    picassoLoader.loadImage(profileAvatar, user.photoUrl.toString(), userName)
+                } else
+                    picassoLoader.loadImage(profileAvatar, user.photoUrl.toString(), "UserName")
             }
 
             override fun onCancelled(p0: DatabaseError) {
             }
         })
 
-        setShopLocation(userDataRef)
+        profileAvatar.setOnClickListener { findNavController(R.id.fragment).navigate(R.id.profileFragment) }
+
+        setShopLocation(userRef)
     }
+
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -139,8 +125,8 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
     }
 
     private fun setShopLocation(userDataRef:DatabaseReference){
-        val user = FirebaseAuth.getInstance().currentUser
-        userDataRef.child(user!!.uid).addListenerForSingleValueEvent(object : ValueEventListener{
+
+        userDataRef.addListenerForSingleValueEvent(object : ValueEventListener{
             override fun onDataChange(p0: DataSnapshot) {
                 if (!p0.child("latitude").exists() || !p0.child("longitude").exists()){
                     Log.d("locYourKirana","success")
@@ -151,8 +137,8 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                     fusedLocationClient.lastLocation
                             .addOnSuccessListener { location->
                                 if (location != null) {
-                                    userDataRef.child(user.uid).child("latitude").setValue(location.latitude)
-                                    userDataRef.child(user.uid).child("longitude").setValue(location.longitude)
+                                    userDataRef.child("latitude").setValue(location.latitude)
+                                    userDataRef.child("longitude").setValue(location.longitude)
                                 }
                             }
                 }
@@ -166,48 +152,6 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
     companion object {
 
         private const val MY_CAMERA_REQUEST_CODE = 100
-    }
-
-    private fun createDailyBackupJob(){
-        //Backup job using WorkManager
-        val constraints = Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
-
-        val uploadWorkRequest =
-                PeriodicWorkRequestBuilder<BackupWorker>(12, TimeUnit.HOURS)
-                        .setInputData(workDataOf("shopName" to shopName))
-                        .setConstraints(constraints)
-                        .build()
-
-        WorkManager.getInstance(this)
-                .enqueueUniquePeriodicWork("dailyBackupJob",ExistingPeriodicWorkPolicy.KEEP,uploadWorkRequest)
-
-        WorkManager.getInstance(this).getWorkInfoByIdLiveData(uploadWorkRequest.id)
-                .observe(this, Observer { workInfo ->
-                    if (workInfo != null && workInfo.state == WorkInfo.State.SUCCEEDED) {
-                        Log.d("dailyBackup","success")
-                        /*val backupRef = userRef.child("backupTimes")
-                        backupRef.child(backupRef.key!!).setValue(LocalDateTime.now())*/
-                    }
-                })
-    }
-
-    private fun createHourlyMergeJob(){
-
-        val constraints = Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
-
-        val mergeWorkRequest =
-                PeriodicWorkRequestBuilder<MergeWorker>(1, TimeUnit.HOURS)
-                        .setInputData(workDataOf("shopName" to shopName))
-                        .setConstraints(constraints)
-                        .build()
-
-        WorkManager.getInstance(this)
-                .enqueueUniquePeriodicWork("mergingJob",ExistingPeriodicWorkPolicy.KEEP,mergeWorkRequest)
-
     }
 
     class ViewModelForList : ViewModel() {
@@ -239,106 +183,4 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
             isTooltipShown.value = true
         }
     }
-
-    class BackupWorker(appContext: Context, workerParams: WorkerParameters)
-        : Worker(appContext, workerParams) {
-        val context = appContext
-
-        override fun doWork(): Result {
-            val shopName = inputData.getString("shopName")
-            backupDataToFirebase(shopName!!)
-
-            return Result.success()
-        }
-
-        private fun backupDataToFirebase(shopName: String){
-            createZip()
-            val storageRef = FirebaseStorage.getInstance().reference
-
-            val filePath = context.getString(R.string.file_path)
-
-            val file = Uri.fromFile(File("$filePath/db.zip"))
-            val userRef = storageRef.child( "$shopName/${file.lastPathSegment}")
-            val uploadTask = userRef.putFile(file)
-
-            Log.d("backup","Backup started")
-
-            uploadTask.addOnFailureListener {
-                Log.d("backup","Backup failed")
-            }.addOnSuccessListener {
-                Log.d("backup","Backup completed")
-            }
-        }
-
-        private fun createZip(){
-            val path = context.getString(R.string.database_path)
-            val filePath = context.getString(R.string.file_path)
-
-            val files: Array<String> = arrayOf("$path/mystore-data.db", "$path/mystore-data.db-shm","$path/mystore-data.db-wal")
-            ZipOutputStream(BufferedOutputStream(FileOutputStream("$filePath/db.zip"))).use { out ->
-                val data = ByteArray(1024)
-                for (file in files) {
-                    FileInputStream(file).use { fi ->
-                        BufferedInputStream(fi).use { origin ->
-                            val entry = ZipEntry(file)
-                            out.putNextEntry(entry)
-                            while (true) {
-                                val readBytes = origin.read(data)
-                                if (readBytes == -1) {
-                                    break
-                                }
-                                out.write(data, 0, readBytes)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    class MergeWorker(appContext: Context, workerParams: WorkerParameters)
-        : Worker(appContext, workerParams) {
-        val context = appContext
-        private var transactionList = ArrayList<TransactionTable>()
-
-        override fun doWork(): Result {
-            val shopName = inputData.getString("shopName")
-            mergeOnlineWithOffline(shopName!!)
-
-            return Result.success()
-        }
-
-        private fun mergeOnlineWithOffline(shopName: String){
-            val db = AppDatabase(context)
-
-            val oneDay = FirebaseDatabase.getInstance().reference.child("oneDayTransactions").child(shopName)
-            oneDay.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(transactions: DataSnapshot) {
-                    if (transactions.exists()){
-                        for (orderId in transactions.children){
-                            for (details in orderId.children){
-                                val transaction:TransactionTable = details.getValue(TransactionTable::class.java)!!
-
-                                transactionList.add(transaction)
-                            }
-                        }
-                    }
-                }
-
-                override fun onCancelled(p0: DatabaseError) {
-                }
-            })
-
-            //Adding to local database
-            GlobalScope.launch {
-                for (item in transactionList)
-                    db.crudMethods().insertItem(item)
-            }
-
-            //removing transactions from realtime database
-            oneDay.removeValue()
-        }
-    }
-
-
 }
