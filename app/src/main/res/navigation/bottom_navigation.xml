@@ -16,9 +16,9 @@
     </fragment>
     <fragment
         android:id="@+id/dashboardFragment"
-        android:name="com.titos.barcodescanner.dashboardFeature.DashboardFragment"
+        android:name="com.titos.barcodescanner.dashboardFeature."
         android:label="Dashboard"
-        tools:layout="@layout/fragment_dashboard" >
+        tools:layout="@layout/fragment_dashboard_outside" >
     </fragment>
     <fragment
         android:id="@+id/profileFragment"

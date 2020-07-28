@@ -2,7 +2,6 @@ package com.titos.barcodescanner.dashboardFeature
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 
 import androidx.fragment.app.Fragment
 
@@ -15,6 +14,8 @@ import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import com.titos.barcodescanner.*
 
 
@@ -29,18 +30,17 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
-import kotlinx.android.synthetic.main.fragment_dashboard.*
+import kotlinx.android.synthetic.main.fragment_dashboard_outside.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class DashboardFragment : Fragment() {
+class DashboardFragmentOutside : Fragment()
+{
 
     private var recyclerView: RecyclerView? = null
     private var shopName = "Temp Store"
@@ -49,8 +49,24 @@ class DashboardFragment : Fragment() {
     private lateinit var barChart: BarChart
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
-        val view = inflater.inflate(R.layout.fragment_dashboard, container, false)
+                              savedInstanceState: Bundle?): View?
+    {
+        val view = inflater.inflate(R.layout.fragment_dashboard_outside, container, false)
+
+        val viewPager = view.findViewById<ViewPager2>(R.id.view_pager)
+        viewPager.adapter = PagerAdapter(this)
+
+        val tabLayout = view.findViewById<TabLayout>(R.id.tab_layout)
+        TabLayoutMediator(tabLayout, viewPager){tab, position ->
+            tab.text = when(position){
+                0 -> "Top 25 items"
+                1 -> "Bottom 25 items"
+                else -> "Wrong"
+            }
+
+        }.attach()
+
+
 
         barChart = view.findViewById(R.id.barchart)
 
@@ -80,17 +96,19 @@ class DashboardFragment : Fragment() {
         recyclerView = view.findViewById(R.id.list_of_top5)
         recyclerView!!.layoutManager = LinearLayoutManager(context)
 
+
+
         val databaseReference = FirebaseDatabase.getInstance().reference
         val sharedPref = activity?.getSharedPreferences("sharedPref",Context.MODE_PRIVATE)
 
         shopName = sharedPref?.getString("shopName",shopName)!!
 
-        dashboardHelper()
 
         return view
     }
 
-    private fun dashboardHelper() {
+    private fun dashboardHelper()
+    {
 
         val dateFormatter = SimpleDateFormat("dd-MM-yyyy",Locale.US)
         val otherDateFormat = SimpleDateFormat("dd MMM", Locale.US)
@@ -98,13 +116,15 @@ class DashboardFragment : Fragment() {
         val startDate = otherDateFormat.format(dateFormatter.parse(weekDays[0])!!)
         val endDate = otherDateFormat.format(dateFormatter.parse(weekDays[6])!!)
 
-        GlobalScope.launch (Dispatchers.IO){
+        GlobalScope.launch (Dispatchers.IO)
+        {
             val totalSales = db?.crudMethods()?.getTotalSales()!!
             val itemLevelSales = db?.crudMethods()?.getAllItemsSales()
             val thisWeekSales = db?.crudMethods()?.getThisWeekSales(weekDays[0],weekDays[6])!!
             val allDaySales = db?.crudMethods()?.getAllDaysSales()
 
-            withContext(Dispatchers.Main){
+            withContext(Dispatchers.Main)
+            {
 
                 dbrd_total_sales_value.text = "Rs. "+ totalSales!!.toDouble().toString()
                 dbrd_this_week_sales_title.text = "$startDate - $endDate"
@@ -115,13 +135,13 @@ class DashboardFragment : Fragment() {
                 else
                     recyclerView!!.adapter = TopFiveItemAdapter(itemLevelSales,context!!)
 
-
             }
             populateBarEntries(allDaySales!!)
         }
     }
 
-    private fun populateBarEntries(allDaySales: List<DaySales>) {
+    private fun populateBarEntries(allDaySales: List<DaySales>)
+    {
 
         val barEntries = ArrayList<BarEntry>()
         val barLabels = ArrayList<String>()
@@ -132,7 +152,8 @@ class DashboardFragment : Fragment() {
         for (i in 0..6){
             barLabels.add(weekFormatter.format(dateFormatter.parse(weekDays[i])!!).first().toString())
 
-            if (allDaySales.any{x->x.orderDate==weekDays[i]}){
+            if (allDaySales.any{x->x.orderDate==weekDays[i]})
+            {
                 val thisDaySales = allDaySales.find { x-> x.orderDate==weekDays[i] }
                 barEntries.add(BarEntry(i.toFloat(),thisDaySales!!.sales.toFloat()))
             }
@@ -152,7 +173,21 @@ class DashboardFragment : Fragment() {
         barChart.invalidate()
     }
 
-    private fun getWeekDaySelected(selectedDateStr:String):ArrayList<String> {
+    class PagerAdapter(fm: Fragment) : FragmentStateAdapter(fm) {
+
+        override fun getItemCount(): Int  = 2
+
+        override fun createFragment(position: Int): Fragment {
+            val fragment = DashboardFragmentInside()
+            fragment.arguments = Bundle().apply {
+                putInt("itemType", position )
+            }
+            return fragment
+        }
+    }
+
+    private fun getWeekDaySelected(selectedDateStr:String):ArrayList<String>
+    {
         val cal = Calendar.getInstance()
         val format = SimpleDateFormat("dd-MM-yyyy",Locale.US)
         val days = ArrayList<String>()

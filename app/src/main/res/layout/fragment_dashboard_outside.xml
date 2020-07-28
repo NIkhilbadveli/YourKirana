@@ -129,7 +129,6 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -144,21 +143,19 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="10dp">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Top five items"
-                        android:textSize="20sp"
-                        android:layout_gravity="center"
-                        android:layout_marginTop="10dp"
-                        android:layout_marginBottom="10dp"/>
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/list_of_top5"
+                    <com.google.android.material.tabs.TabLayout
+                        android:id="@+id/tab_layout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        tools:context=".dashboardFeature.DashboardFragment"
-                        tools:listitem="@layout/item_top_five"
-                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+                        app:tabIndicatorColor="@color/textColorBlack"/>
+
+                    <androidx.viewpager2.widget.ViewPager2
+                        android:id="@+id/pagerKhata"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        >
+                    </androidx.viewpager2.widget.ViewPager2>
+
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
         </RelativeLayout>
