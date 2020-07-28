@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Your Kirana</string>
+    <string name="app_name">Riki Stores</string>
     <string name="database_path">/data/user/0/com.titos.barcodescanner/databases/</string>
     <string name="file_path">/data/user/0/com.titos.barcodescanner/files/</string>
     <string name="terms_and_conditions">By creating an account you agree with the
