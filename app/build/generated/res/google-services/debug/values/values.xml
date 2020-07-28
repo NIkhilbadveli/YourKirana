@@ -4,7 +4,7 @@
     <string name="firebase_database_url" translatable="false">https://barcode-scanner-b4a04.firebaseio.com</string>
     <string name="gcm_defaultSenderId" translatable="false">136355428047</string>
     <string name="google_api_key" translatable="false">AIzaSyDKkH6-QGKMd0o28OaOwJQkiCpQ12LbmPk</string>
-    <string name="google_app_id" translatable="false">1:136355428047:android:53f6e4d2aeb1d2d789a9ba</string>
+    <string name="google_app_id" translatable="false">1:136355428047:android:b6fc113988fef6a189a9ba</string>
     <string name="google_crash_reporting_api_key" translatable="false">AIzaSyDKkH6-QGKMd0o28OaOwJQkiCpQ12LbmPk</string>
     <string name="google_storage_bucket" translatable="false">barcode-scanner-b4a04.appspot.com</string>
     <string name="project_id" translatable="false">barcode-scanner-b4a04</string>

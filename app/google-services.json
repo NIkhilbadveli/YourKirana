@@ -90,6 +90,43 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:136355428047:android:b6fc113988fef6a189a9ba",
+        "android_client_info": {
+          "package_name": "com.titos.rikistores"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "136355428047-ah9i9gc4tbuue2jvrmvhgiijjmtgdd9i.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.titos.rikistores",
+            "certificate_hash": "4e0e96ce54ee61a74a28809524f5b10ebc084478"
+          }
+        },
+        {
+          "client_id": "136355428047-936furb8190get3b4o510j7clark74m1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKkH6-QGKMd0o28OaOwJQkiCpQ12LbmPk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "136355428047-936furb8190get3b4o510j7clark74m1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"
