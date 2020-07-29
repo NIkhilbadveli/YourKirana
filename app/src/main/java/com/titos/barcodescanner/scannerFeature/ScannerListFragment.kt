@@ -222,8 +222,8 @@ class ScannerListFragment : Fragment() {
 
     private fun tryWithInventoryData(barcode: String){
 
-        val dialogview = LayoutInflater.from(context).inflate(R.layout.add_product_dialog, null)
-
+        val dialogview = LayoutInflater.from(context).inflate(R.layout.add_new_product, null)
+//dialog creating with add_new xml file and refer bottom sheet in login activity
         val builder = AlertDialog.Builder(context)
         builder.setView(dialogview)
         val alertDialog = builder.create()
@@ -247,49 +247,12 @@ class ScannerListFragment : Fragment() {
         })
     }
 
+
     private fun addToDatabaseAndUpdateList(s: String, view: View, alertDialog: AlertDialog) {
         model?.pauseScanner()
+// adding to database and getting from edit text -- addnew xml file
 
-        nameEditText = view.findViewById(R.id.product_name)
-        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        val price = view.findViewById<EditText>(R.id.product_price)
-
-        val cameraButton = view.findViewById<ImageButton>(R.id.open_camera_button)
-        cameraButton.visibility = View.VISIBLE
-
-        /*if (takePictureIntent.resolveActivity(activity?.packageManager!!) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
-        }*/
-
-        val inventoryRef = databaseReference!!.child("inventoryData").child(shopName)
-
-        view.findViewById<View>(R.id.product_add_button).setOnClickListener {
-            if(nameEditText?.text!!.isNotEmpty() && price.text.isNotEmpty()){
-                inventoryRef.child(s).
-                        setValue(ScannedItem(s,nameEditText?.text.toString(), "1", price.text.toString()))
-
-                addToListView(s,nameEditText?.text.toString(), price.text.toString(),"dummyURL")
-
-                model?.resumeScanner()
-                alertDialog.dismiss()
-                Toast.makeText(context, "Added to database", Toast.LENGTH_SHORT).show()
-            }
-            else
-                Toast.makeText(context, "Please enter the name and price of the product", Toast.LENGTH_SHORT).show()
-        }
-
-        view.findViewById<View>(R.id.product_cancel_button).setOnClickListener {
-            model?.resumeScanner()
-            alertDialog.dismiss()
-            //Toast.makeText(context, "Cancelled adding", Toast.LENGTH_SHORT).show()
-        }
-
-        cameraButton.setOnClickListener {
-            if (takePictureIntent.resolveActivity(activity?.packageManager!!) != null) {
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
-            }
-        }
-    }
+           }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
@@ -639,3 +602,46 @@ class ScannerListFragment : Fragment() {
     @Parcelize
     data class ScannedItem(val barcode:String, val name: String, val quantity: String, val price: String): Parcelable
 }
+
+
+/*
+ nameEditText = view.findViewById(R.id.product_name)
+        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        val price = view.findViewById<EditText>(R.id.product_price)
+
+        val cameraButton = view.findViewById<ImageButton>(R.id.open_camera_button)
+        cameraButton.visibility = View.VISIBLE
+
+        /*if (takePictureIntent.resolveActivity(activity?.packageManager!!) != null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
+        }*/
+
+        val inventoryRef = databaseReference!!.child("inventoryData").child(shopName)
+
+        view.findViewById<View>(R.id.product_add_button).setOnClickListener {
+            if(nameEditText?.text!!.isNotEmpty() && price.text.isNotEmpty()){
+                inventoryRef.child(s).
+                        setValue(ScannedItem(s,nameEditText?.text.toString(), "1", price.text.toString()))
+
+                addToListView(s,nameEditText?.text.toString(), price.text.toString(),"dummyURL")
+
+                model?.resumeScanner()
+                alertDialog.dismiss()
+                Toast.makeText(context, "Added to database", Toast.LENGTH_SHORT).show()
+            }
+            else
+                Toast.makeText(context, "Please enter the name and price of the product", Toast.LENGTH_SHORT).show()
+        }
+
+        view.findViewById<View>(R.id.product_cancel_button).setOnClickListener {
+            model?.resumeScanner()
+            alertDialog.dismiss()
+            //Toast.makeText(context, "Cancelled adding", Toast.LENGTH_SHORT).show()
+        }
+
+        cameraButton.setOnClickListener {
+            if (takePictureIntent.resolveActivity(activity?.packageManager!!) != null) {
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
+            }
+        }
+*/
