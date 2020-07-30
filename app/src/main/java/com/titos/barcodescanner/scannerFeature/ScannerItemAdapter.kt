@@ -20,7 +20,6 @@ class ScannerItemAdapter(private val mValues: ArrayList<ScannerItem>) : Recycler
     var onItemClick:((Int,String,Int)->Unit)?= null //For increase/decrease quantity
     var onItemRemoveClick:((Int)->Unit)? = null
     var context: Context? = null
-    var onItemEditClick:((Int,String,String)->Unit)? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -93,10 +92,6 @@ class ScannerItemAdapter(private val mValues: ArrayList<ScannerItem>) : Recycler
 
         holder.mRemoveItemButton.setOnClickListener {
             onItemRemoveClick?.invoke(position)
-        }
-
-        holder.mLinearLayout.setOnClickListener {
-            onItemEditClick?.invoke(position, mValues[position].name,mValues[position].price)
         }
 
     }
