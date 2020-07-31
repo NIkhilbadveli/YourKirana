@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_scannerFragment_to_agreementFragment"
             app:destination="@id/agreementFragment" />
+        <action
+            android:id="@+id/action_scannerFragment_to_addNewProductFragment"
+            app:destination="@id/addNewProductFragment" />
     </fragment>
     <fragment
         android:id="@+id/dashboardFragment"
@@ -78,4 +81,9 @@
         android:name="com.titos.barcodescanner.KhataFragmentOutside"
         android:label="KhataFragment"
         tools:layout="@layout/fragment_khata_outside"/>
+    <fragment
+        android:id="@+id/addNewProductFragment"
+        android:name="com.titos.barcodescanner.scannerFeature.AddNewProductFragment"
+        android:label="fragment_add_new_product"
+        tools:layout="@layout/fragment_add_new_product" />
 </navigation>
