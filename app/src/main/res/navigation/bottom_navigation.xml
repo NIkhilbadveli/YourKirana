@@ -19,7 +19,7 @@
     </fragment>
     <fragment
         android:id="@+id/dashboardFragment"
-        android:name="com.titos.barcodescanner.dashboardFeature."
+        android:name="com.titos.barcodescanner.dashboardFeature.DashboardFragmentOutside"
         android:label="Dashboard"
         tools:layout="@layout/fragment_dashboard_outside" >
     </fragment>
@@ -43,12 +43,9 @@
     </fragment>
     <fragment
         android:id="@+id/myStoreFragment"
-        android:name="com.titos.barcodescanner.inventoryFeature.InventoryFragment"
+        android:name="com.titos.barcodescanner.inventoryFeature.InventoryFragmentOutside"
         android:label="My Store"
-        tools:layout="@layout/fragment_inventory">
-        <action
-            android:id="@+id/action_myStoreFragment_to_dashboardFragment"
-            app:destination="@id/dashboardFragment" />
+        tools:layout="@layout/fragment_inventory_outside">
     </fragment>
     <fragment
         android:id="@+id/orderItemsFragment"

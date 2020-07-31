@@ -3,6 +3,7 @@ package com.titos.barcodescanner.scannerFeature
 import android.app.Activity
 import android.app.Dialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Bitmap
@@ -16,15 +17,22 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.activity.addCallback
 import androidx.fragment.app.DialogFragment
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.google.firebase.storage.FirebaseStorage
 import com.titos.barcodescanner.R
+import kotlinx.coroutines.withContext
 import java.io.FileOutputStream
 import java.io.OutputStream
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.concurrent.schedule
 
-class AddNewProductFragment : DialogFragment() {
+class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : DialogFragment() {
 
     private lateinit var sharedPref: SharedPreferences
     private var shopName = "Temp Store"
@@ -65,12 +73,21 @@ class AddNewProductFragment : DialogFragment() {
 
         val type = arrayOf<String>("units", "kgs")
         val category = arrayOf<String>("Branded Foods","Loose Items","Fridge Products","Beauty","Health and Hygiene","Home Needs")
+
         val branded = arrayOf<String>("Ready to Eat" , "Snacks ","Biscuits","Breakfast Cereals" , "Packaged kitchen needs")
         val loose = arrayOf<String>("Rice","Sugar","Rock Salt","Wheat","Maida","Dal & Pulses","Others (Eggs)")
         val fridge = arrayOf<String>("Milk", "Curd", "Cheese", "Panner","Cool drinks","Batter","Chocolates","Mushroom & Others")
         val beauty = arrayOf<String>("Oral care","Hair care","Skin care","Baby care")
-        val home = arrayOf<String>("Laundry","Cleaning","Pooja Needs","Toiletries")
         val health = arrayOf<String>("Pads","Covid Protection","Condoms","Tissues & Gloves","OTC")
+        val home = arrayOf<String>("Laundry","Cleaning","Pooja Needs","Toiletries")
+
+        val subCategoryList = ArrayList<Array<String>>()
+        subCategoryList.add(branded)
+        subCategoryList.add(loose)
+        subCategoryList.add(fridge)
+        subCategoryList.add(beauty)
+        subCategoryList.add(health)
+        subCategoryList.add(home)
 
         spinType.adapter = ArrayAdapter<String>(requireContext(),android.R.layout.simple_list_item_1,type)
 
@@ -80,32 +97,13 @@ class AddNewProductFragment : DialogFragment() {
             override fun onNothingSelected(parent: AdapterView<*>?) {
 
             }
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long
-            ) {
-                when (position) {
-                    0 -> {
-                        spinSubCategory.adapter = ArrayAdapter(requireContext(),android.R.layout.simple_list_item_1,branded)
-                    }
-                    1 -> {
-                        spinSubCategory.adapter = ArrayAdapter<String>(requireContext(),android.R.layout.simple_list_item_1,loose)
-                    }
-                    2 -> {
-                        spinSubCategory.adapter = ArrayAdapter<String>(requireContext(),android.R.layout.simple_list_item_1,fridge)
-                    }
-                    3 -> {
-                        spinSubCategory.adapter = ArrayAdapter<String>(requireContext(),android.R.layout.simple_list_item_1,beauty)
-                    }
-                    4 -> {
-                        spinSubCategory.adapter = ArrayAdapter<String>(requireContext(),android.R.layout.simple_list_item_1,home)
-                    }
-                    5 -> {
-                        spinSubCategory.adapter = ArrayAdapter<String>(requireContext(),android.R.layout.simple_list_item_1,health)
-                    }
-                }
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                spinSubCategory.adapter = ArrayAdapter(requireContext(),android.R.layout.simple_list_item_1,subCategoryList[position])
             }
         }
 
         barcode = if(arguments?.getString("barcode")!=null) arguments?.getString("barcode")!! else "00000"
+
         val prodInfo = FirebaseDatabase.getInstance().reference.child("inventoryData/$shopName/$barcode")
 
         pName = layoutView.findViewById(R.id.edit_name)
@@ -142,6 +140,27 @@ class AddNewProductFragment : DialogFragment() {
             }
         }
 
+        val edit = if(arguments?.getBoolean("edit")!=null) arguments?.getBoolean("edit")!! else false
+        if (edit){
+            add.text = "Update"
+            prodInfo.addListenerForSingleValueEvent(object : ValueEventListener{
+                override fun onCancelled(p0: DatabaseError) {
+
+                }
+
+                override fun onDataChange(p0: DataSnapshot) {
+                    pName.setText(p0.child("name").value.toString())
+                    sp.setText(p0.child("sellingPrice").value.toString())
+                    cp.setText(p0.child("costPrice").value.toString())
+                    etQuantity.setText(p0.child("qty").value.toString())
+
+                    val index = category.indexOf(p0.child("category").value.toString())
+                    spinCategory.setSelection(index)
+                    spinSubCategory.setSelection(subCategoryList[index].indexOf(p0.child("subCategory").value.toString()))
+                }
+
+            })
+        }
 
         return layoutView
     }
@@ -180,6 +199,10 @@ class AddNewProductFragment : DialogFragment() {
         return list
     }
 
+    override fun onDismiss(dialog: DialogInterface) {
+        callAddToList.invoke(getRequiredData())
+    }
+
     private fun uploadImageAndUpdateUrl(bitmap: Bitmap){
 
         val file = createTempFile(barcode, ".jpg")
@@ -194,11 +217,12 @@ class AddNewProductFragment : DialogFragment() {
 
         //Toast.makeText(requireContext(),"Started uploading",Toast.LENGTH_SHORT).show()
 
-        uploadTask.addOnFailureListener {
-
-        }.addOnSuccessListener {
-            url = imageRef.downloadUrl.toString()
+        uploadTask.addOnSuccessListener {
             Toast.makeText(requireContext(),"Successfully uploaded",Toast.LENGTH_SHORT).show()
-        }
+        }.addOnFailureListener { Toast.makeText(requireContext(),it.toString(),Toast.LENGTH_SHORT).show() }
+
+        imageRef.downloadUrl.addOnSuccessListener {
+            url = it.toString()
+        }.addOnFailureListener { Toast.makeText(requireContext(),it.toString(),Toast.LENGTH_SHORT).show() }
     }
 }

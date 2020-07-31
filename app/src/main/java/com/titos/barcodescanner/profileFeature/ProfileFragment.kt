@@ -35,7 +35,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
-import com.titos.barcodescanner.AppDatabase
+
 import com.titos.barcodescanner.R
 import com.titos.barcodescanner.loginFeature.LoginActivity
 import com.xwray.groupie.GroupAdapter
@@ -198,13 +198,13 @@ class ProfileFragment : Fragment() {
     }
 
     private fun clearData(){
-        val db = AppDatabase(requireContext())
+
         val dialogBuilder = AlertDialog.Builder(requireContext())
         dialogBuilder.setMessage("Are you sure?")
                 .setCancelable(false)
                 .setPositiveButton("Yes", DialogInterface.OnClickListener {
                     dialog, id ->
-                    GlobalScope.launch { db.clearAllTables() }
+
                     Snackbar.make(requireView(),"All data is cleared from local storage",Snackbar.LENGTH_SHORT).show()
                 })
                 .setNegativeButton("No", DialogInterface.OnClickListener {

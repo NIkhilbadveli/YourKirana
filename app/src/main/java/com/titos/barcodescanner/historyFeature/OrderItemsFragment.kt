@@ -51,8 +51,7 @@ class OrderItemsFragment : Fragment(){
         view.findViewById<TextView>(R.id.go_back).setOnClickListener {
             findNavController().navigateUp()
         }
-        for (item in itemsInOrder)
-            groupAdapter.add(OrderItem(item))
+
 
         return view
     }

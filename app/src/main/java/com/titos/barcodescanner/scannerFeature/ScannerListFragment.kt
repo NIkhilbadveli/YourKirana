@@ -60,11 +60,6 @@ class ScannerListFragment : Fragment() {
 
     private lateinit var floatingActionButton: FloatingActionButton
     private lateinit var sharedPref: SharedPreferences
-    private lateinit var databaseHelper: DatabaseHelper
-
-    interface DataSharing{
-        fun callAddToList(list: ArrayList<String>)
-    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -75,13 +70,8 @@ class ScannerListFragment : Fragment() {
         handleSwitching(view)
         
         databaseReference = FirebaseDatabase.getInstance().reference
-        databaseHelper = DatabaseHelper(shopName, parentFragmentManager, model!!, object : DataSharing{
-            override fun callAddToList(list: ArrayList<String>) {
-                addToListView(list[0], list[1], list[2], list[3])
-            }
-        })
 
-        model?.selected?.observe(viewLifecycleOwner, Observer { s -> databaseHelper.searchForProduct(s) })
+        model?.selected?.observe(viewLifecycleOwner, Observer { s -> searchForProduct(s) })
 
         sharedPref = activity?.getSharedPreferences("sharedPref",Context.MODE_PRIVATE)!!
         shopName = sharedPref.getString("shopName",shopName)!!
@@ -151,6 +141,53 @@ class ScannerListFragment : Fragment() {
                 switch.text = getString(R.string.inventory_mode)
             }
         }
+    }
+
+    private fun searchForProduct(barcode: String) {
+
+        val inventoryRef = databaseReference!!.child("inventoryData").child(shopName).child(barcode)
+        inventoryRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    val list = ArrayList<String>()
+                    list.add(barcode)
+                    list.add(dataSnapshot.child("name").value.toString())
+                    list.add(dataSnapshot.child("sellingPrice").value.toString())
+                    list.add("dummyURL")
+                    addToListView(list[0], list[1], list[2], list[3])
+                }
+                else{
+                    showNewProductDialog(barcode)
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+
+            }
+        })
+    }
+
+
+    private fun showNewProductDialog(s: String) {
+        model?.pauseScanner()
+
+        val callAddToList: (ArrayList<String>)->Unit = { list ->
+            model?.resumeScanner()
+            if (list[0].isNotEmpty()&&list[1].isNotEmpty())
+                addToListView(list[0], list[1], list[2], list[3])
+        }
+
+        val addNewProductFragment = AddNewProductFragment(callAddToList)
+        val bundle = Bundle()
+        bundle.putString("barcode",s)
+        addNewProductFragment.arguments = bundle
+
+        val manager = parentFragmentManager
+        val ft = manager.findFragmentByTag("addNewProductFragment")
+        if (ft!=null)
+            manager.beginTransaction().remove(ft)
+
+        addNewProductFragment.show(manager, "addNewProductFragment")
     }
 
     @SuppressLint("SetTextI18n")

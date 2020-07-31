@@ -41,11 +41,8 @@ import kotlinx.coroutines.withContext
 
 class DashboardFragmentOutside : Fragment()
 {
-
-    private var recyclerView: RecyclerView? = null
     private var shopName = "Temp Store"
-    private var todaySales: Double = 0.0
-    private var db: AppDatabase? = null
+
     private lateinit var barChart: BarChart
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -53,7 +50,7 @@ class DashboardFragmentOutside : Fragment()
     {
         val view = inflater.inflate(R.layout.fragment_dashboard_outside, container, false)
 
-        val viewPager = view.findViewById<ViewPager2>(R.id.view_pager)
+        val viewPager = view.findViewById<ViewPager2>(R.id.pagerDashboard)
         viewPager.adapter = PagerAdapter(this)
 
         val tabLayout = view.findViewById<TabLayout>(R.id.tab_layout)
@@ -65,8 +62,6 @@ class DashboardFragmentOutside : Fragment()
             }
 
         }.attach()
-
-
 
         barChart = view.findViewById(R.id.barchart)
 
@@ -91,18 +86,12 @@ class DashboardFragmentOutside : Fragment()
         toolbar!!.findViewById<TextView>(R.id.text_view_toolbar).visibility = View.VISIBLE
         toolbar.findViewById<SwitchCompat>(R.id.inventory_scanner_switch).visibility = View.GONE
 
-        db = AppDatabase(context!!)
-
-        recyclerView = view.findViewById(R.id.list_of_top5)
-        recyclerView!!.layoutManager = LinearLayoutManager(context)
-
-
 
         val databaseReference = FirebaseDatabase.getInstance().reference
         val sharedPref = activity?.getSharedPreferences("sharedPref",Context.MODE_PRIVATE)
 
         shopName = sharedPref?.getString("shopName",shopName)!!
-
+        dashboardHelper()
 
         return view
     }
@@ -116,28 +105,17 @@ class DashboardFragmentOutside : Fragment()
         val startDate = otherDateFormat.format(dateFormatter.parse(weekDays[0])!!)
         val endDate = otherDateFormat.format(dateFormatter.parse(weekDays[6])!!)
 
-        GlobalScope.launch (Dispatchers.IO)
-        {
-            val totalSales = db?.crudMethods()?.getTotalSales()!!
-            val itemLevelSales = db?.crudMethods()?.getAllItemsSales()
-            val thisWeekSales = db?.crudMethods()?.getThisWeekSales(weekDays[0],weekDays[6])!!
-            val allDaySales = db?.crudMethods()?.getAllDaysSales()
+        val totalSales = "0.0"
+        val itemLevelSales = "0.0"
+        val thisWeekSales = "0.0"
+        val allDaySales = ArrayList<DaySales>()
 
-            withContext(Dispatchers.Main)
-            {
+        /*dbrd_total_sales_value.text = "Rs. "+ totalSales
+        dbrd_this_week_sales_title.text = "$startDate - $endDate"
+        dbrd_this_week_sales_value.text = "Rs. "+thisWeekSales*/
 
-                dbrd_total_sales_value.text = "Rs. "+ totalSales!!.toDouble().toString()
-                dbrd_this_week_sales_title.text = "$startDate - $endDate"
-                dbrd_this_week_sales_value.text = "Rs. "+thisWeekSales.toString()
+        //populateBarEntries(allDaySales)
 
-                if (itemLevelSales!!.size>5)
-                    recyclerView!!.adapter = TopFiveItemAdapter(itemLevelSales.subList(0, 5),context!!)
-                else
-                    recyclerView!!.adapter = TopFiveItemAdapter(itemLevelSales,context!!)
-
-            }
-            populateBarEntries(allDaySales!!)
-        }
     }
 
     private fun populateBarEntries(allDaySales: List<DaySales>)
@@ -209,3 +187,6 @@ class DashboardFragmentOutside : Fragment()
         return days
     }
 }
+
+data class DaySales(val orderDate: String, val sales: Double)
+data class ItemQtyAndSales(val itemName: String, val qty: String, val sales: Double)

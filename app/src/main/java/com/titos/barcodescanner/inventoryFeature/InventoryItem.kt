@@ -7,8 +7,10 @@ import com.xwray.groupie.kotlinandroidextensions.Item
 import kotlinx.android.synthetic.main.item_inventory.*
 import java.util.*
 
-class InventoryItem(val looseItem: Boolean,val itemName: String, val itemQty: String, val itemPrice:String, val onItemRemoveClick:((Boolean,String,Int)->Unit),
-                    val onItemEditClick: ((Boolean,String,String,String, Int)->Unit)): Item() {
+class InventoryItem(val looseItem: Boolean,val itemName: String, val itemQty: String, val itemPrice:String, val onItemRemoveClick:((Int)->Unit),
+                    val onItemEditClick: ((Int)->Unit)): Item() {
+
+    var barcode = "00000"
 
     override fun bind(viewHolder: GroupieViewHolder, position: Int){
         viewHolder.apply {
@@ -23,11 +25,11 @@ class InventoryItem(val looseItem: Boolean,val itemName: String, val itemQty: St
             mystore_item_qty.setText(itemQty)
 
             remove_inventory_item_button.setOnClickListener {
-                onItemRemoveClick.invoke(looseItem,itemName,  position)
+                onItemRemoveClick.invoke(position)
             }
 
             edit_quantity_button.setOnClickListener {
-                onItemEditClick.invoke(looseItem,itemName,itemQty,itemPrice,position)
+                onItemEditClick.invoke(position)
             }
 
             subtract_quantity_button.setOnClickListener {
