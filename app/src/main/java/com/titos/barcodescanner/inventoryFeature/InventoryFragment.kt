@@ -21,7 +21,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.titos.barcodescanner.AppDatabase
 import com.titos.barcodescanner.InventoryTable
 import com.titos.barcodescanner.R
@@ -129,54 +132,23 @@ class InventoryFragment : Fragment(), SearchView.OnQueryTextListener {
     }
 
     private fun populateView(){
-        GlobalScope.launch {
 
-            val allInventoryItems = db?.crudMethods()?.getAllInventoryItems()!!
-
-            withContext(Dispatchers.Main){
-                for (item in allInventoryItems){
-                    if (item.scannedItem){
-                        val itemInv = InventoryItem(false, item.itemName, item.itemQty.toInt().toString(),
-                                item.itemPrice.toInt().toString(),
-                                onItemRemoveClick!!,onItemEditClick!!)
-                        groupAdapterScanned.add(itemInv)
-                        barcodeList.add(item.barcode)
-                        nameList.add(item.itemName)
-                        inventoryList.add(itemInv)
-                    }
-                    else
-                        groupAdapter.add(InventoryItem(true, item.itemName, "Rs. " + item.itemPrice.toInt().toString() + " /Kg",
-                                item.itemPrice.toInt().toString(),onItemRemoveClick!!,onItemEditClick!!))
-
-                }
-
-                if (!sharedPref.getBoolean("inventoryTutorialCompleted",false) && !sharedPref.getBoolean("skipInvTutorial",false)){
-                    val simpleTooltip = SimpleTooltip.Builder(context)
-                            .anchorView(recyclerViewScannedItems)
-                            .text(R.string.step_6)
-                            .gravity(Gravity.BOTTOM)
-                            .animated(true)
-                            .transparentOverlay(false)
-                            .contentView(R.layout.walkthrough, R.id.step_desc)
-                            .dismissOnOutsideTouch(false)
-                            .dismissOnInsideTouch(false)
-                            .build()
-
-                    simpleTooltip.findViewById<Button>(R.id.btn_next).text = "Done"
-                    simpleTooltip.findViewById<TextView>(R.id.step_number).text = "Step - 6"
-                    simpleTooltip.findViewById<Button>(R.id.btn_next).setOnClickListener {
-                        simpleTooltip.dismiss()
-                        with (sharedPref.edit()) {
-                            putBoolean("inventoryTutorialCompleted", true)
-                            apply()
-                        }
-                    }
-                    simpleTooltip.findViewById<Button>(R.id.btn_skip).visibility = View.GONE
-                    simpleTooltip.show()
-                }
+        val prodRef = FirebaseDatabase.getInstance().reference.child("inventoryData/$shopName")
+                prodRef.addListenerForSingleValueEvent(object : ValueEventListener{
+            override fun onCancelled(p0: DatabaseError) {
 
             }
-        }
+
+            override fun onDataChange(p0: DataSnapshot) {
+                for(barcode in p0.children)
+                {
+                    inventoryList.add(InventoryItem(false,barcode.child("name").value.toString(),
+                            barcode.child("sellingPrice").value.toString(),barcode.child("qty").value.toString(),onItemRemoveClick!!,onItemEditClick!!))
+
+                }
+                groupAdapterScanned.addAll(inventoryList)
+            }
+        })
 
     }
 

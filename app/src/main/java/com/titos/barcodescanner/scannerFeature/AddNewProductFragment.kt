@@ -170,5 +170,4 @@ class AddNewProductFragment : Fragment() {
             imageBtn.setImageURI(data?.data)
         }
     }
-
 }
