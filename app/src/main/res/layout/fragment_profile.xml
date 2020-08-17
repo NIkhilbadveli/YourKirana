@@ -28,6 +28,16 @@
         android:elevation="8dp"
         />
 
+    <ImageView
+        android:id="@+id/btn_add_user"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_person_add_black_48dp"
+        android:layout_toEndOf="@id/profile_avatar"
+        android:layout_above="@id/settings_container"
+        android:elevation="8dp"
+        android:layout_marginStart="60dp"/>
+
     <androidx.cardview.widget.CardView
         android:id="@+id/settings_container"
         android:layout_width="match_parent"

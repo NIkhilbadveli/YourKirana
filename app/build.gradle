@@ -86,11 +86,10 @@ dependencies {
     implementation 'agency.tango.android:avatar-view:0.0.2'
     implementation 'agency.tango.android:avatar-view-picasso:0.0.2'
 
-    implementation "androidx.room:room-runtime:2.2.5"
     implementation "androidx.legacy:legacy-support-v4:1.0.0"
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0'
-    kapt "androidx.room:room-compiler:2.2.5"
+
 
     implementation "androidx.work:work-runtime-ktx:2.3.4"
     implementation "androidx.work:work-runtime:2.3.4"
@@ -99,11 +98,8 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.9.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.10.0'
 
-    implementation 'com.google.firebase:firebase-dynamic-links-ktx:19.1.0'
     implementation 'com.google.firebase:firebase-analytics:17.4.2'
 
     implementation 'com.google.android.gms:play-services-location:17.0.0'
 
-    implementation 'com.github.douglasjunior:android-simple-tooltip:0.2.3'
-    implementation 'com.github.AppIntro:AppIntro:6.0.0'
 }

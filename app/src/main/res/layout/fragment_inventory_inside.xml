@@ -16,7 +16,6 @@
         android:background="@drawable/thin_border"
         android:layout_margin="10dp"/>
 
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_mystore_scannable"
             android:layout_width="match_parent"
@@ -25,6 +24,5 @@
             android:orientation="vertical"
             tools:listitem="@layout/item_inventory"
             android:background="@color/inventoryListBackground"/>
-
 
 </LinearLayout>

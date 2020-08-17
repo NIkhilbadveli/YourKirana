@@ -4,6 +4,7 @@
     <color name="colorPrimaryDark">#353839</color>
     <color name="colorAccent">#277553</color>
     <color name="textColorBlack">#000</color>
+    <color name="black">#000</color>
     <color name="textColorWhite">#fff</color>
     <color name="greyBaseShade">#535D6E</color>
     <color name="greyDarkerShade">#444E5E</color>
@@ -13,4 +14,6 @@
     <color name="chartBackground">#252525</color>
     <color name="chartBackgroundLight">#80252525</color>
     <color name="inventoryListBackground">#f2f2f2</color>
+    <color name="red">#FF0000</color>
+    <color name="green">#00ff00</color>
 </resources>

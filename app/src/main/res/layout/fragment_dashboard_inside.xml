@@ -6,10 +6,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/list_of_top5"
+        android:id="@+id/rv_top_five"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:context=".dashboardFeature.DashboardFragmentOutside"
         tools:listitem="@layout/item_top_five"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
 

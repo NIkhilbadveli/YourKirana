@@ -5,7 +5,8 @@ import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import kotlinx.android.synthetic.main.item_history.*
 
-class HistoryItem(private val orderNumber: String, val orderTime: String, val orderValue: String,val onItemRemoveClick:((Int,Int)->Unit)): Item() {
+class HistoryItem(private val orderNumber: String, val orderTime: String, val orderValue: String,val onItemRemoveClick:((Int,Int)->Unit),
+                  val onItemClick:((Int)->Unit)): Item() {
     override fun bind(viewHolder: GroupieViewHolder, position: Int){
         viewHolder.apply {
             history_order_number.text = orderNumber
@@ -17,7 +18,9 @@ class HistoryItem(private val orderNumber: String, val orderTime: String, val or
             if (amPm=="PM"&&hour.toInt()>6)
                 day_night_indicator.setImageResource(R.drawable.ic_nights_stay_24px)
 
-            delete_button.setOnClickListener { onItemRemoveClick.invoke(orderNumber.split(" ").last().toInt(),position) }
+            delete_button.setOnClickListener { onItemRemoveClick.invoke(orderNumber.split(" ").last().toInt()-1,position) }
+
+            containerView.setOnClickListener { onItemClick.invoke(orderNumber.split(" ").last().toInt() - 1) }
         }
     }
 

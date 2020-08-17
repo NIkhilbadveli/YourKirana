@@ -10,9 +10,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.os.Bundle
-import android.os.Parcelable
-import android.renderscript.Sampler
-import android.view.Gravity
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,7 +18,7 @@ import android.widget.*
 import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
+
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
@@ -29,20 +27,15 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.database.*
-import com.google.firebase.ml.vision.FirebaseVision
-import com.google.firebase.ml.vision.common.FirebaseVisionImage
+
 import com.titos.barcodescanner.*
 import com.titos.barcodescanner.R
-import io.github.douglasjunior.androidSimpleTooltip.SimpleTooltip
-import kotlinx.android.parcel.Parcelize
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+
+
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.concurrent.schedule
+
 
 
 class ScannerListFragment : Fragment() {
@@ -225,13 +218,16 @@ class ScannerListFragment : Fragment() {
         var qty: EditText?
         var itemView: View?
 
+        //Adding items to data
         for (i in 0 until itemCount) {
             itemView = recyclerView?.getChildAt(i)
             if (itemView != null) {
                 qty = itemView.findViewById(R.id.item_quantity)
-                transactionRef.child(barcodeList[i]).setValue(qty.text.toString())
+                transactionRef.child("items/${barcodeList[i]}").setValue(qty.text.toString())
             }
         }
+        //Adding orderValue to data
+        transactionRef.child("orderValue").setValue(tvTotal?.text.toString().split(' ').last())
 
         val snack = Snackbar.make(view!!, "Added to Transaction History!", Snackbar.LENGTH_SHORT)
         //snack.setAction("View History", getTohistory())

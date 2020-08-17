@@ -15,7 +15,6 @@
         android:background="?attr/colorPrimary"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
-        app:logo="@mipmap/ic_launcher"
         android:elevation="5dp">
         <RelativeLayout
             android:layout_width="match_parent"

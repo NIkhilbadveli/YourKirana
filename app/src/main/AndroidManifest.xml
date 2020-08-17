@@ -31,15 +31,8 @@
             android:name=".MainActivity"
             android:screenOrientation="portrait"
             android:stateNotNeeded="true"
-            android:windowSoftInputMode="stateAlwaysHidden">
-        </activity>
-
-        <activity android:name=".loginFeature.LoginActivity"
+            android:windowSoftInputMode="stateAlwaysHidden"
             android:launchMode="singleInstance">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -48,6 +41,14 @@
                     android:scheme="https"
                     android:host="titos.page.link"/>
             </intent-filter>
+        </activity>
+
+        <activity android:name=".loginFeature.LoginActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
         </activity>
 
     </application>

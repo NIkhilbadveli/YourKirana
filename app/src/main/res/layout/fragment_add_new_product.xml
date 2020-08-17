@@ -38,64 +38,63 @@
                 />
 
             <RelativeLayout
+                android:id="@+id/rel"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/rel">
+                android:layout_height="wrap_content">
+
                 <LinearLayout
+                    android:id="@+id/name1"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:layout_marginStart="10dp"
-                    android:id="@+id/name1">
+                    android:orientation="horizontal">
 
                     <TextView
+                        android:id="@+id/name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Product Name"
-                        android:id="@+id/name"
                         android:textColor="#277553"
-                        android:textSize="12sp"
-                        />
+                        android:textSize="12sp" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="*"
+                        android:layout_gravity="center"
                         android:layout_marginStart="5dp"
                         android:gravity="center"
-                        android:layout_gravity="center"
-                        android:textSize="12sp"
+                        android:text="*"
                         android:textColor="#EA0404"
-                        />
+                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <EditText
+                    android:id="@+id/edit_name"
                     android:layout_width="200dp"
                     android:layout_height="wrap_content"
-                    android:id="@+id/edit_name"
-                    android:inputType="text"
-                    android:layout_margin="10dp"
                     android:layout_below="@id/name1"
-                    />
+                    android:layout_margin="10dp"
+                    android:inputType="text" />
 
                 <TextView
+                    android:id="@+id/type"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/type"
-                    android:textSize="12sp"
                     android:layout_below="@id/edit_name"
-                    android:text="Product Type"
                     android:layout_marginStart="10dp"
+                    android:text="Product Type"
                     android:textColor="#277553"
-                    />
+                    android:textSize="12sp" />
 
                 <LinearLayout
+                    android:id="@+id/quant"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_toEndOf="@id/type"
                     android:layout_below="@id/edit_name"
-                    android:id="@+id/quant"
                     android:layout_marginStart="50dp"
+                    android:layout_toEndOf="@id/type"
                     android:orientation="horizontal">
+
                     <TextView
                         android:id="@+id/quantity"
                         android:layout_width="wrap_content"
@@ -103,95 +102,91 @@
                         android:text="Product Quantity"
                         android:textColor="#277553"
                         android:textSize="12sp" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="*"
-                        android:layout_marginStart="5dp"
                         android:layout_gravity="center"
+                        android:layout_marginStart="5dp"
                         android:gravity="center"
+                        android:text="*"
                         android:textColor="#EA0404"
                         android:textSize="12sp" />
                 </LinearLayout>
 
                 <ImageView
+                    android:id="@+id/imageBtn"
                     android:layout_width="100dp"
                     android:layout_height="100dp"
-                    android:id="@+id/imageBtn"
-                    android:layout_toEndOf="@+id/quant"
-                    android:layout_marginTop="20dp"
-                    android:src="@drawable/ic_photo_camera_black_24dp"
                     android:layout_marginStart="30dp"
+                    android:layout_marginTop="20dp"
+                    android:layout_toEndOf="@+id/quant"
                     android:scaleType="fitCenter"
-                    />
+                    android:src="@drawable/ic_photo_camera_black_24dp" />
 
                 <Spinner
+                    android:id="@+id/spinner"
                     android:layout_width="120dp"
                     android:layout_height="wrap_content"
-                    android:id="@+id/spinner"
                     android:layout_below="@+id/type"
                     android:layout_marginStart="5dp"
                     android:popupBackground="@android:color/white"
                     android:scrollbars="none"
-                    android:spinnerMode="dropdown"
-                    />
+                    android:spinnerMode="dropdown" />
 
                 <EditText
+                    android:id="@+id/edit_quantity"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/quant"
-                    android:id="@+id/edit_quantity"
-                    android:backgroundTint="#999999"
                     android:layout_margin="10dp"
-                    android:layout_toEndOf="@id/spinner"
                     android:layout_toStartOf="@id/imageBtn"
-                    android:inputType="number"
+                    android:layout_toEndOf="@id/spinner"
+                    android:backgroundTint="#999999"
                     android:digits="0123456789"
-                    />
+                    android:inputType="number" />
 
                 <LinearLayout
+                    android:id="@+id/linear"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:id="@+id/linear"
                     android:layout_below="@id/edit_quantity"
-                    >
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
                         android:text="Product Category"
                         android:textColor="#277553"
-                        android:textSize="12sp"
-                        android:layout_marginStart="10dp"
-                        />
+                        android:textSize="12sp" />
+
                     <Spinner
+                        android:id="@+id/spinner1"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:id="@+id/spinner1"
                         android:layout_marginStart="10dp"
                         android:popupBackground="@android:color/white"
                         android:scrollbars="none"
-                        android:spinnerMode="dropdown"
-                        />
+                        android:spinnerMode="dropdown" />
+
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
                         android:text="Product Sub Category"
                         android:textColor="#277553"
-                        android:textSize="12sp"
-                        android:layout_marginStart="10dp"
-                        />
+                        android:textSize="12sp" />
+
                     <Spinner
+                        android:id="@+id/spinner2"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:id="@+id/spinner2"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginBottom="10dp"
                         android:popupBackground="@android:color/white"
                         android:scrollbars="none"
-                        android:layout_marginStart="10dp"
-                        android:spinnerMode="dropdown"
-                        android:layout_marginBottom="10dp"
-                        />
+                        android:spinnerMode="dropdown" />
                 </LinearLayout>
             </RelativeLayout>
         </LinearLayout>

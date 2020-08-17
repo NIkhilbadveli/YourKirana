@@ -17,10 +17,7 @@ import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.core.app.ShareCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -34,6 +31,8 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.dynamiclinks.DynamicLink
+import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
 import com.google.firebase.storage.FirebaseStorage
 
 import com.titos.barcodescanner.R
@@ -77,8 +76,6 @@ class ProfileFragment : Fragment() {
         groupAdapter.add(ProfileItem(R.drawable.icons8_administrator_male_48px_2, "Edit Profile"))
         groupAdapter.add(ProfileItem(R.drawable.icons8_share_48px, "Share App"))
         groupAdapter.add(ProfileItem(R.drawable.icons8_office_phone_48px_1, "Contact Us"))
-        groupAdapter.add(ProfileItem(R.drawable.icons8_secure_cloud_80px, "Backup"))
-        groupAdapter.add(ProfileItem(R.drawable.icons8_trash_can_48px, "Clear Data"))
         groupAdapter.add(ProfileItem(R.drawable.icons8_logout_rounded_left_48px, "Logout"))
 
         val dialog = ProgressDialog.progressDialog(requireContext())
@@ -87,9 +84,7 @@ class ProfileFragment : Fragment() {
                 0 -> editProfile(user)
                 1 -> shareApp()
                 2 -> shareContactDetails()
-                3 -> backupDataToFirebase(user)
-                4 -> clearData()
-                5 -> logoutFromApp(dialog)
+                3 -> logoutFromApp(dialog)
             }
         }
 
@@ -97,6 +92,25 @@ class ProfileFragment : Fragment() {
         customerRequestsButton.setOnClickListener {
             findNavController().navigate(R.id.action_profileFragment_to_customerRequestsFragment)
         }
+
+        val shortTask = FirebaseDynamicLinks.getInstance()
+                .createDynamicLink()
+                .setLink(Uri.parse("https://www.rikistores.com?shopName=$shopName"))
+                .setDomainUriPrefix("https://titos.page.link")
+                .setAndroidParameters(DynamicLink.AndroidParameters.Builder("com.titos.rikistores").build())
+                .buildShortDynamicLink()
+
+        shortTask.addOnSuccessListener {
+            val msg = "$userName invited you to join his store $shopName on Rikistores app. " +
+                    "\n \n Click here to join ----> " + it.shortLink
+            view.findViewById<ImageView>(R.id.btn_add_user).setOnClickListener {
+                ShareCompat.IntentBuilder.from(requireActivity())
+                        .setType("text/plain")
+                        .setChooserTitle("Send the referral code via...")
+                        .setText(msg)
+                        .startChooser()
+            }
+        }.addOnFailureListener{ }
 
         return  view
     }
@@ -174,71 +188,6 @@ class ProfileFragment : Fragment() {
                     startActivity(Intent(requireContext(), LoginActivity::class.java))
                     activity?.finish()
                 }
-    }
-
-    private fun backupDataToFirebase(user: FirebaseUser){
-        createZip()
-
-        val storageRef = FirebaseStorage.getInstance().reference
-        val sharedPref = activity?.getSharedPreferences("sharedPref",Context.MODE_PRIVATE)
-        val shopName = sharedPref?.getString("shopName","shop")
-        val filePath = getString(R.string.file_path)
-
-        val file = Uri.fromFile(File("$filePath/db.zip"))
-        val userRef = storageRef.child( "$shopName/${file.lastPathSegment}")
-        val uploadTask = userRef.putFile(file)
-
-        Toast.makeText(requireContext(),"Started uploading",Toast.LENGTH_SHORT).show()
-
-        uploadTask.addOnFailureListener {
-
-        }.addOnSuccessListener {
-            Toast.makeText(requireContext(),"Successfully uploaded",Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun clearData(){
-
-        val dialogBuilder = AlertDialog.Builder(requireContext())
-        dialogBuilder.setMessage("Are you sure?")
-                .setCancelable(false)
-                .setPositiveButton("Yes", DialogInterface.OnClickListener {
-                    dialog, id ->
-
-                    Snackbar.make(requireView(),"All data is cleared from local storage",Snackbar.LENGTH_SHORT).show()
-                })
-                .setNegativeButton("No", DialogInterface.OnClickListener {
-                    dialog, id -> dialog.cancel()
-                })
-
-        val alert = dialogBuilder.create()
-        alert.setTitle("Clear Data")
-        alert.show()
-    }
-
-    private fun createZip(){
-        val path = getString(R.string.database_path)
-        val filePath = getString(R.string.file_path)
-
-        val files: Array<String> = arrayOf("$path/mystore-data.db", "$path/mystore-data.db-shm","$path/mystore-data.db-wal")
-        ZipOutputStream(BufferedOutputStream(FileOutputStream("$filePath/db.zip"))).use { out ->
-            val data = ByteArray(1024)
-            for (file in files) {
-                FileInputStream(file).use { fi ->
-                    BufferedInputStream(fi).use { origin ->
-                        val entry = ZipEntry(file)
-                        out.putNextEntry(entry)
-                        while (true) {
-                            val readBytes = origin.read(data)
-                            if (readBytes == -1) {
-                                break
-                            }
-                            out.write(data, 0, readBytes)
-                        }
-                    }
-                }
-            }
-        }
     }
 
     class ProgressDialog {

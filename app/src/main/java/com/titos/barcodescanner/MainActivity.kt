@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.edit
@@ -27,6 +28,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
 import com.google.firebase.storage.FirebaseStorage
 import com.ismaeldivita.chipnavigation.ChipNavigationBar
 import com.titos.barcodescanner.profileFeature.ProfileFragment
@@ -108,6 +110,26 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         profileAvatar.setOnClickListener { findNavController(R.id.fragment).navigate(R.id.profileFragment) }
 
         setShopLocation(userRef)
+
+        //Handling firebase dynamic links
+        FirebaseDynamicLinks.getInstance()
+                .getDynamicLink(intent)
+                .addOnSuccessListener(this) { pendingDynamicLinkData ->
+                    // Get deep link from result (may be null if no link is found)
+                    var deepLink: Uri? = null
+                    if (pendingDynamicLinkData != null) {
+                        deepLink = pendingDynamicLinkData.link
+                        shopName = deepLink?.getQueryParameter("shopName")!!
+                        userRef.child("shopName").setValue(shopName)
+                        sharedPref.edit {
+                            putString("shopName", shopName)
+                            commit()
+                        }
+                        Toast.makeText(this, "You are successfully added to $shopName", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .addOnFailureListener(this) { e -> Log.w("RikiError", "getDynamicLink:onFailure", e) }
+
     }
 
 

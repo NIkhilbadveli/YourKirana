@@ -1,7 +1,9 @@
 package com.titos.barcodescanner.dashboardFeature
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
+import android.os.Parcelable
 
 import androidx.fragment.app.Fragment
 
@@ -32,7 +34,11 @@ import kotlin.collections.ArrayList
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
+import kotlinx.android.parcel.Parcelize
 import kotlinx.android.synthetic.main.fragment_dashboard_outside.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -42,26 +48,16 @@ import kotlinx.coroutines.withContext
 class DashboardFragmentOutside : Fragment()
 {
     private var shopName = "Temp Store"
-
+    val itemLevelDetails = ArrayList<BarcodeAndQty>()
     private lateinit var barChart: BarChart
+    private lateinit var viewPager: ViewPager2
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View?
     {
         val view = inflater.inflate(R.layout.fragment_dashboard_outside, container, false)
 
-        val viewPager = view.findViewById<ViewPager2>(R.id.pagerDashboard)
-        viewPager.adapter = PagerAdapter(this)
-
-        val tabLayout = view.findViewById<TabLayout>(R.id.tab_layout)
-        TabLayoutMediator(tabLayout, viewPager){tab, position ->
-            tab.text = when(position){
-                0 -> "Top 25 items"
-                1 -> "Bottom 25 items"
-                else -> "Wrong"
-            }
-
-        }.attach()
+        viewPager = view.findViewById<ViewPager2>(R.id.pagerDashboard)
 
         barChart = view.findViewById(R.id.barchart)
 
@@ -86,17 +82,16 @@ class DashboardFragmentOutside : Fragment()
         toolbar!!.findViewById<TextView>(R.id.text_view_toolbar).visibility = View.VISIBLE
         toolbar.findViewById<SwitchCompat>(R.id.inventory_scanner_switch).visibility = View.GONE
 
-
-        val databaseReference = FirebaseDatabase.getInstance().reference
         val sharedPref = activity?.getSharedPreferences("sharedPref",Context.MODE_PRIVATE)
 
         shopName = sharedPref?.getString("shopName",shopName)!!
-        dashboardHelper()
+        dashboardHelper(view)
 
         return view
     }
 
-    private fun dashboardHelper()
+    @SuppressLint("SetTextI18n")
+    private fun dashboardHelper(view: View)
     {
 
         val dateFormatter = SimpleDateFormat("dd-MM-yyyy",Locale.US)
@@ -105,17 +100,55 @@ class DashboardFragmentOutside : Fragment()
         val startDate = otherDateFormat.format(dateFormatter.parse(weekDays[0])!!)
         val endDate = otherDateFormat.format(dateFormatter.parse(weekDays[6])!!)
 
-        val totalSales = "0.0"
-        val itemLevelSales = "0.0"
-        val thisWeekSales = "0.0"
+        var totalSales = 0.0
+
+        var thisWeekSales = 0.0
         val allDaySales = ArrayList<DaySales>()
 
-        /*dbrd_total_sales_value.text = "Rs. "+ totalSales
-        dbrd_this_week_sales_title.text = "$startDate - $endDate"
-        dbrd_this_week_sales_value.text = "Rs. "+thisWeekSales*/
+        val transactionRef = FirebaseDatabase.getInstance().reference.child("transactionData/$shopName")
+        transactionRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onCancelled(p0: DatabaseError) {
 
-        //populateBarEntries(allDaySales)
+            }
 
+            override fun onDataChange(p0: DataSnapshot) {
+                for(day in p0.children){
+                    var thisDaySales = 0.0
+                    for (time in day.children){
+                        totalSales += time.child("orderValue").value.toString().toDouble()
+                        if (weekDays.contains(day.key)){
+                            thisWeekSales += time.child("orderValue").value.toString().toDouble()
+                            thisDaySales += time.child("orderValue").value.toString().toDouble()
+                        }
+                        for (barcode in time.child("items").children) {
+                            if (itemLevelDetails.filter { it.barcode == barcode.key }.any())
+                                itemLevelDetails.first { it.barcode == barcode.key }.qty += barcode.value.toString().toInt()
+                            else
+                                itemLevelDetails.add(BarcodeAndQty(barcode.key!!,barcode.value.toString().toInt()))
+                        }
+                    }
+                    if (weekDays.contains(day.key))
+                        allDaySales.add(DaySales(day.key!!, thisDaySales))
+                }
+
+                viewPager.adapter = PagerAdapter(this@DashboardFragmentOutside, itemLevelDetails)
+                val tabLayout = view.findViewById<TabLayout>(R.id.tab_layout)
+                TabLayoutMediator(tabLayout, viewPager){tab, position ->
+                    tab.text = when(position){
+                        0 -> "Top 25 items"
+                        1 -> "Bottom 25 items"
+                        else -> "Wrong"
+                    }
+
+                }.attach()
+
+                view.findViewById<TextView>(R.id.dbrd_total_sales_value).text = "\u20B9 $totalSales"
+                view.findViewById<TextView>(R.id.dbrd_this_week_sales_title).text = "$startDate - $endDate"
+                view.findViewById<TextView>(R.id.dbrd_this_week_sales_value).text = "\u20B9 $thisWeekSales"
+
+                populateBarEntries(allDaySales)
+            }
+        })
     }
 
     private fun populateBarEntries(allDaySales: List<DaySales>)
@@ -151,7 +184,7 @@ class DashboardFragmentOutside : Fragment()
         barChart.invalidate()
     }
 
-    class PagerAdapter(fm: Fragment) : FragmentStateAdapter(fm) {
+    class PagerAdapter(fm: Fragment,private val allItems: ArrayList<BarcodeAndQty>) : FragmentStateAdapter(fm) {
 
         override fun getItemCount(): Int  = 2
 
@@ -159,6 +192,7 @@ class DashboardFragmentOutside : Fragment()
             val fragment = DashboardFragmentInside()
             fragment.arguments = Bundle().apply {
                 putInt("itemType", position )
+                putParcelableArrayList("allItems", allItems)
             }
             return fragment
         }
@@ -189,4 +223,6 @@ class DashboardFragmentOutside : Fragment()
 }
 
 data class DaySales(val orderDate: String, val sales: Double)
-data class ItemQtyAndSales(val itemName: String, val qty: String, val sales: Double)
+
+@Parcelize
+data class BarcodeAndQty(val barcode: String, var qty: Int):Parcelable
