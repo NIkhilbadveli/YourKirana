@@ -204,14 +204,17 @@ class ScannerListFragment : Fragment() {
 
     }
 
+    var stockRef = FirebaseDatabase.getInstance().reference.child("stockMovement")
+
+    val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.US)
+    val simpleTimeFormat = SimpleDateFormat("hh:mm:ss a", Locale.US)
+    val dateFormat = simpleDateFormat.format(Date())
+    val timeFormat = simpleTimeFormat.format(Date())
+
     private fun addToTransactionData() {
 
         val itemCount = recyclerView?.childCount!!
 
-        val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.US)
-        val simpleTimeFormat = SimpleDateFormat("hh:mm:ss a", Locale.US)
-        val dateFormat = simpleDateFormat.format(Date())
-        val timeFormat = simpleTimeFormat.format(Date())
 
         val transactionRef = databaseReference?.child("transactionData/$shopName/$dateFormat/$timeFormat")!!
 
@@ -224,6 +227,7 @@ class ScannerListFragment : Fragment() {
             if (itemView != null) {
                 qty = itemView.findViewById(R.id.item_quantity)
                 transactionRef.child("items/${barcodeList[i]}").setValue(qty.text.toString())
+                stockRef.child("$shopName/${barcodeList[i]}/$dateFormat $timeFormat").setValue(qty.text.toString())
             }
         }
         //Adding orderValue to data
@@ -281,6 +285,7 @@ class ScannerListFragment : Fragment() {
                         val qty = itemView.findViewById<EditText>(R.id.item_quantity)
                         val updatedQty = qtyList[i].toInt() + qty.text.toString().toInt()
                         inventoryRef.child("${barcodeList[i]}/qty").setValue(updatedQty.toString())
+                        stockRef.child("$shopName/${barcodeList[i]}/$dateFormat $timeFormat").setValue(qty.text.toString())
                     }
                 }
             }

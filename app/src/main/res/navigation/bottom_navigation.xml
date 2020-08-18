@@ -46,6 +46,9 @@
         android:name="com.titos.barcodescanner.inventoryFeature.InventoryFragmentOutside"
         android:label="My Store"
         tools:layout="@layout/fragment_inventory_outside">
+        <action
+            android:id="@+id/action_myStoreFragment_to_stockMovementFragment"
+            app:destination="@id/stockMovementFragment" />
     </fragment>
     <fragment
         android:id="@+id/orderItemsFragment"
@@ -83,4 +86,9 @@
         android:name="com.titos.barcodescanner.scannerFeature.AddNewProductFragment"
         android:label="fragment_add_new_product"
         tools:layout="@layout/fragment_add_new_product" />
+    <fragment
+        android:id="@+id/stockMovementFragment"
+        tools:layout="@layout/fragment_stock_movement"
+        android:name="com.titos.barcodescanner.inventoryFeature.StockMovementFragment"
+        android:label="StockMovementFragment" />
 </navigation>

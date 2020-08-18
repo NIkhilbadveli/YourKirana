@@ -28,6 +28,7 @@ import com.titos.barcodescanner.R
 import kotlinx.coroutines.withContext
 import java.io.FileOutputStream
 import java.io.OutputStream
+import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
@@ -113,6 +114,13 @@ class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : Di
 
         url = "https://google.com"
 
+        var stockRef = FirebaseDatabase.getInstance().reference.child("stockMovement/$shopName/$barcode")
+
+        val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.US)
+        val simpleTimeFormat = SimpleDateFormat("hh:mm:ss a", Locale.US)
+        val dateFormat = simpleDateFormat.format(Date())
+        val timeFormat = simpleTimeFormat.format(Date())
+
         val add = layoutView.findViewById<Button>(R.id.addBtn)
         add.setOnClickListener {
             if (pName.text.isNotEmpty()&&sp.text.isNotEmpty()&&cp.text.isNotEmpty()
@@ -124,6 +132,7 @@ class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : Di
                 prodInfo.child("url").setValue(url)
                 prodInfo.child("type").setValue(spinType.selectedItem.toString())
                 prodInfo.child("category").setValue(spinCategory.selectedItem.toString())
+                stockRef.child("$dateFormat $timeFormat").setValue("+"+etQuantity.text.toString())
                 prodInfo.child("subCategory").setValue(spinSubCategory.selectedItem.toString())
                 Toast.makeText(context, "Added to Inventory", Toast.LENGTH_SHORT).show()
                 dismiss()

@@ -12,7 +12,7 @@
         android:layout_margin="5dp">
 
         <ImageView
-            android:id="@+id/downarrow"
+            android:id="@+id/iv_arrows"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="2dp"
@@ -24,7 +24,7 @@
             android:id="@+id/tvStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/downarrow"
+            android:layout_toEndOf="@id/iv_arrows"
             android:textColor="@color/black"
             android:text="Sale : 6"
             android:textSize="20sp"
@@ -32,17 +32,17 @@
             android:layout_marginTop="10dp"/>
 
         <TextView
-            android:id="@+id/tvdateandtime"
+            android:id="@+id/tv_dateandtime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="27/16/2020 at 7:30 AM"
             android:textSize="12sp"
             android:layout_below="@id/tvStatus"
-            android:layout_toEndOf="@id/downarrow"
+            android:layout_toEndOf="@id/iv_arrows"
             android:layout_marginStart="10dp"/>
 
         <TextView
-            android:id="@+id/tvstockleft"
+            android:id="@+id/tv_stockleft"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="11"

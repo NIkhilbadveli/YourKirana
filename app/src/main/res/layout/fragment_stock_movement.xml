@@ -23,8 +23,9 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:id="@+id/tv_name"
             android:text="Kellogs Corn Flakes"
-            android:layout_toRightOf="@id/productimg"
+            android:layout_toEndOf="@id/productimg"
             android:layout_centerVertical="true"
             android:textColor="@color/black">
             
@@ -43,8 +44,9 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:id="@+id/tv_stockQty"
             android:text="11"
-            android:textSize="16dp"
+            android:textSize="16sp"
             android:fontFamily="sans-serif-black"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"

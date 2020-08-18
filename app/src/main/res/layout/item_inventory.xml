@@ -30,7 +30,7 @@
             android:layout_centerVertical="true"
             android:padding="2dp"
             android:layout_marginStart="10dp"
-            android:src="@drawable/icons8_trash_can_48px" />
+            android:src="@drawable/ic_broken_image_black_24dp" />
 
         <TextView
             android:id="@+id/mystore_item_name"

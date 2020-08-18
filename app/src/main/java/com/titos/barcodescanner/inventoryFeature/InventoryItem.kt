@@ -8,7 +8,7 @@ import kotlinx.android.synthetic.main.item_inventory.*
 import java.util.*
 
 class InventoryItem(val looseItem: Boolean,val itemName: String, val itemQty: String, val itemPrice:String, val onItemRemoveClick:((Int)->Unit),
-                    val onItemEditClick: ((Int)->Unit)): Item() {
+                    val onItemStockClick:((Int)->Unit), val onItemEditClick: ((Int)->Unit)): Item() {
 
     var barcode = "00000"
 
@@ -21,8 +21,13 @@ class InventoryItem(val looseItem: Boolean,val itemName: String, val itemQty: St
                 mystore_item_price.text = itemPrice
             }
 
+
             mystore_item_name.text = itemName.take(15)
             mystore_item_qty.setText(itemQty)
+
+            mystore_item_name.setOnClickListener {
+                onItemStockClick.invoke(position)
+            }
 
             remove_inventory_item_button.setOnClickListener {
                 onItemRemoveClick.invoke(position)

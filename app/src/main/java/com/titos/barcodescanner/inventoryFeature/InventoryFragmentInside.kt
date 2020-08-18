@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.view.Gravity.apply
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +14,7 @@ import android.widget.*
 import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -36,6 +38,7 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
 
     private var onItemRemoveClick :((Int)->Unit)? = null
     private var onItemEditClick :((Int)->Unit)? = null
+    private var onItemStockClick :((Int)->Unit)? = null
 
     private var recyclerViewScannedItems:RecyclerView? = null
 
@@ -80,6 +83,13 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
             val alert = dialogBuilder.create()
             alert.setTitle("Delete Inventory Item")
             alert.show()
+
+        }
+
+        onItemStockClick = {
+            findNavController().navigate(R.id.action_myStoreFragment_to_stockMovementFragment,Bundle().apply{
+                putString("barcode",inventoryList[it].barcode)
+            })
 
         }
 
@@ -158,7 +168,7 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
                         val name = barcode.child("name").value.toString()
                         val sp = barcode.child("sellingPrice").value.toString()
                         val qty = barcode.child("qty").value.toString()
-                        val item = InventoryItem(false, name, qty, sp, onItemRemoveClick!!, onItemEditClick!!)
+                        val item = InventoryItem(false, name, qty, sp, onItemRemoveClick!!, onItemStockClick!!,onItemEditClick!!)
                         item.barcode = barcode.key!!
 
                         inventoryList.add(item)
