@@ -4,46 +4,51 @@ package com.titos.barcodescanner
 import agency.tango.android.avatarview.loader.PicassoLoader
 import agency.tango.android.avatarview.views.AvatarView
 import android.Manifest
+import android.app.Activity
+import android.app.Dialog
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothSocket
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.edit
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.navigation.findNavController
 import androidx.navigation.ui.NavigationUI
-import androidx.work.*
+import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
-import com.google.firebase.storage.FirebaseStorage
 import com.ismaeldivita.chipnavigation.ChipNavigationBar
-import com.titos.barcodescanner.profileFeature.ProfileFragment
 import com.titos.barcodescanner.scannerFeature.ScannerItem
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import java.io.*
-import java.util.concurrent.TimeUnit
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
+import java.io.File
+import java.io.IOException
+import java.nio.ByteBuffer
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class MainActivity : androidx.appcompat.app.AppCompatActivity() {
     private var shopName = "Temp Store"
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var btnBluetooth: ImageButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -130,8 +135,25 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                 }
                 .addOnFailureListener(this) { e -> Log.w("RikiError", "getDynamicLink:onFailure", e) }
 
-    }
+        val filter = IntentFilter()
+        filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
+        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED)
+        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+        this.registerReceiver(mReceiver, filter)
 
+        btnBluetooth = toolbar.findViewById<ImageButton>(R.id.btn_bluetooth)
+        btnBluetooth.setOnClickListener {
+            if (BluetoothAdapter.getDefaultAdapter().isEnabled){
+                startActivity(Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS))
+            }
+            else
+                startActivityForResult(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), 111)
+        }
+
+        //Saving all products name
+        if (!sharedPref.getBoolean("alreadySaved", false))
+            saveDataToCsv()
+    }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -144,6 +166,62 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                 println("camera permission denied")
             }
         }
+    }
+
+    //The BroadcastReceiver that listens for bluetooth broadcasts
+    val mReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val action = intent.action;
+            val device = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE);
+
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+
+            }
+            else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
+                btnBluetooth.setImageResource(R.drawable.bluetooth)
+            }
+            else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+
+            }
+            else if (BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED.equals(action)) {
+
+            }
+            else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+                btnBluetooth.setImageResource(R.drawable.bluetooth_disconnected)
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            111 -> if (resultCode == Activity.RESULT_OK)
+                    startActivity(Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS))
+
+        }
+    }
+
+    private fun saveDataToCsv() {
+        val sharedPref = getSharedPreferences("sharedPref", Context.MODE_PRIVATE) ?: return
+        val filePath = getString( R.string.file_path)
+        FirebaseDatabase.getInstance().reference.child("productInfoData")
+                .addListenerForSingleValueEvent(object : ValueEventListener{
+            override fun onDataChange(p0: DataSnapshot) {
+                val data = ArrayList<String>()
+                for (barcode in p0.children){
+                    data.add(barcode.child("name").value.toString())
+                }
+                val file = File(filesDir, "productData.csv")
+                csvWriter().writeAll(listOf(data), file)
+                sharedPref.edit{
+                    putBoolean("alreadySaved", true)
+                    commit()
+                }
+            }
+
+            override fun onCancelled(p0: DatabaseError) {
+            }
+        })
     }
 
     private fun setShopLocation(userDataRef:DatabaseReference){
@@ -171,6 +249,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         })
     }
 
+
     companion object {
 
         private const val MY_CAMERA_REQUEST_CODE = 100
@@ -187,7 +266,6 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
     class SharedViewModel : ViewModel() {
         val selected = MutableLiveData<String>()
         val isScannerPaused = MutableLiveData<Boolean>()
-        val isTooltipShown = MutableLiveData<Boolean>()
 
         fun select(item: String) {
             selected.value = item
@@ -201,8 +279,8 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
             isScannerPaused.value = false
         }
 
-        fun showTooltip(){
-            isTooltipShown.value = true
-        }
     }
+
+
+
 }

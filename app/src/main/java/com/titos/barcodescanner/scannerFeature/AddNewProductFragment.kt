@@ -17,6 +17,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.activity.addCallback
 import androidx.fragment.app.DialogFragment
+import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -26,6 +27,7 @@ import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.google.firebase.storage.FirebaseStorage
 import com.titos.barcodescanner.R
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.text.SimpleDateFormat
@@ -38,7 +40,7 @@ class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : Di
     private lateinit var sharedPref: SharedPreferences
     private var shopName = "Temp Store"
     private val REQUEST_IMAGE_CAPTURE = 111
-    private lateinit var pName: EditText
+    private lateinit var pName: AutoCompleteTextView
     private lateinit var sp: EditText
     private lateinit var cp: EditText
     private lateinit var url: String
@@ -108,6 +110,10 @@ class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : Di
         val prodInfo = FirebaseDatabase.getInstance().reference.child("inventoryData/$shopName/$barcode")
 
         pName = layoutView.findViewById(R.id.edit_name)
+        val productData = csvReader().readAll(File(activity?.filesDir, "productData.csv"))
+        val adapter = ArrayAdapter(requireContext(), R.layout.item_text,R.id.text1, productData[0])
+        pName.setAdapter(adapter)
+
         sp = layoutView.findViewById(R.id.edit_sp)
         cp = layoutView.findViewById(R.id.edit_cp)
         val etQuantity = layoutView.findViewById<EditText>(R.id.edit_quantity)

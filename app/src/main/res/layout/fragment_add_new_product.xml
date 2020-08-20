@@ -68,13 +68,12 @@
                         android:textSize="12sp" />
                 </LinearLayout>
 
-                <EditText
+                <AutoCompleteTextView
                     android:id="@+id/edit_name"
-                    android:layout_width="200dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/name1"
-                    android:layout_margin="10dp"
-                    android:inputType="text" />
+                    android:layout_margin="10dp" />
 
                 <TextView
                     android:id="@+id/type"
@@ -121,6 +120,7 @@
                     android:layout_marginStart="30dp"
                     android:layout_marginTop="20dp"
                     android:layout_toEndOf="@+id/quant"
+                    android:layout_above="@id/linear"
                     android:scaleType="fitCenter"
                     android:src="@drawable/ic_photo_camera_black_24dp" />
 

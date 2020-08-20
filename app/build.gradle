@@ -101,5 +101,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics:17.4.2'
 
     implementation 'com.google.android.gms:play-services-location:17.0.0'
+    implementation 'me.anwarshahriar:calligrapher:1.0'
+    implementation("com.github.doyaaaaaken:kotlin-csv-jvm:0.11.0")
 
 }
