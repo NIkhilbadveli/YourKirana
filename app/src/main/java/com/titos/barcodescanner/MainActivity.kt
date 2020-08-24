@@ -5,23 +5,22 @@ import agency.tango.android.avatarview.loader.PicassoLoader
 import agency.tango.android.avatarview.views.AvatarView
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.app.Dialog
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothSocket
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.ImageButton
-import android.widget.Toast
+import android.view.View
+import android.widget.*
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
+import androidx.core.content.FileProvider
 import androidx.core.content.edit
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -33,22 +32,24 @@ import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
+import com.google.firebase.storage.FirebaseStorage
 import com.ismaeldivita.chipnavigation.ChipNavigationBar
 import com.titos.barcodescanner.scannerFeature.ScannerItem
 import java.io.File
-import java.io.IOException
-import java.nio.ByteBuffer
-import java.util.*
-import kotlin.collections.ArrayList
-
 
 class MainActivity : androidx.appcompat.app.AppCompatActivity() {
     private var shopName = "Temp Store"
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var btnBluetooth: ImageButton
+    private lateinit var sharedPref: SharedPreferences
+    companion object {
+
+        private const val MY_CAMERA_REQUEST_CODE = 100
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,6 +61,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                 requestPermissions(arrayOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION), MY_CAMERA_REQUEST_CODE)
             }
         }
+        FirebaseDatabase.getInstance().reference.child("appVersion").keepSynced(true)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
@@ -85,7 +87,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         val user = FirebaseAuth.getInstance().currentUser
 
         //Adding member count to storeStats in realtime database & sharedPref
-        val sharedPref = getSharedPreferences("sharedPref", Context.MODE_PRIVATE) ?: return
+        sharedPref = getSharedPreferences("sharedPref", Context.MODE_PRIVATE) ?: return
 
         //Setting Profile Avatar
         val profileAvatar = toolbar.findViewById<AvatarView>(R.id.profile_avatar)
@@ -153,6 +155,9 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         //Saving all products name
         if (!sharedPref.getBoolean("alreadySaved", false))
             saveDataToCsv()
+
+        //Checking for new updates
+        checkForUpdates()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
@@ -249,11 +254,98 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         })
     }
 
+    private fun checkForUpdates() {
+        val updateDialog = Dialog(this)
+        updateDialog.setContentView(R.layout.update_dialog)
+        updateDialog.setCanceledOnTouchOutside(false)
+        FirebaseDatabase.getInstance().reference.child("appVersion").addListenerForSingleValueEvent(object : ValueEventListener{
+            override fun onDataChange(p0: DataSnapshot) {
+                val appVersion = packageManager.getPackageInfo(packageName, 0).versionName
+                /*if (appVersion=="null") {
+                    sharedPref.edit {
+                        putString("appVersion", p0.value.toString())
+                        commit()
+                    }
+                }
+                else */
+                if (appVersion!=p0.value.toString()){
+                    updateDialog.findViewById<TextView>(R.id.tv_title).text = "New Update Available! V${p0.value.toString()}"
+                    updateDialog.show()
+                }
+            }
 
-    companion object {
+            override fun onCancelled(p0: DatabaseError) {
+            }
+        })
 
-        private const val MY_CAMERA_REQUEST_CODE = 100
+        val latestRef = FirebaseStorage.getInstance().reference.child("app-debug.apk")
+        val localFile = File.createTempFile("app-latest", ".apk")
+
+        var installReady = false
+        updateDialog.findViewById<TextView>(R.id.btn_update_now).setOnClickListener {
+            if (!installReady) {
+                updateDialog.findViewById<LinearLayout>(R.id.progress_container).visibility = View.VISIBLE
+                val linearLayout = updateDialog.findViewById<LinearLayout>(R.id.container_update)
+                linearLayout.visibility = View.GONE
+                latestRef.getFile(localFile).addOnSuccessListener {
+                    Toast.makeText(this, "Download completed", Toast.LENGTH_LONG).show()
+                    updateDialog.findViewById<TextView>(R.id.btn_update_now).text = "Install Now"
+                    installReady = true
+                    linearLayout.visibility = View.VISIBLE
+                }.addOnFailureListener {
+                    // Handle any errors
+                }.addOnProgressListener {
+                    val progress = (100.0 * it.bytesTransferred) / it.totalByteCount
+                    updateDialog.findViewById<ProgressBar>(R.id.progress_bar_horizontal).progress = progress.toInt()
+                    updateDialog.findViewById<TextView>(R.id.tv_progress).text = progress.toInt().toString() + "%"
+                }
+            }
+            else{
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW)
+                     if (Build.VERSION.SDK_INT >= 24) {
+                         val downloadedApk: Uri = FileProvider.getUriForFile(this, "$packageName.provider", localFile)
+                         intent.setDataAndType(downloadedApk, "application/vnd.android.package-archive")
+                         val resInfoList: List<ResolveInfo> = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+                        for (resolveInfo in resInfoList) {
+                            grantUriPermission("$packageName.provider", downloadedApk, Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
+                    } else {
+                         intent.action = Intent.ACTION_VIEW
+                         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                         intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
+                         intent.setDataAndType(Uri.fromFile(localFile), "application/vnd.android.package-archive")
+                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                     }
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+        val dialogBuilder = AlertDialog.Builder(this)
+        dialogBuilder.setMessage("Are you sure?")
+                .setCancelable(false)
+                .setPositiveButton("Yes") { dialog, _ ->
+                    dialog.dismiss()
+                    updateDialog.dismiss()
+                }
+                .setNegativeButton("No") { dialog, id -> dialog.cancel() }
+
+        val alert = dialogBuilder.create()
+        alert.setTitle("Installing later")
+
+        updateDialog.findViewById<TextView>(R.id.btn_maybe_later).setOnClickListener {
+            if (installReady)
+                alert.show()
+            else
+                updateDialog.cancel()
+        }
     }
+
+
 
     class ViewModelForList : ViewModel() {
         val finalList = MutableLiveData<ArrayList<ScannerItem>>()

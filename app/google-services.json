@@ -8,97 +8,36 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:136355428047:android:53f6e4d2aeb1d2d789a9ba",
-        "android_client_info": {
-          "package_name": "com.titos.barcodescanner"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "136355428047-2rcmgvii286n5gnlh7j0lnhf12ds9rlg.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.titos.barcodescanner",
-            "certificate_hash": "4e0e96ce54ee61a74a28809524f5b10ebc084478"
-          }
-        },
-        {
-          "client_id": "136355428047-2nqnhghgu0o9i6hnig30sv4e92dd3488.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.titos.barcodescanner",
-            "certificate_hash": "a051ad17e168aeb98f365ab18748ac1489f50e55"
-          }
-        },
-        {
-          "client_id": "136355428047-5s1j1pcj069477009fqlfpth16b5pdp0.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.titos.barcodescanner",
-            "certificate_hash": "c1e19da2697bac1b13893a387159eefcfba5b917"
-          }
-        },
-        {
-          "client_id": "136355428047-0n2hbs3o662qslnau5jf06d3ud2i1if8.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.titos.barcodescanner",
-            "certificate_hash": "ea564649f0e4191375e982b80a1c5e729bce6972"
-          }
-        },
-        {
-          "client_id": "136355428047-0aacf0kdaak2huobne448j1qccql6lad.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.titos.barcodescanner",
-            "certificate_hash": "7146730216eab8e03805ccdb8c26ee164dbcfc72"
-          }
-        },
-        {
-          "client_id": "136355428047-mpf1nojrt8r5310obf8otftvlbspqere.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.titos.barcodescanner",
-            "certificate_hash": "e93136bde0ae1b0b2d2826f75929af5c386bf07d"
-          }
-        },
-        {
-          "client_id": "136355428047-tpvccr1i695285b63b9a9p280vlleake.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.titos.barcodescanner",
-            "certificate_hash": "11717be612f3df53df5e45092b9e92b214501cb9"
-          }
-        },
-        {
-          "client_id": "136355428047-936furb8190get3b4o510j7clark74m1.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDKkH6-QGKMd0o28OaOwJQkiCpQ12LbmPk"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "136355428047-936furb8190get3b4o510j7clark74m1.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:136355428047:android:b6fc113988fef6a189a9ba",
         "android_client_info": {
           "package_name": "com.titos.rikistores"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "136355428047-h948bpjk3rn2piljricp4cfilet7gpbj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.titos.rikistores",
+            "certificate_hash": "9d8268e1b6f91e043264d2df9e945e203f6eddc6"
+          }
+        },
+        {
+          "client_id": "136355428047-bulhoqgt45qfvo6udofa90doo4j8rhed.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.titos.rikistores",
+            "certificate_hash": "ea564649f0e4191375e982b80a1c5e729bce6972"
+          }
+        },
+        {
+          "client_id": "136355428047-0tivh0k6tn5342625qe6j1fq4nkfnvqd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.titos.rikistores",
+            "certificate_hash": "a93dfb3e812401dec90e1cf4f930cd0255092fee"
+          }
+        },
         {
           "client_id": "136355428047-ah9i9gc4tbuue2jvrmvhgiijjmtgdd9i.apps.googleusercontent.com",
           "client_type": 1,
