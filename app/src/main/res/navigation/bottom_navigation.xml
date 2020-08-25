@@ -11,9 +11,6 @@
         android:label="Scanner"
         tools:layout="@layout/fragment_scanner" >
         <action
-            android:id="@+id/action_scannerFragment_to_agreementFragment"
-            app:destination="@id/agreementFragment" />
-        <action
             android:id="@+id/action_scannerFragment_to_addNewProductFragment"
             app:destination="@id/addNewProductFragment" />
     </fragment>
@@ -37,6 +34,9 @@
         android:name="com.titos.barcodescanner.historyFeature.HistoryFragment"
         android:label="History"
         tools:layout="@layout/fragment_history" >
+        <action
+            android:id="@+id/action_historyFragment_to_agreementFragment"
+            app:destination="@id/agreementFragment" />
         <action
             android:id="@+id/action_historyFragment_to_orderItemsFragment"
             app:destination="@id/orderItemsFragment" />

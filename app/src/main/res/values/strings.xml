@@ -9,8 +9,8 @@
     <string name="facebook_application_id" translatable="false">181981169684712</string>
     <string name="contact_email">developer@yourkirana.com</string>
     <string name="contact_phone">+91 8309572197</string>
-    <string name="scanner_mode">In Billing Mode</string>
-    <string name="inventory_mode">In My Store Mode</string>
+    <string name="scanner_mode">Billing</string>
+    <string name="inventory_mode">Inventory</string>
     <string name="step_1">Click on this button to switch to My Store Mode</string>
     <string name="step_2">Now, scan any product you wish to add</string>
     <!--<string name="step_3">Fill in the details (Name and Price) for this product and click \'Add\'</string>-->

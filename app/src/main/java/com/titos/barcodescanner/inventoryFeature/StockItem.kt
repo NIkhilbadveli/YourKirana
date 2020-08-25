@@ -30,7 +30,7 @@ class StockItem(private val action: String, private val actionTime: String, priv
             tvStatus.text = action
             tv_dateandtime.text = actionTime
 
-            if(stockLeft.toString() == "added")
+            if(action.contains("Added"))
             {
                 stockLeft.setTextColor(R.color.green)
                 iv_arrows.setImageResource(R.drawable.up_arrow)

@@ -2,13 +2,9 @@ package com.titos.barcodescanner.scannerFeature
 
 
 import android.annotation.SuppressLint
-import android.app.Activity.RESULT_OK
 import android.app.AlertDialog
 import android.content.Context
-import android.content.DialogInterface
-import android.content.Intent
 import android.content.SharedPreferences
-import android.graphics.Bitmap
 import android.os.Bundle
 
 import android.view.LayoutInflater
@@ -53,12 +49,14 @@ class ScannerListFragment : Fragment() {
 
     private lateinit var floatingActionButton: FloatingActionButton
     private lateinit var sharedPref: SharedPreferences
+    private var allItemsCurrentQty: MutableMap<String, Int> = mutableMapOf()
+    private lateinit var inventoryRef: DatabaseReference
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
 
         val view = inflater.inflate(R.layout.fragment_list_scanner, container, false)
-        model = ViewModelProviders.of(parentFragment!!).get(MainActivity.SharedViewModel::class.java)
+        model = ViewModelProviders.of(requireParentFragment()).get(MainActivity.SharedViewModel::class.java)
         
         handleSwitching(view)
         
@@ -110,6 +108,19 @@ class ScannerListFragment : Fragment() {
                 Toast.makeText(context, "Please scan at least one item :)", Toast.LENGTH_SHORT).show()
         }
 
+        inventoryRef = databaseReference!!.child("inventoryData").child(shopName)
+        inventoryRef.addListenerForSingleValueEvent(object : ValueEventListener{
+            override fun onCancelled(p0: DatabaseError) {
+
+            }
+
+            override fun onDataChange(p0: DataSnapshot) {
+                for (barcode in p0.children){
+                    allItemsCurrentQty[barcode.key!!] = barcode.child("qty").value.toString().toInt()
+                }
+            }
+
+        })
         return view
     }
 
@@ -166,8 +177,8 @@ class ScannerListFragment : Fragment() {
 
         val callAddToList: (ArrayList<String>)->Unit = { list ->
             model?.resumeScanner()
-            if (list[0].isNotEmpty()&&list[1].isNotEmpty())
-                addToListView(list[0], list[1], list[2], list[3])
+            /*if (list[0].isNotEmpty()&&list[1].isNotEmpty())
+                addToListView(list[0], list[1], list[2], list[3])*/
         }
 
         val addNewProductFragment = AddNewProductFragment(callAddToList)
@@ -205,16 +216,16 @@ class ScannerListFragment : Fragment() {
     }
 
     var stockRef = FirebaseDatabase.getInstance().reference.child("stockMovement")
-
     val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.US)
     val simpleTimeFormat = SimpleDateFormat("hh:mm:ss a", Locale.US)
-    val dateFormat = simpleDateFormat.format(Date())
-    val timeFormat = simpleTimeFormat.format(Date())
 
     private fun addToTransactionData() {
 
         val itemCount = recyclerView?.childCount!!
 
+        val date = Date()
+        val dateFormat = simpleDateFormat.format(date)
+        val timeFormat = simpleTimeFormat.format(date)
 
         val transactionRef = databaseReference?.child("transactionData/$shopName/$dateFormat/$timeFormat")!!
 
@@ -226,19 +237,24 @@ class ScannerListFragment : Fragment() {
             itemView = recyclerView?.getChildAt(i)
             if (itemView != null) {
                 qty = itemView.findViewById(R.id.item_quantity)
+                val updatedQty = allItemsCurrentQty[barcodeList[i]]!! - qty.text.toString().toInt()
+                inventoryRef.child("${barcodeList[i]}/qty").setValue(updatedQty.toString())
                 transactionRef.child("items/${barcodeList[i]}").setValue(qty.text.toString())
                 stockRef.child("$shopName/${barcodeList[i]}/$dateFormat $timeFormat").setValue(qty.text.toString())
             }
         }
+
         //Adding orderValue to data
         transactionRef.child("orderValue").setValue(tvTotal?.text.toString().split(' ').last())
 
-        val snack = Snackbar.make(view!!, "Added to Transaction History!", Snackbar.LENGTH_SHORT)
-        //snack.setAction("View History", getTohistory())
-        snack.setAnchorView(floatingActionButton)
-        //snack.show()
+        val snack = Snackbar.make(requireView(), "Added to Transaction History!", Snackbar.LENGTH_SHORT)
+        snack.setAction("View History") {
+            findNavController().navigate(R.id.historyFragment)
+        }
+        snack.setActionTextColor(activity?.resources!!.getColor(R.color.textColorWhite))
+        snack.show()
 
-        val dialogview = LayoutInflater.from(context).inflate(R.layout.choice_dialog, null)
+        /*val dialogview = LayoutInflater.from(context).inflate(R.layout.choice_dialog, null)
 
         val builder = AlertDialog.Builder(context)
         builder.setView(dialogview)
@@ -259,8 +275,9 @@ class ScannerListFragment : Fragment() {
             alertDialog.dismiss()
             tvTotal!!.text = "Rs."
         }
-
+*/
         listValues.clear()
+        tvTotal!!.text = "Rs."
         recyclerViewAdapter!!.notifyDataSetChanged()
     }
 
@@ -268,32 +285,24 @@ class ScannerListFragment : Fragment() {
         val itemCount = recyclerView!!.childCount
         val inventoryRef = databaseReference!!.child("inventoryData").child(shopName)
 
-        inventoryRef.addListenerForSingleValueEvent(object : ValueEventListener{
-            override fun onCancelled(p0: DatabaseError) {
+        val date = Date()
+        val dateFormat = simpleDateFormat.format(date)
+        val timeFormat = simpleTimeFormat.format(date)
 
+        for (i in 0 until itemCount) {
+            val itemView = recyclerView!!.getChildAt(i)
+            if (itemView != null) {
+                val qty = itemView.findViewById<EditText>(R.id.item_quantity)
+                val updatedQty = allItemsCurrentQty[barcodeList[i]]!! + qty.text.toString().toInt()
+                inventoryRef.child("${barcodeList[i]}/qty").setValue(updatedQty.toString())
+                stockRef.child("$shopName/${barcodeList[i]}/$dateFormat $timeFormat").setValue(qty.text.toString())
             }
-
-            override fun onDataChange(p0: DataSnapshot) {
-                val qtyList = ArrayList<String>()
-                for (barcode in barcodeList){
-                    qtyList.add(p0.child(barcode).child("qty").value.toString())
-                }
-
-                for (i in 0 until itemCount) {
-                    val itemView = recyclerView!!.getChildAt(i)
-                    if (itemView != null) {
-                        val qty = itemView.findViewById<EditText>(R.id.item_quantity)
-                        val updatedQty = qtyList[i].toInt() + qty.text.toString().toInt()
-                        inventoryRef.child("${barcodeList[i]}/qty").setValue(updatedQty.toString())
-                        stockRef.child("$shopName/${barcodeList[i]}/$dateFormat $timeFormat").setValue(qty.text.toString())
-                    }
-                }
-            }
-
-        })
-
-        val snack = Snackbar.make(requireView(), "Added to My Store!", Snackbar.LENGTH_SHORT)
-        //snack.setAction("View History", getTohistory())
+        }
+        val snack = Snackbar.make(requireView(), "Added to Inventory!", Snackbar.LENGTH_SHORT)
+        snack.setActionTextColor(activity?.resources!!.getColor(R.color.textColorWhite))
+        snack.setAction("Check Inventory") {
+            findNavController().navigate(R.id.myStoreFragment)
+        }
         snack.show()
 
         listValues.clear()

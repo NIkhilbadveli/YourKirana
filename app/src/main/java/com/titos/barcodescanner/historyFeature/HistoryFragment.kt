@@ -20,6 +20,7 @@ import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.widget.Toolbar
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.ItemTouchHelper
 
 import com.titos.barcodescanner.R
 
@@ -28,9 +29,11 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.titos.barcodescanner.SwipeToAgreement
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 import com.xwray.groupie.Section
+import kotlinx.android.synthetic.main.item_history.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -64,6 +67,17 @@ class HistoryFragment : Fragment(){
             layoutManager = LinearLayoutManager(context)
             adapter = groupAdapter
         }
+
+        val swipeHandler = object : SwipeToAgreement(requireContext()) {
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val orderNumber = viewHolder.itemView.findViewById<TextView>(R.id.history_order_number).text.toString()
+                val bundle = Bundle()
+                bundle.putString("amountDue", orderValueList[orderNumber.split(" ").last().toInt() - 1])
+                findNavController().navigate(R.id.action_historyFragment_to_agreementFragment, bundle)
+            }
+        }
+        val itemTouchHelper = ItemTouchHelper(swipeHandler)
+        itemTouchHelper.attachToRecyclerView(recyclerView)
 
         val sharedPref = activity?.getSharedPreferences("sharedPref",Context.MODE_PRIVATE)
         shopName = sharedPref?.getString("shopName",shopName)!!
@@ -101,6 +115,9 @@ class HistoryFragment : Fragment(){
 
     private fun populateView(view:View, groupAdapter:GroupAdapter<GroupieViewHolder>){
         val transactionRef = FirebaseDatabase.getInstance().reference.child("transactionData/$shopName")
+        val dateStrToLocalDate: (String) -> LocalDate = {
+            LocalDate.parse(it, DateTimeFormatter.ofPattern("dd-MM-yyyy"))
+        }
 
         transactionRef.addListenerForSingleValueEvent(object : ValueEventListener{
             override fun onCancelled(p0: DatabaseError) {
@@ -117,7 +134,9 @@ class HistoryFragment : Fragment(){
                         daySnapshot.add(day)
                     }
 
-                    daySnapshot.reversed().forEach { day ->
+                    val daySnapshotSorted = daySnapshot.sortedByDescending { dateStrToLocalDate(it.key!!)}.reversed()
+
+                    for(day in daySnapshotSorted){
                         var daySales = 0
                         val tempList = ArrayList<HistoryItem>()
                         for (time in day.children){
@@ -133,7 +152,7 @@ class HistoryFragment : Fragment(){
                         itemList.add(tempList)
                     }
 
-                    for (i in headerList.size-1 downTo 0 ){
+                    for (i in headerList.size - 1 downTo 0 ){
                         val section = Section()
                         section.add(headerList[i])
                         groupAdapter.add(section)
@@ -141,7 +160,7 @@ class HistoryFragment : Fragment(){
                     }
 
                     //Putting this here since we don't want to impact the loading time
-                    daySnapshot.reversed().forEach { day ->
+                    daySnapshotSorted.forEach { day ->
                         for (time in day.children) {
                             val tempList2 = ArrayList<String>()
                             val tempList3 = ArrayList<String>()

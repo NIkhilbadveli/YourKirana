@@ -38,6 +38,7 @@ class DashboardFragmentInside : Fragment() {
             layoutManager = LinearLayoutManager(context)
             adapter = groupAdapter
         }
+        recyclerView.isNestedScrollingEnabled = false
 
         val sharedPref = activity?.getSharedPreferences("sharedPref", Context.MODE_PRIVATE)
         val shopName = sharedPref?.getString("shopName","Temp Store")!!

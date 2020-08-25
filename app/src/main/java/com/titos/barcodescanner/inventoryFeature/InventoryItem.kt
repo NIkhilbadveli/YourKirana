@@ -22,7 +22,7 @@ class InventoryItem(val looseItem: Boolean,val itemName: String, val itemQty: St
             }
 
 
-            mystore_item_name.text = itemName.take(15)
+            mystore_item_name.text = itemName
             mystore_item_qty.setText(itemQty)
 
             mystore_item_name.setOnClickListener {

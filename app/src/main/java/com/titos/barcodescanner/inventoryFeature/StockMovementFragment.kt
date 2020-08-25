@@ -3,8 +3,6 @@ package com.titos.barcodescanner.inventoryFeature
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
-import android.util.Log.d
 
 import androidx.fragment.app.Fragment
 
@@ -14,41 +12,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.appcompat.widget.SwitchCompat
-import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.viewpager2.adapter.FragmentStateAdapter
-import androidx.viewpager2.widget.ViewPager2
 import com.titos.barcodescanner.*
 
 
-import com.github.mikephil.charting.charts.BarChart
-import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
-import com.github.mikephil.charting.data.BarEntry
-
-import java.text.SimpleDateFormat
-
-import java.util.*
 import kotlin.collections.ArrayList
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
-import com.google.android.gms.vision.L.d
-import com.google.android.material.tabs.TabLayout
-import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
-import kotlinx.android.synthetic.main.fragment_dashboard_outside.*
-import kotlinx.android.synthetic.main.item_stock.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.Console
 
 class StockMovementFragment : Fragment()
 {
@@ -76,6 +50,9 @@ class StockMovementFragment : Fragment()
         }
 
         val stcQty = layoutView.findViewById<TextView>(R.id.tv_stockQty)
+        val tvName = layoutView.findViewById<TextView>(R.id.tv_name)
+        tvName.text = arguments?.getString("name")!!
+
         val stockRef = FirebaseDatabase.getInstance().reference
                 .child("stockMovement/$shopName/$barcode")
 
@@ -85,27 +62,23 @@ class StockMovementFragment : Fragment()
             }
 
             override fun onDataChange(p0: DataSnapshot) {
-                for(timeStamp in p0.children)
-                {
-                    val totQty = timeStamp.value.toString()
-                    var tot = 0
-                    val arrayStock = arrayOf(totQty)
+                var finalQty = 0
+                for(timeStamp in p0.children) {
+                    val currentQty = timeStamp.value.toString()
 
-                       if(arrayStock[0].toString() == "+")
-                       {
-                           tot += totQty.toInt()
-                           stockList.add(StockItem("Added: $totQty",timeStamp.key!!,tot.toString()))
-                       }
-                       else
-                       {
-                           tot -= totQty.toInt()
-
-                           stockList.add(StockItem("Sold: $totQty",timeStamp.key!!,tot.toString()))
-                       }
-                    stcQty.text = totQty
-
+                    if(currentQty.take(1) == "+")
+                    {
+                        finalQty += currentQty.toInt()
+                        stockList.add(StockItem("Added: $currentQty",timeStamp.key!!, finalQty.toString()))
+                    }
+                    else
+                    {
+                        finalQty -= currentQty.toInt()
+                        stockList.add(StockItem("Sold: $currentQty",timeStamp.key!!, finalQty.toString()))
+                    }
                 }
-                groupAdapter.addAll(stockList)
+                stcQty.text = finalQty.toString()
+                groupAdapter.addAll(stockList.reversed())
 
             }
 

@@ -7,16 +7,45 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".inventoryFeature.InventoryFragmentInside">
 
-    <SearchView
-        android:id="@+id/simpleSearchView"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:iconifiedByDefault="false"
-        android:queryHint="Search inventory items..."
-        android:background="@drawable/thin_border"
-        android:layout_margin="10dp"/>
+        android:orientation="horizontal"
+        android:baselineAligned="false">
+        <SearchView
+            android:id="@+id/simpleSearchView"
+            android:layout_width="0dp"
+            android:layout_weight="0.7"
+            android:layout_height="wrap_content"
+            android:iconifiedByDefault="false"
+            android:queryHint="Search inventory items..."
+            android:background="@drawable/thin_border"
+            android:layout_margin="5dp"
+            android:layout_gravity="center_vertical"/>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="0.3"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_margin="5dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Avg. Margin"
+                android:layout_gravity="center"/>
+            <TextView
+                android:id="@+id/tv_margin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="23%"
+                android:textSize="20sp"
+                android:textColor="@color/previousGreen"
+                android:layout_gravity="center"
+                android:textAlignment="center"/>
+        </LinearLayout>
+    </LinearLayout>
 
-        <androidx.recyclerview.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_mystore_scannable"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

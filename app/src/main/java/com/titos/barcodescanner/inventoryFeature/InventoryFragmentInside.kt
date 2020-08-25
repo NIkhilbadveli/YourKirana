@@ -45,6 +45,7 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
     private var shopName = "Temp Store"
     private lateinit var sharedPref: SharedPreferences
     private var inventoryList = ArrayList<InventoryItem>()
+    private var costPriceList = ArrayList<Int>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -63,6 +64,7 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
         recyclerViewScannedItems!!.apply {
             adapter = groupAdapterScanned
             layoutManager = LinearLayoutManager(context)
+            isNestedScrollingEnabled = false
         }
 
         onItemRemoveClick = {pos ->
@@ -87,10 +89,10 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
         }
 
         onItemStockClick = {
-            findNavController().navigate(R.id.action_myStoreFragment_to_stockMovementFragment,Bundle().apply{
+            findNavController().navigate(R.id.action_myStoreFragment_to_stockMovementFragment, Bundle().apply{
                 putString("barcode",inventoryList[it].barcode)
+                putString("name", inventoryList[it].itemName)
             })
-
         }
 
         onItemEditClick = { pos ->
@@ -113,15 +115,6 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
         }
 
         populateView()
-
-        // setting up swipe to refresh
-        //val itemsswipetorefresh = view.findViewById<SwipeRefreshLayout>(R.id.itemsswipetorefresh)
-        /*itemsswipetorefresh.setOnRefreshListener {
-            inventoryList.clear()
-            groupAdapterScanned.clear()
-            populateView()
-            itemsswipetorefresh.isRefreshing = false
-        }*/
 
         val searchView = view.findViewById<SearchView>(R.id.simpleSearchView)
         searchView.setOnQueryTextListener(this)
@@ -162,17 +155,38 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
             }
 
             override fun onDataChange(p0: DataSnapshot) {
-                for(barcode in p0.children)
-                {
-                    if (category==barcode.child("category").value.toString()) {
+                if(category!="All") {
+                    for (barcode in p0.children) {
+                        if (category == barcode.child("category").value.toString()) {
+
+                            val name = barcode.child("name").value.toString()
+                            val sp = barcode.child("sellingPrice").value.toString()
+                            val qty = barcode.child("qty").value.toString()
+                            val item = InventoryItem(false, name, qty, sp, onItemRemoveClick!!, onItemStockClick!!, onItemEditClick!!)
+                            item.barcode = barcode.key!!
+                            costPriceList.add(barcode.child("costPrice").value.toString().toInt())
+                            inventoryList.add(item)
+                        }
+                    }
+                }
+                else{
+                    //Adding all items
+                    for (barcode in p0.children) {
                         val name = barcode.child("name").value.toString()
                         val sp = barcode.child("sellingPrice").value.toString()
                         val qty = barcode.child("qty").value.toString()
-                        val item = InventoryItem(false, name, qty, sp, onItemRemoveClick!!, onItemStockClick!!,onItemEditClick!!)
+                        val item = InventoryItem(false, name, qty, sp, onItemRemoveClick!!, onItemStockClick!!, onItemEditClick!!)
                         item.barcode = barcode.key!!
-
+                        costPriceList.add(barcode.child("costPrice").value.toString().toInt())
                         inventoryList.add(item)
                     }
+                }
+                if (costPriceList.size>0) {
+                    var marginSum = 0.0
+                    for (i in 0 until inventoryList.size) {
+                        marginSum += (inventoryList[i].itemPrice.toInt() - costPriceList[i]).toDouble() / inventoryList[i].itemPrice.toInt()
+                    }
+                    view!!.findViewById<TextView>(R.id.tv_margin).text = "${marginSum.toInt() * 100 / costPriceList.size}%"
                 }
                 groupAdapterScanned.addAll(inventoryList)
             }

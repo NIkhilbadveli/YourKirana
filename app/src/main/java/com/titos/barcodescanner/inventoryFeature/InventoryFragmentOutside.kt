@@ -46,7 +46,7 @@ class InventoryFragmentOutside : Fragment()
     {
         val view = inflater.inflate(R.layout.fragment_inventory_outside, container, false)
 
-        val category = arrayOf("Branded Foods","Loose Items","Fridge Products","Beauty","Health and Hygiene","Home Needs")
+        val category = arrayOf("All", "Branded Foods","Loose Items","Fridge Products","Beauty","Health and Hygiene","Home Needs")
 
         val viewPager = view.findViewById<ViewPager2>(R.id.pagerInventory)
         viewPager.adapter = PagerAdapter(this, category)
@@ -65,7 +65,7 @@ class InventoryFragmentOutside : Fragment()
 
         private val categoryList = category
 
-        override fun getItemCount(): Int  = 6
+        override fun getItemCount(): Int  = 7
 
         override fun createFragment(position: Int): Fragment {
             val fragment = InventoryFragmentInside()
