@@ -38,8 +38,7 @@ class AgreementFragment : Fragment() {
         //val tvTakenDate = layoutView.findViewById<TextView>(R.id.tvTakenDate)
         val tvDueDate = layoutView.findViewById<TextView>(R.id.tvDueDate)
 
-        val simpleDateFormat = SimpleDateFormat("dd-mm-yyyy hh:mm:ss", Locale.US)
-        val addedTime = simpleDateFormat.format(Date())
+        val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy hh:mm:ss", Locale.US)
 
         val cal = Calendar.getInstance()
         val year = cal.get(Calendar.YEAR)
@@ -68,6 +67,7 @@ class AgreementFragment : Fragment() {
         layoutView.findViewById<Button>(R.id.saveButton).setOnClickListener {
             if (etcustId.text.isNotEmpty() && etcustName.text.isNotEmpty() && etMobileNumber.text.isNotEmpty()
                     && tvDueDate.text!="00-00-0000" && amountDue!=null) {
+                val addedTime = simpleDateFormat.format(Date())
 
                 database.child("khataBook/$shopName/$addedTime/customerId").setValue(etcustId.text.toString())
                 database.child("khataBook/$shopName/$addedTime/customerName").setValue(etcustName.text.toString())

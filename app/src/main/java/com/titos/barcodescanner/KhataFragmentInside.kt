@@ -47,7 +47,9 @@ class KhataFragmentInside : Fragment(), SearchView.OnQueryTextListener {
             adapter = groupAdapter
             layoutManager = LinearLayoutManager(requireContext())
         }
-
+        var onItemRemoveClick :((Int)->Unit) = { pos ->
+            groupAdapter.removeGroupAtAdapterPosition(pos)
+        }
         val khataRef = FirebaseDatabase.getInstance().reference.child("khataBook/$shopName")
         khataRef.addListenerForSingleValueEvent(object : ValueEventListener
         {
@@ -68,7 +70,8 @@ class KhataFragmentInside : Fragment(), SearchView.OnQueryTextListener {
                         val dueDate = timeStamp.child("dueDate").value.toString()
                         val amountDue = timeStamp.child("amountDue").value.toString()
 
-                      customerList.add(CustomerItem(customerId, customerName, mobileNumber, amountDue, dueDate, timeStamp.key!!))
+
+                      customerList.add(CustomerItem(customerId, customerName, mobileNumber, amountDue, dueDate, timeStamp.key!!,onItemRemoveClick))
                     }
                 }
                 groupAdapter.addAll(customerList)
