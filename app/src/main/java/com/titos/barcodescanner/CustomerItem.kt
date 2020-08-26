@@ -6,6 +6,7 @@ import android.transition.AutoTransition
 import android.transition.TransitionManager
 import android.view.View
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.cardview.widget.CardView
@@ -27,8 +28,8 @@ val amountDue: String,val dueDate: String, val takenTime: String,val onItemRemov
             tvDueDate.text = dueDate
             tvDueAmount.text = "\u20B9 $amountDue"
 
-            val expand = containerView.findViewById<CardView>(R.id.expand)
-            val cust = containerView.findViewById<CardView>(R.id.cardView_customer)
+            val expand = containerView.findViewById<LinearLayout>(R.id.expand)
+            val cust = containerView.findViewById<LinearLayout>(R.id.cardView_customer)
             val arrow = containerView.findViewById<ImageView>(R.id.right_arrow)
             val callCust = containerView.findViewById<TextView>(R.id.call)
             val sharedPref = containerView.context?.getSharedPreferences("sharedPref", Context.MODE_PRIVATE)
