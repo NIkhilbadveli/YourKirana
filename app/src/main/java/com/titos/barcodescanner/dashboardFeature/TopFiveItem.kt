@@ -23,10 +23,7 @@ class TopFiveItem(val name: String, val qty: String, val sales: String) : Item()
             val mpriceview: TextView = containerView.findViewById(R.id.item_sales_of_top5)
             val mImageView: ImageView = containerView.findViewById(R.id.icon_top_five)
 
-            if (name.length > 12)
-                mNameview.text = name.take(12) + "..."
-            else
-                mNameview.text = name.take(12)
+            mNameview.text = name
 
             mpriceview.text = "₹ " + sales
             mQuantityview.text = qty

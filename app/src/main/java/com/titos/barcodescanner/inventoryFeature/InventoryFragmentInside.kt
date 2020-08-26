@@ -41,11 +41,7 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
     private var onItemStockClick :((Int)->Unit)? = null
 
     private var recyclerViewScannedItems:RecyclerView? = null
-
-    private var shopName = "Temp Store"
-    private lateinit var sharedPref: SharedPreferences
     private var inventoryList = ArrayList<InventoryItem>()
-    private var costPriceList = ArrayList<Int>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -56,9 +52,6 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
         toolbar!!.findViewById<TextView>(R.id.text_view_toolbar).visibility = View.VISIBLE
         toolbar.findViewById<SwitchCompat>(R.id.inventory_scanner_switch).visibility = View.GONE
 
-        sharedPref = activity?.getSharedPreferences("sharedPref",Context.MODE_PRIVATE)!!
-        shopName = sharedPref.getString("shopName",shopName)!!
-
 
         recyclerViewScannedItems = view.findViewById(R.id.rv_mystore_scannable)
         recyclerViewScannedItems!!.apply {
@@ -66,6 +59,9 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
             layoutManager = LinearLayoutManager(context)
             isNestedScrollingEnabled = false
         }
+
+        val sharedPref = activity?.getSharedPreferences("sharedPref",Context.MODE_PRIVATE)!!
+        val shopName = sharedPref.getString("shopName","Temp Store")!!
 
         onItemRemoveClick = {pos ->
 
@@ -75,6 +71,7 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
                     .setPositiveButton("Yes") { _, _ ->
                         groupAdapterScanned.removeGroupAtAdapterPosition(pos)
                         groupAdapterScanned.notifyItemRangeChanged(pos,groupAdapterScanned.itemCount)
+
                         FirebaseDatabase.getInstance().reference
                                 .child("inventoryData/$shopName/${inventoryList[pos].barcode}").removeValue()
                         Snackbar.make(requireView(),"Inventory Item deleted",Snackbar.LENGTH_SHORT).show()
@@ -101,7 +98,13 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
             bundle.putBoolean("edit", true)
 
             //Update inventoryList using the list from callback
-            val callAddToList: (ArrayList<String>)->Unit = { list -> groupAdapterScanned.notifyDataSetChanged()}
+            val callAddToList: (ArrayList<String>)->Unit = { list ->
+                inventoryList[pos].barcode = list[0]
+                inventoryList[pos].itemName = list[1]
+                inventoryList[pos].itemPrice = list[2]
+                inventoryList[pos].itemQty = list[3]
+                groupAdapterScanned.notifyItemChanged(pos)
+            }
             val addNewProductFragment = AddNewProductFragment(callAddToList)
             addNewProductFragment.arguments = bundle
 
@@ -114,7 +117,7 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
 
         }
 
-        populateView()
+        populateView(view)
 
         val searchView = view.findViewById<SearchView>(R.id.simpleSearchView)
         searchView.setOnQueryTextListener(this)
@@ -144,54 +147,24 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
         }
     }
 
-    private fun populateView(){
+    private fun populateView(view: View){
 
-        val prodRef = FirebaseDatabase.getInstance().reference.child("inventoryData/$shopName")
-        val category = arguments?.getString("inventoryCategory")!!
+        val items = arguments?.getParcelableArrayList<InventoryFragmentOutside.InventoryDetails>("inventoryList")!!
 
-        prodRef.addListenerForSingleValueEvent(object : ValueEventListener{
-            override fun onCancelled(p0: DatabaseError) {
+        items.forEach {
+            inventoryList.add(InventoryItem(it.barcode, it.name, it.qty.toString(), it.price.toString()
+                                    ,onItemRemoveClick!!, onItemStockClick!!, onItemEditClick!!))
+        }
 
+        groupAdapterScanned.addAll(inventoryList)
+
+        if (items.size>0) {
+            var marginSum = 0.0
+            for (i in 0 until items.size) {
+                marginSum += (items[i].price - items[i].cost).toDouble() / items[i].price
             }
-
-            override fun onDataChange(p0: DataSnapshot) {
-                if(category!="All") {
-                    for (barcode in p0.children) {
-                        if (category == barcode.child("category").value.toString()) {
-
-                            val name = barcode.child("name").value.toString()
-                            val sp = barcode.child("sellingPrice").value.toString()
-                            val qty = barcode.child("qty").value.toString()
-                            val item = InventoryItem(false, name, qty, sp, onItemRemoveClick!!, onItemStockClick!!, onItemEditClick!!)
-                            item.barcode = barcode.key!!
-                            costPriceList.add(barcode.child("costPrice").value.toString().toInt())
-                            inventoryList.add(item)
-                        }
-                    }
-                }
-                else{
-                    //Adding all items
-                    for (barcode in p0.children) {
-                        val name = barcode.child("name").value.toString()
-                        val sp = barcode.child("sellingPrice").value.toString()
-                        val qty = barcode.child("qty").value.toString()
-                        val item = InventoryItem(false, name, qty, sp, onItemRemoveClick!!, onItemStockClick!!, onItemEditClick!!)
-                        item.barcode = barcode.key!!
-                        costPriceList.add(barcode.child("costPrice").value.toString().toInt())
-                        inventoryList.add(item)
-                    }
-                }
-                if (costPriceList.size>0) {
-                    var marginSum = 0.0
-                    for (i in 0 until inventoryList.size) {
-                        marginSum += (inventoryList[i].itemPrice.toInt() - costPriceList[i]).toDouble() / inventoryList[i].itemPrice.toInt()
-                    }
-                    view!!.findViewById<TextView>(R.id.tv_margin).text = "${marginSum.toInt() * 100 / costPriceList.size}%"
-                }
-                groupAdapterScanned.addAll(inventoryList)
-            }
-        })
-
+            view.findViewById<TextView>(R.id.tv_margin).text = "${(marginSum/items.size*100).toInt()}%"
+        }
     }
 
 }

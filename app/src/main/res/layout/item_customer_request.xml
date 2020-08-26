@@ -24,7 +24,7 @@
 
         <EditText
             android:id="@+id/request_item_name"
-            android:layout_width="wrap_content"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceListItem"
             android:text="Book"

@@ -26,6 +26,7 @@ import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.google.firebase.storage.FirebaseStorage
 import com.titos.barcodescanner.R
+import kotlinx.android.synthetic.main.fragment_add_new_product.view.*
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
@@ -43,6 +44,7 @@ class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : Di
     private lateinit var pName: AutoCompleteTextView
     private lateinit var sp: EditText
     private lateinit var cp: EditText
+    private lateinit var etQuantity: EditText
     private lateinit var url: String
     private var barcode = "00000"
     private lateinit var layoutView: View
@@ -94,6 +96,20 @@ class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : Di
 
         spinType.adapter = ArrayAdapter<String>(requireContext(),android.R.layout.simple_list_item_1,type)
 
+        spinType.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+
+            }
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (position==1) {
+                    spinCategory.setSelection(1)
+                    spinCategory.isEnabled = false
+                }
+                else
+                    spinCategory.isEnabled = true
+            }
+        }
+
         spinCategory.adapter = ArrayAdapter<String>(requireContext(),android.R.layout.simple_list_item_1,category)
 
         spinCategory.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
@@ -116,32 +132,36 @@ class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : Di
 
         sp = layoutView.findViewById(R.id.edit_sp)
         cp = layoutView.findViewById(R.id.edit_cp)
-        val etQuantity = layoutView.findViewById<EditText>(R.id.edit_quantity)
+        etQuantity = layoutView.findViewById<EditText>(R.id.edit_quantity)
 
         url = "https://google.com"
 
-        var stockRef = FirebaseDatabase.getInstance().reference.child("stockMovement/$shopName/$barcode")
+        val stockRef = FirebaseDatabase.getInstance().reference.child("stockMovement/$shopName/$barcode")
 
         val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.US)
         val simpleTimeFormat = SimpleDateFormat("hh:mm:ss a", Locale.US)
-        val dateFormat = simpleDateFormat.format(Date())
-        val timeFormat = simpleTimeFormat.format(Date())
 
         val add = layoutView.findViewById<Button>(R.id.addBtn)
         add.setOnClickListener {
+            val dateFormat = simpleDateFormat.format(Date())
+            val timeFormat = simpleTimeFormat.format(Date())
             if (pName.text.isNotEmpty()&&sp.text.isNotEmpty()&&cp.text.isNotEmpty()
                     &&etQuantity.text.isNotEmpty()&&barcode!="00000") {
-                prodInfo.child("name").setValue(pName.text.toString())
-                prodInfo.child("sellingPrice").setValue(sp.text.toString())
-                prodInfo.child("costPrice").setValue(cp.text.toString())
-                prodInfo.child("qty").setValue(etQuantity.text.toString())
-                prodInfo.child("url").setValue(url)
-                prodInfo.child("type").setValue(spinType.selectedItem.toString())
-                prodInfo.child("category").setValue(spinCategory.selectedItem.toString())
-                stockRef.child("$dateFormat $timeFormat").setValue("+"+etQuantity.text.toString())
-                prodInfo.child("subCategory").setValue(spinSubCategory.selectedItem.toString())
-                Toast.makeText(context, "Added to Inventory", Toast.LENGTH_SHORT).show()
-                dismiss()
+                if(sp.text.toString().toInt()>=cp.text.toString().toInt()) {
+                    prodInfo.child("name").setValue(pName.text.toString())
+                    prodInfo.child("sellingPrice").setValue(sp.text.toString())
+                    prodInfo.child("costPrice").setValue(cp.text.toString())
+                    prodInfo.child("qty").setValue(etQuantity.text.toString())
+                    prodInfo.child("url").setValue(url)
+                    prodInfo.child("type").setValue(spinType.selectedItem.toString())
+                    prodInfo.child("category").setValue(spinCategory.selectedItem.toString())
+                    stockRef.child("$dateFormat $timeFormat").setValue("+" + etQuantity.text.toString())
+                    prodInfo.child("subCategory").setValue(spinSubCategory.selectedItem.toString())
+                    Toast.makeText(context, "Added to Inventory", Toast.LENGTH_SHORT).show()
+                    dismiss()
+                }
+                else
+                    Toast.makeText(context, "Selling Price should be greater than cost price", Toast.LENGTH_SHORT).show()
             }
             else
                 Toast.makeText(context, "Please enter all the required values", Toast.LENGTH_SHORT).show()
@@ -204,12 +224,12 @@ class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : Di
                 .addOnFailureListener { Toast.makeText(context,"Failed to detect any text... add manually",Toast.LENGTH_SHORT).show() }
     }
 
-    fun getRequiredData(): ArrayList<String>{
+    private fun getRequiredData(): ArrayList<String>{
         val list = ArrayList<String>()
         list.add(barcode)
         list.add(pName.text.toString())
         list.add(sp.text.toString())
-        list.add(url)
+        list.add(etQuantity.text.toString())
 
         return list
     }

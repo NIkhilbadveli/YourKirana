@@ -34,6 +34,7 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.dynamiclinks.DynamicLink
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
 import com.google.firebase.storage.FirebaseStorage
+import com.titos.barcodescanner.ProgressDialog
 
 import com.titos.barcodescanner.R
 import com.titos.barcodescanner.loginFeature.LoginActivity
@@ -188,19 +189,5 @@ class ProfileFragment : Fragment() {
                     startActivity(Intent(requireContext(), LoginActivity::class.java))
                     activity?.finish()
                 }
-    }
-
-    class ProgressDialog {
-        companion object {
-            fun progressDialog(context: Context): Dialog {
-                val dialog = Dialog(context)
-                val inflate = LayoutInflater.from(context).inflate(R.layout.progress_dialog, null)
-                dialog.setContentView(inflate)
-                dialog.setCancelable(false)
-                dialog.window!!.setBackgroundDrawable(
-                        ColorDrawable(Color.TRANSPARENT))
-                return dialog
-            }
-        }
     }
 }

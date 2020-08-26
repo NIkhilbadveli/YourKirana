@@ -47,12 +47,17 @@ class CustomerRequestsFragment : Fragment() {
 
         requestRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(p0: DataSnapshot) {
+                val checkedList = ArrayList<CustomerRequestItem>()
                 for (request in p0.children){
                     val name = request.child("name").value.toString()
                     val qty = request.child("qty").value.toString().toInt()
                     val checked = request.child("checked").value.toString().toBoolean()
-                    groupAdapter.add(CustomerRequestItem(checked,name,qty))
+                    if (!checked)
+                        groupAdapter.add(CustomerRequestItem(request.key!!,checked,name,qty))
+                    else
+                        checkedList.add(CustomerRequestItem(request.key!!,checked,name,qty))
                 }
+                groupAdapter.addAll(checkedList)
             }
 
             override fun onCancelled(p0: DatabaseError) {
@@ -74,7 +79,7 @@ class CustomerRequestsFragment : Fragment() {
                     requestRef.child(key).child("name").setValue(product_name.text.toString())
                     requestRef.child(key).child("qty").setValue(1)
                     requestRef.child(key).child("checked").setValue(false)
-                    groupAdapter.add(CustomerRequestItem(false,product_name.text.toString(),1))
+                    groupAdapter.add(CustomerRequestItem(key,false,product_name.text.toString(),1))
                 }
                 /*else
                     Toast.makeText(requireContext(),"Please Enter something", Toast.LENGTH_SHORT).show()*/
