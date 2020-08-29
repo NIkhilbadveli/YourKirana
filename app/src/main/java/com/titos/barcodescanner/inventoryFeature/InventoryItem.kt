@@ -35,7 +35,7 @@ class InventoryItem(var barcode: String, var itemName: String, var itemQty: Stri
                 onItemEditClick.invoke(position)
             }
 
-            subtract_quantity_button.setOnClickListener {
+            /*subtract_quantity_button.setOnClickListener {
                 val updatedQty = mystore_item_qty.text.toString().toInt() - 1
                 if (updatedQty>0){
                     itemQty = updatedQty.toString()
@@ -49,7 +49,7 @@ class InventoryItem(var barcode: String, var itemName: String, var itemQty: Stri
                 itemQty = updatedQty.toString()
                 itemRef.child("qty").setValue(itemQty)
                 notifyChanged()
-            }
+            }*/
         }
     }
 

@@ -8,6 +8,10 @@ android {
 
     signingConfigs {
         releaseconfig {
+        storeFile file('F:\\New folder\\upload_key.jks')
+            storePassword 'hacker@123'
+            keyAlias 'key0'
+            keyPassword 'uploadkey'
         }
     }
     compileSdkVersion 30
@@ -17,9 +21,9 @@ android {
         minSdkVersion 21
         targetSdkVersion 30
         versionCode 1
-        versionName "1.0.2"
+        versionName "1.0.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        signingConfig signingConfigs.debug
+        signingConfig signingConfigs.releaseconfig
     }
     buildTypes {
         release {

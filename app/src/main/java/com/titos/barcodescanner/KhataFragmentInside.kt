@@ -47,9 +47,11 @@ class KhataFragmentInside : Fragment(), SearchView.OnQueryTextListener {
             adapter = groupAdapter
             layoutManager = LinearLayoutManager(requireContext())
         }
-        var onItemRemoveClick :((Int)->Unit) = { pos ->
+
+        val onItemRemoveClick :((Int)->Unit) = { pos ->
             groupAdapter.removeGroupAtAdapterPosition(pos)
         }
+
         val khataRef = FirebaseDatabase.getInstance().reference.child("khataBook/$shopName")
         khataRef.addListenerForSingleValueEvent(object : ValueEventListener
         {

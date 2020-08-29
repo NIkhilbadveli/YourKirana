@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity.apply
 import android.view.LayoutInflater
 import android.view.View
@@ -34,7 +35,7 @@ import kotlin.collections.ArrayList
 
 class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
 
-    private var groupAdapterScanned = GroupAdapter<GroupieViewHolder>()
+    private lateinit var groupAdapterScanned : GroupAdapter<GroupieViewHolder>
 
     private var onItemRemoveClick :((Int)->Unit)? = null
     private var onItemEditClick :((Int)->Unit)? = null
@@ -42,22 +43,18 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
 
     private var recyclerViewScannedItems:RecyclerView? = null
     private var inventoryList = ArrayList<InventoryItem>()
+    private lateinit var layoutView: View
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
 
-        val view =  inflater.inflate(R.layout.fragment_inventory_inside, container, false)
+        layoutView =  inflater.inflate(R.layout.fragment_inventory_inside, container, false)
 
-        val toolbar = activity?.findViewById<Toolbar>(R.id.toolbar_main)
-        toolbar!!.findViewById<TextView>(R.id.text_view_toolbar).visibility = View.VISIBLE
-        toolbar.findViewById<SwitchCompat>(R.id.inventory_scanner_switch).visibility = View.GONE
-
-
-        recyclerViewScannedItems = view.findViewById(R.id.rv_mystore_scannable)
+        groupAdapterScanned = GroupAdapter()
+        recyclerViewScannedItems = layoutView.findViewById(R.id.rv_mystore_scannable)
         recyclerViewScannedItems!!.apply {
             adapter = groupAdapterScanned
             layoutManager = LinearLayoutManager(context)
-            isNestedScrollingEnabled = false
         }
 
         val sharedPref = activity?.getSharedPreferences("sharedPref",Context.MODE_PRIVATE)!!
@@ -117,12 +114,19 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
 
         }
 
-        populateView(view)
+        populateView()
 
-        val searchView = view.findViewById<SearchView>(R.id.simpleSearchView)
+        val searchView = layoutView.findViewById<SearchView>(R.id.simpleSearchView)
         searchView.setOnQueryTextListener(this)
 
-        return view
+        return layoutView
+    }
+
+    override fun onResume() {
+        super.onResume()
+        groupAdapterScanned.clear()
+        inventoryList.clear()
+        populateView()
     }
 
     override fun onQueryTextSubmit(query: String?): Boolean {
@@ -147,24 +151,25 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
         }
     }
 
-    private fun populateView(view: View){
+    private fun populateView(){
 
         val items = arguments?.getParcelableArrayList<InventoryFragmentOutside.InventoryDetails>("inventoryList")!!
 
-        items.forEach {
-            inventoryList.add(InventoryItem(it.barcode, it.name, it.qty.toString(), it.price.toString()
-                                    ,onItemRemoveClick!!, onItemStockClick!!, onItemEditClick!!))
-        }
 
-        groupAdapterScanned.addAll(inventoryList)
-
-        if (items.size>0) {
-            var marginSum = 0.0
-            for (i in 0 until items.size) {
-                marginSum += (items[i].price - items[i].cost).toDouble() / items[i].price
+            items.forEach {
+                inventoryList.add(InventoryItem(it.barcode, it.name, it.qty.toString(), it.price.toString(), onItemRemoveClick!!, onItemStockClick!!, onItemEditClick!!))
             }
-            view.findViewById<TextView>(R.id.tv_margin).text = "${(marginSum/items.size*100).toInt()}%"
-        }
+
+            groupAdapterScanned.addAll(inventoryList)
+
+            if (items.size > 0) {
+                var marginSum = 0.0
+                for (i in 0 until items.size) {
+                    marginSum += (items[i].price - items[i].cost).toDouble() / items[i].price
+                }
+                layoutView.findViewById<TextView>(R.id.tv_margin).text = "${(marginSum / items.size * 100).toInt()}%"
+            }
+
     }
 
 }

@@ -66,15 +66,19 @@ class StockMovementFragment : Fragment()
                 for(timeStamp in p0.children) {
                     val currentQty = timeStamp.value.toString()
 
-                    if(currentQty.take(1) == "+")
-                    {
-                        finalQty += currentQty.toInt()
-                        stockList.add(StockItem("Added: $currentQty",timeStamp.key!!, finalQty.toString()))
-                    }
-                    else
-                    {
-                        finalQty -= currentQty.toInt()
-                        stockList.add(StockItem("Sold: $currentQty",timeStamp.key!!, finalQty.toString()))
+                    when {
+                        currentQty.take(1) == "+" -> {
+                            finalQty += currentQty.toInt()
+                            stockList.add(StockItem("Added: $currentQty",timeStamp.key!!, finalQty.toString()))
+                        }
+                        currentQty.take(1) == "-" -> {
+                            finalQty -= currentQty.toInt()
+                            stockList.add(StockItem("Sold: $currentQty",timeStamp.key!!, finalQty.toString()))
+                        }
+                        else -> {
+                            finalQty = currentQty.toInt()
+                            stockList.add(StockItem("Updated to: $currentQty",timeStamp.key!!, finalQty.toString()))
+                        }
                     }
                 }
                 stcQty.text = finalQty.toString()

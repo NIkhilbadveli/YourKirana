@@ -278,7 +278,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
             }
         })
 
-        val latestRef = FirebaseStorage.getInstance().reference.child("app-debug.apk")
+        val latestRef = FirebaseStorage.getInstance().reference.child("app-release.apk")
         val localFile = File.createTempFile("app-latest", ".apk")
 
         var installReady = false

@@ -51,7 +51,7 @@ val amountDue: String,val dueDate: String, val takenTime: String,val onItemRemov
                         builder.setMessage("Are you sure")
                         builder.setIcon(android.R.drawable.ic_dialog_alert)
                         builder.setPositiveButton("Yes"){dialogInterface, which ->
-                            Toast.makeText(containerView.context,"paid successfully..",Toast.LENGTH_LONG).show()
+                            //Toast.makeText(containerView.context,"paid successfully..",Toast.LENGTH_LONG).show()
                             khataRef.child("status").setValue("paid")
                             dialogInterface.dismiss()
                             onItemRemoveClick.invoke(position)

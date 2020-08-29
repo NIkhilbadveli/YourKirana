@@ -141,6 +141,8 @@ class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : Di
         val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.US)
         val simpleTimeFormat = SimpleDateFormat("hh:mm:ss a", Locale.US)
 
+        val edit = if(arguments?.getBoolean("edit")!=null) arguments?.getBoolean("edit")!! else false
+
         val add = layoutView.findViewById<Button>(R.id.addBtn)
         add.setOnClickListener {
             val dateFormat = simpleDateFormat.format(Date())
@@ -155,9 +157,15 @@ class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : Di
                     prodInfo.child("url").setValue(url)
                     prodInfo.child("type").setValue(spinType.selectedItem.toString())
                     prodInfo.child("category").setValue(spinCategory.selectedItem.toString())
-                    stockRef.child("$dateFormat $timeFormat").setValue("+" + etQuantity.text.toString())
+
+                    if(edit)
+                        stockRef.child("$dateFormat $timeFormat").setValue(etQuantity.text.toString())
+                    else
+                        stockRef.child("$dateFormat $timeFormat").setValue("+" + etQuantity.text.toString())
+
                     prodInfo.child("subCategory").setValue(spinSubCategory.selectedItem.toString())
-                    Toast.makeText(context, "Added to Inventory", Toast.LENGTH_SHORT).show()
+                    if (!edit)
+                        Toast.makeText(context, "Added to Inventory", Toast.LENGTH_SHORT).show()
                     dismiss()
                 }
                 else
@@ -175,7 +183,6 @@ class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : Di
             }
         }
 
-        val edit = if(arguments?.getBoolean("edit")!=null) arguments?.getBoolean("edit")!! else false
         if (edit){
             add.text = "Update"
             prodInfo.addListenerForSingleValueEvent(object : ValueEventListener{

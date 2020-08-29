@@ -17,6 +17,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.widget.Toolbar
 import androidx.navigation.fragment.findNavController
@@ -70,10 +71,17 @@ class HistoryFragment : Fragment(){
 
         val swipeHandler = object : SwipeToAgreement(requireContext()) {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val orderNumber = viewHolder.itemView.findViewById<TextView>(R.id.history_order_number).text.toString()
-                val bundle = Bundle()
-                bundle.putString("amountDue", orderValueList[orderNumber.split(" ").last().toInt() - 1])
-                findNavController().navigate(R.id.action_historyFragment_to_agreementFragment, bundle)
+                val tvOrderNumber = viewHolder.itemView.findViewById<TextView>(R.id.history_order_number)
+                if(tvOrderNumber!=null) {
+                    val orderNumber = tvOrderNumber.text.toString()
+                    val bundle = Bundle()
+                    bundle.putString("amountDue", orderValueList[orderNumber.split(" ").last().toInt() - 1])
+                    findNavController().navigate(R.id.action_historyFragment_to_agreementFragment, bundle)
+                }
+                else{
+                    Toast.makeText(requireContext(), "Don't swipe here :)", Toast.LENGTH_SHORT).show()
+                    findNavController().navigate(R.id.historyFragment)
+                }
             }
         }
         val itemTouchHelper = ItemTouchHelper(swipeHandler)

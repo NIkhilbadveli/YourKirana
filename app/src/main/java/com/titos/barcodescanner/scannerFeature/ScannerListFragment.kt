@@ -240,7 +240,7 @@ class ScannerListFragment : Fragment() {
                 val updatedQty = allItemsCurrentQty[barcodeList[i]]!! - qty.text.toString().toInt()
                 inventoryRef.child("${barcodeList[i]}/qty").setValue(updatedQty.toString())
                 transactionRef.child("items/${barcodeList[i]}").setValue(qty.text.toString())
-                stockRef.child("$shopName/${barcodeList[i]}/$dateFormat $timeFormat").setValue(qty.text.toString())
+                stockRef.child("$shopName/${barcodeList[i]}/$dateFormat $timeFormat").setValue("-${qty.text}")
             }
         }
 
@@ -295,7 +295,7 @@ class ScannerListFragment : Fragment() {
                 val qty = itemView.findViewById<EditText>(R.id.item_quantity)
                 val updatedQty = allItemsCurrentQty[barcodeList[i]]!! + qty.text.toString().toInt()
                 inventoryRef.child("${barcodeList[i]}/qty").setValue(updatedQty.toString())
-                stockRef.child("$shopName/${barcodeList[i]}/$dateFormat $timeFormat").setValue(qty.text.toString())
+                stockRef.child("$shopName/${barcodeList[i]}/$dateFormat $timeFormat").setValue("+${qty.text}")
             }
         }
         val snack = Snackbar.make(requireView(), "Added to Inventory!", Snackbar.LENGTH_SHORT)

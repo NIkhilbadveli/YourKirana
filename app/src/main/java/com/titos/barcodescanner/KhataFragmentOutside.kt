@@ -53,7 +53,7 @@ class KhataFragmentOutside : Fragment() {
                     if (timeStamp.child("status").value.toString()=="notPaid")
                         notPaidTotal += timeStamp.child("amountDue").value.toString().toFloat().toInt()
                     else if(timeStamp.child("status").value.toString()=="paid")
-                        paidTotal += timeStamp.child("amountDue").value.toString().toInt()
+                        paidTotal += timeStamp.child("amountDue").value.toString().toFloat().toInt()
                 }
                 layoutView.findViewById<TextView>(R.id.tv_total_paid).text = "₹ $paidTotal"
                 layoutView.findViewById<TextView>(R.id.tv_total_due).text = "₹ $notPaidTotal"

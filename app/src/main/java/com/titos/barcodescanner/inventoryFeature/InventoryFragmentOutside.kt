@@ -55,6 +55,10 @@ class InventoryFragmentOutside : Fragment()
 
         val category = arrayOf("All", "Branded Foods","Loose Items","Fridge Products","Beauty","Health and Hygiene","Home Needs")
 
+        val toolbar = activity?.findViewById<Toolbar>(R.id.toolbar_main)
+        toolbar!!.findViewById<TextView>(R.id.text_view_toolbar).visibility = View.VISIBLE
+        toolbar.findViewById<SwitchCompat>(R.id.inventory_scanner_switch).visibility = View.GONE
+
         val sharedPref = activity?.getSharedPreferences("sharedPref",Context.MODE_PRIVATE)!!
         val shopName = sharedPref.getString("shopName","Temp Store")!!
 

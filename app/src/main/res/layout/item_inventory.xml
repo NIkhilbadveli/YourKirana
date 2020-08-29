@@ -92,18 +92,10 @@
             android:id="@+id/inventory_quantity_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:orientation="horizontal"
             android:layout_centerVertical="true"
-            android:layout_alignParentEnd="true"
+            android:layout_toStartOf="@id/remove_inventory_item_button"
             android:layout_margin="10dp">
-            <TextView
-                android:id="@+id/tv_in_stock"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/textColorBlack"
-                android:text="Units "
-                android:textSize="12sp"
-                android:layout_gravity="center_horizontal"/>
 
             <LinearLayout
                 android:id="@+id/edit_qty_container"
@@ -112,35 +104,38 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:orientation="horizontal">
-                <ImageButton
+<!--                <ImageButton
                     android:id="@+id/subtract_quantity_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@drawable/ic_remove_black_20dp"
                     android:background="@drawable/left_half_btn"
-                    android:layout_gravity="center"/>
+                    android:layout_gravity="center"/>-->
 
-                <EditText
+                <TextView
                     android:id="@+id/mystore_item_qty"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:inputType="numberDecimal"
-                    android:digits="0123456789."
-                    android:textSize="14sp"
                     android:textAlignment="center"
                     android:layout_marginEnd="5dp"
                     android:layout_marginStart="5dp"
-                    android:imeOptions="actionDone"
-                    android:hint="24"/>
+                    android:textColor="@color/black"
+                    android:text="24"/>
 
-                <ImageButton
+<!--                <ImageButton
                     android:id="@+id/add_quantity_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@drawable/ic_add_white_20dp"
                     android:background="@drawable/right_half_btn"
-                    android:layout_gravity="center"/>
+                    android:layout_gravity="center"/>-->
             </LinearLayout>
+            <TextView
+                android:id="@+id/tv_in_stock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Units "
+                android:layout_gravity="center_horizontal"/>
         </LinearLayout>
     </RelativeLayout>
 </androidx.cardview.widget.CardView>
