@@ -2,24 +2,16 @@ package com.titos.barcodescanner.loginFeature
 
 import android.app.Activity
 import android.app.Dialog
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothSocket
-import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.os.Handler
-import android.os.Message
-import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.FragmentActivity
 import com.firebase.ui.auth.AuthMethodPickerLayout
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.ErrorCodes
@@ -31,9 +23,6 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.titos.barcodescanner.*
-import java.io.IOException
-import java.nio.ByteBuffer
-import java.util.*
 
 
 class LoginActivity : AppCompatActivity() {
@@ -94,7 +83,7 @@ class LoginActivity : AppCompatActivity() {
                     val response = IdpResponse.fromResultIntent(data)
                     if (resultCode == Activity.RESULT_OK) {
                         getShopName(false)
-                        Toast.makeText(this,"Sign In successful",Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(this,"Sign In successful",Toast.LENGTH_SHORT).show()
 
                         return
                     } else {
@@ -119,14 +108,17 @@ class LoginActivity : AppCompatActivity() {
 
     private fun getShopName(alreadyLoggedIn: Boolean){
         val progressDialog = ProgressDialog.progressDialog(this)
+        progressDialog.findViewById<TextView>(R.id.login_tv_dialog).text = "Logging in ..."
+
         if (!alreadyLoggedIn)
             progressDialog.show()
         val user = auth.currentUser
         val userRef = FirebaseDatabase.getInstance().reference.child("userData").child(user!!.uid)
 
-        val view = layoutInflater.inflate(R.layout.bottom_sheet, null)
+        val view = layoutInflater.inflate(R.layout.dialog_bottom_sheet, null)
         val dialog = BottomSheetDialog(this)
         dialog.setContentView(view)
+        dialog.setCanceledOnTouchOutside(false)
 
         userRef.addListenerForSingleValueEvent(object : ValueEventListener{
             override fun onDataChange(p0: DataSnapshot) {
@@ -155,7 +147,7 @@ class LoginActivity : AppCompatActivity() {
         })
 
         val editShopName = dialog.findViewById<EditText>(R.id.edit_shop_name)
-        val addButton = dialog.findViewById<Button>(R.id.add_shop_name)
+        val addButton = dialog.findViewById<Button>(R.id.btn_add_shop)
 
         addButton!!.setOnClickListener {
             if(editShopName!!.text.isNotEmpty()){
@@ -168,23 +160,13 @@ class LoginActivity : AppCompatActivity() {
             else
                 Toast.makeText(this,"Please enter the shop name", Toast.LENGTH_SHORT).show()
         }
-    }
 
-    class ProgressDialog {
-        companion object {
-            fun progressDialog(context: Context): Dialog {
-                val dialog = Dialog(context)
-                val inflate = LayoutInflater.from(context).inflate(R.layout.progress_dialog, null)
-                inflate.findViewById<TextView>(R.id.login_tv_dialog).text = "Logging in ..."
-
-                dialog.setContentView(inflate)
-                dialog.setCancelable(false)
-                dialog.window!!.setBackgroundDrawable(
-                        ColorDrawable(Color.TRANSPARENT))
-                return dialog
-            }
+        dialog.findViewById<Button>(R.id.btn_join_later)!!.setOnClickListener {
+            userRef.child("shopName").setValue(shopName)
+            dialog.dismiss()
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
         }
     }
-
 
 }

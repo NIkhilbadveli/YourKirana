@@ -72,7 +72,7 @@ class BarcodeFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         barcode_view = inflater.inflate(R.layout.fragment_barcode, container, false)
-        model = ViewModelProviders.of(parentFragment!!).get(MainActivity.SharedViewModel::class.java)
+        model = ViewModelProviders.of(requireParentFragment()).get(MainActivity.SharedViewModel::class.java)
         barcodeScannerView = barcode_view!!.findViewById(R.id.zxing_barcode_scanner)
         viewfinderView = barcode_view!!.findViewById(R.id.zxing_viewfinder_view)
 
@@ -144,15 +144,6 @@ class BarcodeFragment : Fragment() {
         }
 
         return barcode_view
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode==111&&resultCode== Activity.RESULT_OK){
-            val list = data!!.getParcelableArrayListExtra<ScannerItem>("finalList")
-            val model:MainActivity.ViewModelForList = ViewModelProviders.of(parentFragment!!).get(MainActivity.ViewModelForList::class.java)
-            model.sendList(list!!)
-        }
     }
 
     override fun onDestroyView() {

@@ -30,6 +30,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.titos.barcodescanner.ProgressDialog
 import com.titos.barcodescanner.SwipeToAgreement
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
@@ -122,6 +123,11 @@ class HistoryFragment : Fragment(){
     }
 
     private fun populateView(view:View, groupAdapter:GroupAdapter<GroupieViewHolder>){
+        val dialog = ProgressDialog.progressDialog(requireContext())
+        dialog.findViewById<TextView>(R.id.login_tv_dialog).text = "Please Wait..."
+
+        dialog.show()
+
         val transactionRef = FirebaseDatabase.getInstance().reference.child("transactionData/$shopName")
         val dateStrToLocalDate: (String) -> LocalDate = {
             LocalDate.parse(it, DateTimeFormatter.ofPattern("dd-MM-yyyy"))
@@ -180,6 +186,8 @@ class HistoryFragment : Fragment(){
                             qtyList.add(tempList3)
                         }
                     }
+
+                    dialog.dismiss()
                 }
                 else
                     view.findViewById<LinearLayout>(R.id.empty_view_history).visibility = View.VISIBLE

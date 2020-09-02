@@ -10,7 +10,7 @@ class ProgressDialog {
     companion object {
         fun progressDialog(context: Context): Dialog {
             val dialog = Dialog(context)
-            val inflate = LayoutInflater.from(context).inflate(R.layout.progress_dialog, null)
+            val inflate = LayoutInflater.from(context).inflate(R.layout.dialog_progress, null)
             dialog.setContentView(inflate)
             dialog.setCancelable(false)
             dialog.window!!.setBackgroundDrawable(

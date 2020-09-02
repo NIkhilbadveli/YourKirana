@@ -68,11 +68,11 @@ class StockMovementFragment : Fragment()
 
                     when {
                         currentQty.take(1) == "+" -> {
-                            finalQty += currentQty.toInt()
+                            finalQty += currentQty.substringAfter("+").toInt()
                             stockList.add(StockItem("Added: $currentQty",timeStamp.key!!, finalQty.toString()))
                         }
                         currentQty.take(1) == "-" -> {
-                            finalQty -= currentQty.toInt()
+                            finalQty -= currentQty.substringAfter("-").toInt()
                             stockList.add(StockItem("Sold: $currentQty",timeStamp.key!!, finalQty.toString()))
                         }
                         else -> {

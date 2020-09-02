@@ -32,13 +32,11 @@ import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
 import com.google.firebase.storage.FirebaseStorage
 import com.ismaeldivita.chipnavigation.ChipNavigationBar
-import com.titos.barcodescanner.scannerFeature.ScannerItem
 import java.io.File
 
 class MainActivity : androidx.appcompat.app.AppCompatActivity() {
@@ -137,6 +135,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                 }
                 .addOnFailureListener(this) { e -> Log.w("RikiError", "getDynamicLink:onFailure", e) }
 
+        //Bluetooth feature
         val filter = IntentFilter()
         filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED)
@@ -256,7 +255,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
 
     private fun checkForUpdates() {
         val updateDialog = Dialog(this)
-        updateDialog.setContentView(R.layout.update_dialog)
+        updateDialog.setContentView(R.layout.dialog_update)
         updateDialog.setCanceledOnTouchOutside(false)
         FirebaseDatabase.getInstance().reference.child("appVersion").addListenerForSingleValueEvent(object : ValueEventListener{
             override fun onDataChange(p0: DataSnapshot) {
@@ -345,16 +344,6 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         }
     }
 
-
-
-    class ViewModelForList : ViewModel() {
-        val finalList = MutableLiveData<ArrayList<ScannerItem>>()
-
-        fun sendList(list: ArrayList<ScannerItem>){
-            finalList.value = list
-        }
-    }
-
     class SharedViewModel : ViewModel() {
         val selected = MutableLiveData<String>()
         val isScannerPaused = MutableLiveData<Boolean>()
@@ -372,7 +361,4 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         }
 
     }
-
-
-
 }

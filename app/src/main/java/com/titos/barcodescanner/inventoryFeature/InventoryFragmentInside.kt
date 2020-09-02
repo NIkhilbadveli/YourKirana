@@ -43,6 +43,7 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
 
     private var recyclerViewScannedItems:RecyclerView? = null
     private var inventoryList = ArrayList<InventoryItem>()
+    private var filteredList = ArrayList<InventoryItem>()
     private lateinit var layoutView: View
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -70,7 +71,7 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
                         groupAdapterScanned.notifyItemRangeChanged(pos,groupAdapterScanned.itemCount)
 
                         FirebaseDatabase.getInstance().reference
-                                .child("inventoryData/$shopName/${inventoryList[pos].barcode}").removeValue()
+                                .child("inventoryData/$shopName/${filteredList[pos].barcode}").removeValue()
                         Snackbar.make(requireView(),"Inventory Item deleted",Snackbar.LENGTH_SHORT).show()
                     }
                     .setNegativeButton("No") { dialog, id -> dialog.cancel()
@@ -84,22 +85,22 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
 
         onItemStockClick = {
             findNavController().navigate(R.id.action_myStoreFragment_to_stockMovementFragment, Bundle().apply{
-                putString("barcode",inventoryList[it].barcode)
-                putString("name", inventoryList[it].itemName)
+                putString("barcode",filteredList[it].barcode)
+                putString("name", filteredList[it].itemName)
             })
         }
 
         onItemEditClick = { pos ->
             val bundle = Bundle()
-            bundle.putString("barcode", inventoryList[pos].barcode)
+            bundle.putString("barcode", filteredList[pos].barcode)
             bundle.putBoolean("edit", true)
 
             //Update inventoryList using the list from callback
             val callAddToList: (ArrayList<String>)->Unit = { list ->
-                inventoryList[pos].barcode = list[0]
-                inventoryList[pos].itemName = list[1]
-                inventoryList[pos].itemPrice = list[2]
-                inventoryList[pos].itemQty = list[3]
+                filteredList[pos].barcode = list[0]
+                filteredList[pos].itemName = list[1]
+                filteredList[pos].itemPrice = list[2]
+                filteredList[pos].itemQty = list[3]
                 groupAdapterScanned.notifyItemChanged(pos)
             }
             val addNewProductFragment = AddNewProductFragment(callAddToList)
@@ -126,6 +127,7 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
         super.onResume()
         groupAdapterScanned.clear()
         inventoryList.clear()
+        filteredList.clear()
         populateView()
     }
 
@@ -143,10 +145,14 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
 
         if (lowerCaseText.isNotEmpty()) {
             groupAdapterScanned.clear()
-            groupAdapterScanned.addAll(inventoryList.filter { it.itemName.toLowerCase(Locale.getDefault()).contains(lowerCaseText) })
+            filteredList.clear()
+            filteredList = ArrayList(inventoryList.filter { it.itemName.toLowerCase(Locale.getDefault()).contains(lowerCaseText) })
+            groupAdapterScanned.addAll(filteredList)
         }
         else{
             groupAdapterScanned.clear()
+            filteredList.clear()
+            filteredList = inventoryList
             groupAdapterScanned.addAll(inventoryList)
         }
     }
@@ -160,6 +166,7 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
                 inventoryList.add(InventoryItem(it.barcode, it.name, it.qty.toString(), it.price.toString(), onItemRemoveClick!!, onItemStockClick!!, onItemEditClick!!))
             }
 
+            filteredList = ArrayList(inventoryList)
             groupAdapterScanned.addAll(inventoryList)
 
             if (items.size > 0) {

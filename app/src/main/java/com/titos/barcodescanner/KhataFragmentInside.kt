@@ -52,6 +52,11 @@ class KhataFragmentInside : Fragment(), SearchView.OnQueryTextListener {
             groupAdapter.removeGroupAtAdapterPosition(pos)
         }
 
+        val dialog = ProgressDialog.progressDialog(requireContext())
+        dialog.findViewById<TextView>(R.id.login_tv_dialog).text = "Please Wait..."
+
+        dialog.show()
+
         val khataRef = FirebaseDatabase.getInstance().reference.child("khataBook/$shopName")
         khataRef.addListenerForSingleValueEvent(object : ValueEventListener
         {
@@ -77,6 +82,7 @@ class KhataFragmentInside : Fragment(), SearchView.OnQueryTextListener {
                     }
                 }
                 groupAdapter.addAll(customerList)
+                dialog.dismiss()
             }
         })
 

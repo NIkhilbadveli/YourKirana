@@ -3,12 +3,25 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <TextView
+        android:id="@+id/tv_contact"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Mobile Number not entered"
+        android:textColor="@color/black"
+        android:drawablePadding="10dp"
+        android:layout_margin="10dp"
+        android:layout_centerHorizontal="true"
+        android:drawableStart="@drawable/ic_call_black_24dp"/>
+
     <LinearLayout
         android:id="@+id/empty_view_scanner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_centerInParent="true"
+        android:layout_below="@id/tv_contact"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="150dp"
         android:visibility="gone">
         <TextView
             android:layout_width="wrap_content"
@@ -30,63 +43,8 @@
             tools:context=".scannerFeature.ScannerListFragment"
             tools:listitem="@layout/item_scanner"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="50dp"/>
-
-    <LinearLayout
-        android:id="@+id/total_price_container"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="16dp">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Total"
-            android:textSize="16sp"
-            />
-
-        <TextView
-            android:id="@+id/tv_total"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Rs. "
-            android:textSize="22sp"
-            android:textColor="@color/textColorBlack"/>
-    </LinearLayout>
-
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/btn_bill"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_check_white_24dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        app:backgroundTint="@color/colorPrimaryDark"/>
-
-    <LinearLayout
-        android:id="@+id/checkout_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_margin="10dp"
-        android:background="@drawable/button_background"
-        android:visibility="gone">
-        <Button
-            android:id="@+id/check_out_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Add to My Store"
-            android:textColor="@color/colorPrimary"
-            android:background="@null"
-            android:elevation="5dp"/>
-    </LinearLayout>
+            android:layout_marginTop="10dp"
+        android:layout_below="@id/tv_contact"/>
 </RelativeLayout>
 
 

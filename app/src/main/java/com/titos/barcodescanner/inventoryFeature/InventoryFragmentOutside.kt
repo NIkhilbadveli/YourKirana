@@ -67,7 +67,7 @@ class InventoryFragmentOutside : Fragment()
             inventoryList.add(ArrayList())
 
         val dialog = ProgressDialog.progressDialog(requireContext())
-        dialog.findViewById<TextView>(R.id.login_tv_dialog).text = "Wait..."
+        dialog.findViewById<TextView>(R.id.login_tv_dialog).text = "Please Wait..."
 
         dialog.show()
         val prodRef = FirebaseDatabase.getInstance().reference.child("inventoryData/$shopName")

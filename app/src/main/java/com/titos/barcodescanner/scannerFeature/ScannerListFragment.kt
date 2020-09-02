@@ -3,8 +3,10 @@ package com.titos.barcodescanner.scannerFeature
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.app.Dialog
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Color
 import android.os.Bundle
 
 import android.view.LayoutInflater
@@ -26,24 +28,24 @@ import com.google.firebase.database.*
 
 import com.titos.barcodescanner.*
 import com.titos.barcodescanner.R
+import kotlinx.coroutines.withContext
 
 
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.concurrent.schedule
 
 
-
-class ScannerListFragment : Fragment() {
+class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButton,val btnInv: Button) : Fragment() {
 
     private var listValues = ArrayList<ScannerItem>()
     private var barcodeList = ArrayList<String>()
     private var recyclerViewAdapter: ScannerItemAdapter? = null
     private var recyclerView:RecyclerView?=null
-    private var model: MainActivity.SharedViewModel? = null
+    private lateinit var model: MainActivity.SharedViewModel
     private var databaseReference: DatabaseReference? = null
 
-    private var tvTotal: TextView? = null
     private var emptyView: LinearLayout? = null
     private var shopName = "Temp Store"
 
@@ -51,6 +53,10 @@ class ScannerListFragment : Fragment() {
     private lateinit var sharedPref: SharedPreferences
     private var allItemsCurrentQty: MutableMap<String, Int> = mutableMapOf()
     private lateinit var inventoryRef: DatabaseReference
+
+    private var phoneNum = "1234567890"
+    private lateinit var dialog: Dialog
+    lateinit var tvContact: TextView
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -62,13 +68,13 @@ class ScannerListFragment : Fragment() {
         
         databaseReference = FirebaseDatabase.getInstance().reference
 
-        model?.selected?.observe(viewLifecycleOwner, Observer { s -> searchForProduct(s) })
+        model.selected.observe(viewLifecycleOwner, Observer { s -> searchForProduct(s) })
 
         sharedPref = activity?.getSharedPreferences("sharedPref",Context.MODE_PRIVATE)!!
         shopName = sharedPref.getString("shopName",shopName)!!
 
         recyclerView = view.findViewById(R.id.list)
-        tvTotal = view.findViewById(R.id.tv_total)
+
         emptyView = view.findViewById(R.id.empty_view_scanner)
         emptyView?.visibility = View.VISIBLE
 
@@ -87,20 +93,20 @@ class ScannerListFragment : Fragment() {
             }
         }
 
-        floatingActionButton = view.findViewById(R.id.btn_bill)
+        //floatingActionButton = view.findViewById(R.id.btn_bill)
         recyclerView!!.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = recyclerViewAdapter
-            floatingActionButton.setOnClickListener {
+            btnTick.setOnClickListener {
                 if(listValues.isNotEmpty())
                     addToTransactionData()
                 else
-                    Toast.makeText(context, "Please scan at least one item :)", Toast.LENGTH_SHORT).show() }
-
+                    Toast.makeText(context, "Please scan at least one item :)", Toast.LENGTH_SHORT).show()
+            }
         }
 
-        val inventoryButton = view.findViewById<Button>(R.id.check_out_button)
-        inventoryButton.setOnClickListener {
+        //val inventoryButton = view.findViewById<Button>(R.id.check_out_button)
+        btnInv.setOnClickListener {
             if(listValues.isNotEmpty()){
                 addToInventoryData()
             }
@@ -121,29 +127,43 @@ class ScannerListFragment : Fragment() {
             }
 
         })
+
+        tvContact = view.findViewById(R.id.tv_contact)
+        tvContact.setOnClickListener {
+            dialog.show()
+            model.pauseScanner()
+        }
+
         return view
     }
 
     private fun handleSwitching(view: View){
-        val toolbar = activity?.findViewById<Toolbar>(R.id.toolbar_main)
-        val switch = toolbar?.findViewById<SwitchCompat>(R.id.inventory_scanner_switch)
 
-        //Setting initial mode
-        switch?.isChecked = true
+        val viewGroup = view.findViewById<ViewGroup>(android.R.id.content)
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_phone, viewGroup, false)
+        dialog = AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .create()
 
-        switch?.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked){
-                view.findViewById<LinearLayout>(R.id.total_price_container)!!.visibility = View.VISIBLE
-                view.findViewById<LinearLayout>(R.id.checkout_container)!!.visibility = View.GONE
-                view.findViewById<FloatingActionButton>(R.id.btn_bill)!!.visibility = View.VISIBLE
-                switch.text = getString(R.string.scanner_mode)
+        dialog.setCanceledOnTouchOutside(false)
+
+        val etPhone = dialogView.findViewById<EditText>(R.id.et_number)
+        dialogView.findViewById<Button>(R.id.btn_add_phone).setOnClickListener {
+            if (etPhone.text.isNotEmpty()&&etPhone.text.toString().length==10){
+                phoneNum = etPhone.text.toString()
+                view.findViewById<TextView>(R.id.tv_contact).text = phoneNum
+                dialog.dismiss()
+                model.resumeScanner()
             }
-            else{
-                view.findViewById<LinearLayout>(R.id.total_price_container)!!.visibility = View.GONE
-                view.findViewById<LinearLayout>(R.id.checkout_container)!!.visibility = View.VISIBLE
-                view.findViewById<FloatingActionButton>(R.id.btn_bill)!!.visibility = View.GONE
-                switch.text = getString(R.string.inventory_mode)
-            }
+            else if (etPhone.text.isNotEmpty() && etPhone.text.toString().length!=10)
+                Toast.makeText(context, "Please enter valid phone number", Toast.LENGTH_SHORT).show()
+            else
+                Toast.makeText(context, "Don't leave it empty :)", Toast.LENGTH_SHORT).show()
+        }
+
+        dialogView.findViewById<Button>(R.id.btn_cancel).setOnClickListener {
+            model.resumeScanner()
+            dialog.cancel()
         }
     }
 
@@ -247,35 +267,25 @@ class ScannerListFragment : Fragment() {
         //Adding orderValue to data
         transactionRef.child("orderValue").setValue(tvTotal?.text.toString().split(' ').last())
 
+        //Adding customer data
+        if (phoneNum!="1234567890"&&phoneNum.length==10) {
+            transactionRef.child("contact").setValue(phoneNum)
+            val key = databaseReference!!.push().key
+            databaseReference!!.child("customerData/$phoneNum/$key").setValue("$dateFormat, $timeFormat")
+        }
+
         val snack = Snackbar.make(requireView(), "Added to Transaction History!", Snackbar.LENGTH_SHORT)
         snack.setAction("View History") {
             findNavController().navigate(R.id.historyFragment)
         }
-        snack.setActionTextColor(activity?.resources!!.getColor(R.color.textColorWhite))
+
+        snack.setActionTextColor(Color.parseColor("#ffffff"))
         snack.show()
 
-        /*val dialogview = LayoutInflater.from(context).inflate(R.layout.choice_dialog, null)
+        //Showing phone dialog again
+        dialog.show()
+        model.pauseScanner()
 
-        val builder = AlertDialog.Builder(context)
-        builder.setView(dialogview)
-        val alertDialog = builder.create()
-        alertDialog.setCanceledOnTouchOutside(false)
-
-        alertDialog.show()
-        dialogview.findViewById<Button>(R.id.btn_choice_notpaid).setOnClickListener {
-            val bundle = Bundle()
-            bundle.putString("amountDue", tvTotal?.text.toString().split(' ').last())
-            findNavController().navigate(R.id.action_scannerFragment_to_agreementFragment, bundle)
-            alertDialog.dismiss()
-            tvTotal!!.text = "Rs."
-        }
-
-        dialogview.findViewById<Button>(R.id.btn_choice_paid).setOnClickListener {
-            Toast.makeText(context, "Marked as paid", Toast.LENGTH_SHORT).show()
-            alertDialog.dismiss()
-            tvTotal!!.text = "Rs."
-        }
-*/
         listValues.clear()
         tvTotal!!.text = "Rs."
         recyclerViewAdapter!!.notifyDataSetChanged()
@@ -299,7 +309,7 @@ class ScannerListFragment : Fragment() {
             }
         }
         val snack = Snackbar.make(requireView(), "Added to Inventory!", Snackbar.LENGTH_SHORT)
-        snack.setActionTextColor(activity?.resources!!.getColor(R.color.textColorWhite))
+        snack.setActionTextColor(Color.parseColor("#ffffff"))
         snack.setAction("Check Inventory") {
             findNavController().navigate(R.id.myStoreFragment)
         }

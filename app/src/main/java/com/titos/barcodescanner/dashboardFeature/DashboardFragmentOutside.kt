@@ -105,6 +105,10 @@ class DashboardFragmentOutside : Fragment()
         var thisWeekSales = 0.0
         val allDaySales = ArrayList<DaySales>()
 
+        val dialog = ProgressDialog.progressDialog(requireContext())
+        dialog.findViewById<TextView>(R.id.login_tv_dialog).text = "Please Wait..."
+
+        dialog.show()
         val transactionRef = FirebaseDatabase.getInstance().reference.child("transactionData/$shopName")
         transactionRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onCancelled(p0: DatabaseError) {
@@ -130,6 +134,8 @@ class DashboardFragmentOutside : Fragment()
                     if (weekDays.contains(day.key))
                         allDaySales.add(DaySales(day.key!!, thisDaySales))
                 }
+
+                dialog.dismiss()
 
                 viewPager.adapter = PagerAdapter(this@DashboardFragmentOutside, itemLevelDetails)
                 val tabLayout = view.findViewById<TabLayout>(R.id.tab_layout)
