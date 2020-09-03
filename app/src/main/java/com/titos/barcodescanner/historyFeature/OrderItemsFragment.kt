@@ -25,6 +25,7 @@ import com.titos.barcodescanner.R
 
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
+import kotlinx.android.synthetic.main.fragment_items_order.*
 
 import java.text.SimpleDateFormat
 import java.util.*
@@ -47,7 +48,8 @@ class OrderItemsFragment : Fragment(){
 
         view.findViewById<TextView>(R.id.order_date).text = otherDateFormat.format(simpleDateFormat.parse(date)!!)
         view.findViewById<TextView>(R.id.order_time).text = time
-        view.findViewById<TextView>(R.id.order_value).text = "Rs. $orderValue"
+        val orderVal = view.findViewById<TextView>(R.id.order_value)
+
 
         val groupAdapter = GroupAdapter<GroupieViewHolder>()
         val recyclerView = view.findViewById<RecyclerView>(R.id.rv_order_items)
@@ -68,6 +70,7 @@ class OrderItemsFragment : Fragment(){
 
         val inventoryRef = FirebaseDatabase.getInstance().reference.child("inventoryData/$shopName")
 
+        var itemTotal = 0
         inventoryRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onCancelled(p0: DatabaseError) {
 
@@ -75,11 +78,33 @@ class OrderItemsFragment : Fragment(){
 
             override fun onDataChange(p0: DataSnapshot) {
                 for (i in 0 until barcodeList.size){
-                    groupAdapter.add(OrderItem(p0.child(barcodeList[i]).child("name").value.toString(), qtyList[i],
-                            p0.child(barcodeList[i]).child("sellingPrice").value.toString()))
+                    val sp =  p0.child(barcodeList[i]).child("sellingPrice").value
+                    val qty = p0.child(barcodeList[i]).child("qty").value
+                    val spTotal = sp.toString().toFloat() * qty.toString().toFloat()
+
+                    val total = view.findViewById<TextView>(R.id.tvItemTotalval)
+                    val savings = view.findViewById<TextView>(R.id.tvDiscountVal)
+                    val grandTotal = view.findViewById<TextView>(R.id.tvGrandTotalVal)
+                    view.findViewById<TextView>(R.id.dealerName).text= shopName
+
+
+                    itemTotal += spTotal.toInt()
+                    val discount = 2*(itemTotal/100)
+                    val tot = itemTotal-discount
+
+
+                    total.text = "₹ $itemTotal"
+                    savings.text = discount.toString()
+                    grandTotal.text = "₹ $tot"
+                    orderVal.text = "₹ $tot"
+
+                    groupAdapter.add(OrderItem(p0.child(barcodeList[i]).child("name").value.toString(), spTotal.toString(),
+                          "$qty units * $sp INR"))
                 }
             }
         })
+
+
 
         return view
     }

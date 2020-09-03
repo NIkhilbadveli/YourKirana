@@ -1,5 +1,6 @@
 package com.titos.barcodescanner.historyFeature
 
+import android.widget.ImageView
 import com.titos.barcodescanner.R
 
 import com.xwray.groupie.kotlinandroidextensions.Item
@@ -10,9 +11,23 @@ class OrderItem(val itemName: String, val itemQty: String, val itemPrice: String
 
     override fun bind(viewHolder: GroupieViewHolder, position: Int){
         viewHolder.apply {
-            order_item_name.text = itemName
-            order_item_qty.text = itemQty
-            order_item_price.text = "Rs. "+itemPrice
+            tvProductName.text = itemName
+            tvProductPrice.text = "₹ $itemQty"
+            tvProductQuantity.text = itemPrice
+            val mImageView: ImageView = containerView.findViewById(R.id.img)
+
+
+            when (position) {
+                0 -> mImageView.setImageResource(R.drawable.one)
+                1 -> mImageView.setImageResource(R.drawable.two)
+                2 -> mImageView.setImageResource(R.drawable.three)
+                3 -> mImageView.setImageResource(R.drawable.four)
+                4 -> mImageView.setImageResource(R.drawable.five)
+                5 -> mImageView.setImageResource(R.drawable.six)
+                6 -> mImageView.setImageResource(R.drawable.seven)
+                7 -> mImageView.setImageResource(R.drawable.eight)
+                8 -> mImageView.setImageResource(R.drawable.nine)
+            }
         }
     }
 
