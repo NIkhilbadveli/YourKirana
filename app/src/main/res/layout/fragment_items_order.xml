@@ -13,7 +13,7 @@
         >
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical">
     <LinearLayout
         android:id="@+id/order_summary_container"
@@ -111,9 +111,10 @@
             android:textSize="15sp"
             android:layout_alignParentEnd="true"
             android:layout_marginTop="10dp"
-            android:text="₹25.00"
+            android:text="- ₹ 25.00"
+            android:textStyle="bold"
             android:layout_centerVertical="true"
-            android:textColor="@color/green">
+            android:textColor="@color/previousGreen">
         </TextView>
 
     </RelativeLayout>
@@ -182,20 +183,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Name : "
-            android:textSize="17dp"
+            android:textSize="17sp"
             android:textColor="@color/black"
-            android:paddingLeft="15dp">
+            android:paddingStart="15dp">
 
         </TextView>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Chris Viking (opt)"
+            android:text="Not available"
             android:textSize="17sp"
             android:textColor="@color/black"
             android:layout_toEndOf="@+id/tvCustName"
-            android:layout_marginLeft="45dp" />
+            android:layout_marginStart="45dp" />
     </RelativeLayout>
 
     <RelativeLayout
@@ -204,62 +205,64 @@
         android:layout_marginTop="10dp">
 
         <TextView
-            android:id="@+id/tvCustNum"
+            android:id="@+id/tvCust"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Number : "
-            android:textSize="17dp"
+            android:textSize="17sp"
             android:textColor="@color/black"
             android:paddingLeft="15dp">
 
         </TextView>
 
         <TextView
+            android:id="@+id/tvCustNum"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="562 898 5656"
+            android:text="Not available"
             android:textSize="17sp"
             android:textColor="@color/black"
-            android:layout_toEndOf="@+id/tvCustNum"
+            android:layout_toEndOf="@+id/tvCust"
             android:layout_marginLeft="30dp" />
     </RelativeLayout>
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@color/greyLighterShade"
-            android:layout_margin="5dp"/>
+            android:layout_margin="10dp"/>
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/go_back"
+            android:layout_marginEnd="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="150dp">
 
+            <TextView
+                android:id="@+id/dealerShop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Shop Dealer : "
+                android:textSize="17sp"
+                android:textColor="@color/black"
+                android:paddingStart="15dp">
+
+            </TextView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/dealerName"
+                android:text="shopName"
+                android:textSize="17sp"
+                android:textColor="@color/black"
+                android:layout_toEndOf="@+id/dealerShop"
+                android:layout_marginLeft="30dp" />
+        </RelativeLayout>
     </LinearLayout>
 </ScrollView>
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/go_back"
-        android:layout_marginBottom="10dp">
-
-        <TextView
-            android:id="@+id/dealerShop"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Shop Dealer : "
-            android:textSize="17sp"
-            android:textColor="@color/black"
-            android:paddingLeft="15dp">
-
-        </TextView>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/dealerName"
-            android:text="shopName"
-            android:textSize="17sp"
-            android:textColor="@color/black"
-            android:layout_toEndOf="@+id/dealerShop"
-            android:layout_marginLeft="30dp" />
-    </RelativeLayout>
     <Button
         android:id="@+id/go_back"
         android:layout_width="match_parent"

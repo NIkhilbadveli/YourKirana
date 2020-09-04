@@ -3,6 +3,7 @@ package com.titos.barcodescanner
 
 import agency.tango.android.avatarview.loader.PicassoLoader
 import agency.tango.android.avatarview.views.AvatarView
+import am.appwise.components.ni.NoInternetDialog
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
@@ -41,9 +42,10 @@ import java.io.File
 
 class MainActivity : androidx.appcompat.app.AppCompatActivity() {
     private var shopName = "Temp Store"
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    //private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var btnBluetooth: ImageButton
     private lateinit var sharedPref: SharedPreferences
+    private lateinit var noInternetDialog: NoInternetDialog
     companion object {
 
         private const val MY_CAMERA_REQUEST_CODE = 100
@@ -59,9 +61,9 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                 requestPermissions(arrayOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION), MY_CAMERA_REQUEST_CODE)
             }
         }
-        FirebaseDatabase.getInstance().reference.child("appVersion").keepSynced(true)
+        //FirebaseDatabase.getInstance().reference.child("appVersion").keepSynced(true)
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        //fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         val navController: NavController = Navigation.findNavController(this, R.id.fragment)
         val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottomNav)
@@ -114,7 +116,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
 
         profileAvatar.setOnClickListener { findNavController(R.id.fragment).navigate(R.id.profileFragment) }
 
-        setShopLocation(userRef)
+        //setShopLocation(userRef)
 
         //Handling firebase dynamic links
         FirebaseDynamicLinks.getInstance()
@@ -157,6 +159,10 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
 
         //Checking for new updates
         checkForUpdates()
+
+        //No Internet dialog
+        noInternetDialog = NoInternetDialog.Builder(this).build()
+        noInternetDialog.setCancelable(false)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
@@ -228,13 +234,14 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         })
     }
 
-    private fun setShopLocation(userDataRef:DatabaseReference){
+/*    private fun setShopLocation(userDataRef:DatabaseReference){
 
         userDataRef.addListenerForSingleValueEvent(object : ValueEventListener{
             override fun onDataChange(p0: DataSnapshot) {
                 if (!p0.child("latitude").exists() || !p0.child("longitude").exists()){
                     Log.d("locYourKirana","success")
-                    if (ActivityCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    if (ActivityCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                            ActivityCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
                         return
                     }
@@ -251,7 +258,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
             override fun onCancelled(p0: DatabaseError) {
             }
         })
-    }
+    }*/
 
     private fun checkForUpdates() {
         val updateDialog = Dialog(this)
@@ -342,6 +349,11 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
             else
                 updateDialog.cancel()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        noInternetDialog.onDestroy()
     }
 
     class SharedViewModel : ViewModel() {

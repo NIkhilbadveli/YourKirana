@@ -51,6 +51,7 @@ class HistoryFragment : Fragment(){
     private var onItemClick :((Int)->Unit)? = null
     private var shopName = "Temp Store"
     private var keys = ArrayList<String>()
+    private var contactList = ArrayList<String>()
     private var orderValueList = ArrayList<String>()
     private var qtyList = ArrayList<ArrayList<String>>()
     private var barcodeList = ArrayList<ArrayList<String>>()
@@ -114,6 +115,7 @@ class HistoryFragment : Fragment(){
             val bundle = Bundle()
             bundle.putString("refKey", keys[pos])
             bundle.putString("orderValue", orderValueList[pos])
+            bundle.putString("contact", contactList[pos])
             bundle.putStringArrayList("barcodeList", barcodeList[pos])
             bundle.putStringArrayList("qtyList", qtyList[pos])
             findNavController().navigate(R.id.action_historyFragment_to_orderItemsFragment, bundle)
@@ -161,6 +163,7 @@ class HistoryFragment : Fragment(){
                                     time.key!!, orderValue ,onItemRemoveClick!!, onItemClick!!))
                             keys.add("${day.key}/${time.key}")
                             orderValueList.add(orderValue)
+                            contactList.add(time.child("contact").value.toString())
                         }
                         headerList.add(HistoryHeaderItem(day.key!!, daySales.toDouble()))
                         itemList.add(tempList)

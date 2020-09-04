@@ -282,10 +282,6 @@ class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButto
         snack.setActionTextColor(Color.parseColor("#ffffff"))
         snack.show()
 
-        //Showing phone dialog again
-        dialog.show()
-        model.pauseScanner()
-
         listValues.clear()
         tvTotal!!.text = "Rs."
         recyclerViewAdapter!!.notifyDataSetChanged()

@@ -2,7 +2,9 @@ package com.titos.barcodescanner.loginFeature
 
 import android.app.Activity
 import android.app.Dialog
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -12,6 +14,7 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
 import com.firebase.ui.auth.AuthMethodPickerLayout
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.ErrorCodes
@@ -29,18 +32,21 @@ class LoginActivity : AppCompatActivity() {
     private val RC_SIGN_IN = 123
     private val auth = FirebaseAuth.getInstance()
     private var shopName = "Temp Store"
+    private lateinit var sharedPref: SharedPreferences
 
-    companion object {
+   /* companion object {
         init {
             FirebaseDatabase.getInstance().setPersistenceEnabled(true)
         }
-    }
+    }*/
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val dialog = Dialog(this)
         val inflate = LayoutInflater.from(this).inflate(R.layout.splash_screen, null)
+
+        sharedPref = getSharedPreferences("sharedPrefLogin", Context.MODE_PRIVATE)
 
         dialog.setContentView(inflate)
         dialog.setCancelable(false)
@@ -56,9 +62,18 @@ class LoginActivity : AppCompatActivity() {
                 .build()
 
 
-        if(auth.currentUser != null){ //If user is signed in
+        if (auth.currentUser!=null) {
+            sharedPref.edit {
+                putBoolean("alreadyLoggedIn", true)
+                apply()
+            }
+        }
+
+        if(auth.currentUser!=null){ //If user is signed in
             //Toast.makeText(this,"Sign In successful",Toast.LENGTH_SHORT).show()
-            getShopName(true)
+            //getShopName(true)
+            startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+            finish()
         }
         else {
             startActivityForResult(

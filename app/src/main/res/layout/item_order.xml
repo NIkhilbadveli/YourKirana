@@ -14,7 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/img"
-        android:src="@drawable/one"
+        android:src="@drawable/ic_baseline_image_24"
         android:layout_marginTop="10dp"
         />
 
@@ -39,13 +39,13 @@
             android:layout_marginStart="40dp"
             android:textSize="13sp"
             android:layout_marginTop="10dp"
-            android:text="2 unints ×12.00 INR"
+            android:text="2 units × 12.00 INR"
             android:layout_centerVertical="true"
             android:textColor="@color/greyBaseShade">
         </TextView>
 
         <TextView
-            android:id="@+id/tvProductPrice"
+            android:id="@+id/tvTotalPrice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingEnd="15dp"
@@ -64,6 +64,5 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="#d3d3d3"
-        android:layout_below="@+id/order_item_name_container"
         android:layout_marginTop="10dp"/>
 </LinearLayout>

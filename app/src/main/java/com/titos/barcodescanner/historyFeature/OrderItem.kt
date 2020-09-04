@@ -12,10 +12,9 @@ class OrderItem(val itemName: String, val itemQty: String, val itemPrice: String
     override fun bind(viewHolder: GroupieViewHolder, position: Int){
         viewHolder.apply {
             tvProductName.text = itemName
-            tvProductPrice.text = "₹ $itemQty"
-            tvProductQuantity.text = itemPrice
+            tvTotalPrice.text = "₹ ${itemPrice.toInt()*itemQty.toInt()}"
+            tvProductQuantity.text = "$itemQty units x ₹ $itemPrice"
             val mImageView: ImageView = containerView.findViewById(R.id.img)
-
 
             when (position) {
                 0 -> mImageView.setImageResource(R.drawable.one)
