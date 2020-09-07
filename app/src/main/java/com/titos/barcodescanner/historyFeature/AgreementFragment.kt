@@ -1,25 +1,18 @@
-package com.titos.barcodescanner.scannerFeature
+package com.titos.barcodescanner.historyFeature
 
 import android.os.Bundle
 import android.view.*
 import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
 import com.titos.barcodescanner.R
-import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
-import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.widget.*
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.database.FirebaseDatabase
-import java.text.DateFormat
 import java.text.SimpleDateFormat
-import java.time.Year
 import java.util.*
-import java.util.zip.DataFormatException
 
 class AgreementFragment : Fragment() {
 
@@ -32,11 +25,17 @@ class AgreementFragment : Fragment() {
 
         val database = FirebaseDatabase.getInstance().reference
         val etcustName = layoutView.findViewById<EditText>(R.id.custName)
-        val etcustId = layoutView.findViewById<EditText>(R.id.custId)
-        val etMobileNumber = layoutView.findViewById<EditText>(R.id.etMobileNumber)
+        //val etcustId = layoutView.findViewById<EditText>(R.id.custId)
 
+        val etMobileNumber = layoutView.findViewById<EditText>(R.id.etMobileNumber)
+        if(arguments?.getString("contact")!="null")
+            etMobileNumber.setText(arguments?.getString("contact"))
+
+        val amountDue = arguments?.getString("amountDue")
         //val tvTakenDate = layoutView.findViewById<TextView>(R.id.tvTakenDate)
         val tvDueDate = layoutView.findViewById<TextView>(R.id.tvDueDate)
+        val tvTitle = layoutView.findViewById<TextView>(R.id.tv_title)
+        tvTitle.text = "Not Paid Agreement    -     \u20B9 $amountDue"
 
         val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy hh:mm:ss", Locale.US)
 
@@ -45,31 +44,33 @@ class AgreementFragment : Fragment() {
         val day = cal.get(Calendar.DAY_OF_MONTH)
         val month = cal.get(Calendar.MONTH)
 
+        val dpc = DatePickerDialog(
+                requireContext(),
+                { _: DatePicker, yr, mth, dayOfMonth ->
+                    if (dayOfMonth>=day && month==mth && year==yr)
+                        tvDueDate.text = "$dayOfMonth-${mth+1}-$yr"
+                    else
+                        Toast.makeText(context, "Please select date in the future", Toast.LENGTH_SHORT).show()
+                },
+                year,
+                month,
+                day
+        )
+
         //calButton due
-        layoutView.findViewById<ImageButton>(R.id.calButtonDue).setOnClickListener {
-            val dpc = DatePickerDialog(
-                    requireContext(),
-                    DatePickerDialog.OnDateSetListener { view: DatePicker, year, month, dayOfMonth ->
+        layoutView.findViewById<ImageButton>(R.id.calButtonDue).setOnClickListener { dpc.show() }
 
-                        tvDueDate.text = "$dayOfMonth-${month+1}-$year"
-                    },
-                    year,
-                    month,
-                    day
-            )
-            dpc.show()
-        }
 
-        val amountDue = arguments?.getString("amountDue")
+
         val sharedPref = activity?.getSharedPreferences("sharedPref", Context.MODE_PRIVATE)
         val shopName = sharedPref?.getString("shopName","shop")!!
 
         layoutView.findViewById<Button>(R.id.saveButton).setOnClickListener {
-            if (etcustId.text.isNotEmpty() && etcustName.text.isNotEmpty() && etMobileNumber.text.isNotEmpty()
+
+            if (etcustName.text.isNotEmpty() && etMobileNumber.text.isNotEmpty()
                     && tvDueDate.text!="00-00-0000" && amountDue!=null) {
                 val addedTime = simpleDateFormat.format(Date())
-
-                database.child("khataBook/$shopName/$addedTime/customerId").setValue(etcustId.text.toString())
+                //database.child("khataBook/$shopName/$addedTime/customerId").setValue(etcustId.text.toString())
                 database.child("khataBook/$shopName/$addedTime/customerName").setValue(etcustName.text.toString())
                 database.child("khataBook/$shopName/$addedTime/mobileNumber").setValue(etMobileNumber.text.toString())
                 database.child("khataBook/$shopName/$addedTime/dueDate").setValue(tvDueDate.text.toString())

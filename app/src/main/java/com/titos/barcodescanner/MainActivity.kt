@@ -61,6 +61,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                 requestPermissions(arrayOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION), MY_CAMERA_REQUEST_CODE)
             }
         }
+
         //FirebaseDatabase.getInstance().reference.child("appVersion").keepSynced(true)
 
         //fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -94,7 +95,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         val userRef = FirebaseDatabase.getInstance().reference.child("userData").child(user?.uid!!)
         val picassoLoader = PicassoLoader()
 
-        userRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        userRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(p0: DataSnapshot) {
                 shopName = p0.child("shopName").value.toString()
                 val userName = p0.child("userName").value.toString()
@@ -215,7 +216,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         val sharedPref = getSharedPreferences("sharedPref", Context.MODE_PRIVATE) ?: return
         val filePath = getString( R.string.file_path)
         FirebaseDatabase.getInstance().reference.child("productInfoData")
-                .addListenerForSingleValueEvent(object : ValueEventListener{
+                .addValueEventListener(object : ValueEventListener{
             override fun onDataChange(p0: DataSnapshot) {
                 val data = ArrayList<String>()
                 for (barcode in p0.children){
@@ -236,7 +237,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
 
 /*    private fun setShopLocation(userDataRef:DatabaseReference){
 
-        userDataRef.addListenerForSingleValueEvent(object : ValueEventListener{
+        userDataRef.addValueEventListener(object : ValueEventListener{
             override fun onDataChange(p0: DataSnapshot) {
                 if (!p0.child("latitude").exists() || !p0.child("longitude").exists()){
                     Log.d("locYourKirana","success")
@@ -264,7 +265,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         val updateDialog = Dialog(this)
         updateDialog.setContentView(R.layout.dialog_update)
         updateDialog.setCanceledOnTouchOutside(false)
-        FirebaseDatabase.getInstance().reference.child("appVersion").addListenerForSingleValueEvent(object : ValueEventListener{
+        FirebaseDatabase.getInstance().reference.child("appVersion").addValueEventListener(object : ValueEventListener{
             override fun onDataChange(p0: DataSnapshot) {
                 val appVersion = packageManager.getPackageInfo(packageName, 0).versionName
                 /*if (appVersion=="null") {

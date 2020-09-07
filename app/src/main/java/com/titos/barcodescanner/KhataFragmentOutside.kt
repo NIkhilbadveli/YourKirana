@@ -43,7 +43,7 @@ class KhataFragmentOutside : Fragment() {
         val sharedPref = activity?.getSharedPreferences("sharedPref", Context.MODE_PRIVATE)
         val shopName = sharedPref?.getString("shopName","shop")!!
         val khataRef = FirebaseDatabase.getInstance().reference.child("khataBook/$shopName")
-        khataRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        khataRef.addValueEventListener(object : ValueEventListener {
             override fun onCancelled(p0: DatabaseError) {}
 
             override fun onDataChange(p0: DataSnapshot) {

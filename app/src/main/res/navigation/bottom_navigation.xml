@@ -73,7 +73,7 @@
         tools:layout="@layout/fragment_customer_requests"/>
     <fragment
         android:id="@+id/agreementFragment"
-        android:name="com.titos.barcodescanner.scannerFeature.AgreementFragment"
+        android:name="com.titos.barcodescanner.historyFeature.AgreementFragment"
         android:label="AgreementFragment"
         tools:layout="@layout/fragment_agreement"/>
     <fragment

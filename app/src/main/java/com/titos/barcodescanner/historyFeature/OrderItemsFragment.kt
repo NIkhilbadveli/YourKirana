@@ -73,7 +73,7 @@ class OrderItemsFragment : Fragment(){
         val shopName = sharedPref?.getString("shopName","Temp Store")!!
 
         val inventoryRef = FirebaseDatabase.getInstance().reference.child("inventoryData/$shopName")
-        inventoryRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        inventoryRef.addValueEventListener(object : ValueEventListener {
             override fun onCancelled(p0: DatabaseError) {
 
             }

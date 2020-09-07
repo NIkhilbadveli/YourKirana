@@ -34,11 +34,11 @@ class LoginActivity : AppCompatActivity() {
     private var shopName = "Temp Store"
     private lateinit var sharedPref: SharedPreferences
 
-   /* companion object {
+    companion object {
         init {
             FirebaseDatabase.getInstance().setPersistenceEnabled(true)
         }
-    }*/
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -122,8 +122,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun getShopName(alreadyLoggedIn: Boolean){
-        val progressDialog = ProgressDialog.progressDialog(this)
-        progressDialog.findViewById<TextView>(R.id.login_tv_dialog).text = "Logging in ..."
+        val progressDialog = ProgressDialog(this, "Logging in ...")
 
         if (!alreadyLoggedIn)
             progressDialog.show()
@@ -135,7 +134,7 @@ class LoginActivity : AppCompatActivity() {
         dialog.setContentView(view)
         dialog.setCanceledOnTouchOutside(false)
 
-        userRef.addListenerForSingleValueEvent(object : ValueEventListener{
+        userRef.addValueEventListener(object : ValueEventListener{
             override fun onDataChange(p0: DataSnapshot) {
                 if (p0.child("userName").exists())
                     println("User Data exists")

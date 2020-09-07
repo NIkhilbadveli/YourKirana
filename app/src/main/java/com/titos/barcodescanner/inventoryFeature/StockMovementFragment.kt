@@ -56,7 +56,7 @@ class StockMovementFragment : Fragment()
         val stockRef = FirebaseDatabase.getInstance().reference
                 .child("stockMovement/$shopName/$barcode")
 
-        stockRef.addListenerForSingleValueEvent(object :ValueEventListener{
+        stockRef.addValueEventListener(object :ValueEventListener{
             override fun onCancelled(p0: DatabaseError) {
 
             }

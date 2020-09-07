@@ -66,12 +66,11 @@ class InventoryFragmentOutside : Fragment()
         for (i in category.indices)
             inventoryList.add(ArrayList())
 
-        val dialog = ProgressDialog.progressDialog(requireContext())
-        dialog.findViewById<TextView>(R.id.login_tv_dialog).text = "Please Wait..."
-
+        val dialog = ProgressDialog(requireContext(), "Please Wait...")
         dialog.show()
+
         val prodRef = FirebaseDatabase.getInstance().reference.child("inventoryData/$shopName")
-        prodRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        prodRef.addValueEventListener(object : ValueEventListener {
             override fun onCancelled(p0: DatabaseError) {
 
             }

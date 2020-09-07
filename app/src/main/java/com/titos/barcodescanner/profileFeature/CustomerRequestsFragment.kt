@@ -45,7 +45,7 @@ class CustomerRequestsFragment : Fragment() {
             layoutManager = LinearLayoutManager(requireContext())
         }
 
-        requestRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        requestRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(p0: DataSnapshot) {
                 val checkedList = ArrayList<CustomerRequestItem>()
                 for (request in p0.children){

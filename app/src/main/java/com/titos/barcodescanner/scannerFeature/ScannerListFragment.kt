@@ -115,7 +115,7 @@ class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButto
         }
 
         inventoryRef = databaseReference!!.child("inventoryData").child(shopName)
-        inventoryRef.addListenerForSingleValueEvent(object : ValueEventListener{
+        inventoryRef.addValueEventListener(object : ValueEventListener{
             override fun onCancelled(p0: DatabaseError) {
 
             }
@@ -170,7 +170,7 @@ class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButto
     private fun searchForProduct(barcode: String) {
 
         val inventoryRef = databaseReference!!.child("inventoryData").child(shopName).child(barcode)
-        inventoryRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        inventoryRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if (dataSnapshot.exists()) {
                     val list = ArrayList<String>()

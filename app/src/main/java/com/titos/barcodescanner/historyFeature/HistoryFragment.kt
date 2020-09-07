@@ -76,8 +76,11 @@ class HistoryFragment : Fragment(){
                 val tvOrderNumber = viewHolder.itemView.findViewById<TextView>(R.id.history_order_number)
                 if(tvOrderNumber!=null) {
                     val orderNumber = tvOrderNumber.text.toString()
+                    val pos = orderNumber.split(" ").last().toInt() - 1
+
                     val bundle = Bundle()
-                    bundle.putString("amountDue", orderValueList[orderNumber.split(" ").last().toInt() - 1])
+                    bundle.putString("amountDue", orderValueList[pos])
+                    bundle.putString("contact", contactList[pos])
                     findNavController().navigate(R.id.action_historyFragment_to_agreementFragment, bundle)
                 }
                 else{
@@ -125,9 +128,8 @@ class HistoryFragment : Fragment(){
     }
 
     private fun populateView(view:View, groupAdapter:GroupAdapter<GroupieViewHolder>){
-        val dialog = ProgressDialog.progressDialog(requireContext())
-        dialog.findViewById<TextView>(R.id.login_tv_dialog).text = "Please Wait..."
 
+        val dialog = ProgressDialog(requireContext(), "Please Wait...")
         dialog.show()
 
         val transactionRef = FirebaseDatabase.getInstance().reference.child("transactionData/$shopName")
@@ -135,7 +137,7 @@ class HistoryFragment : Fragment(){
             LocalDate.parse(it, DateTimeFormatter.ofPattern("dd-MM-yyyy"))
         }
 
-        transactionRef.addListenerForSingleValueEvent(object : ValueEventListener{
+        transactionRef.addValueEventListener(object : ValueEventListener{
             override fun onCancelled(p0: DatabaseError) {
 
             }

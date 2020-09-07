@@ -185,7 +185,7 @@ class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : Di
 
         if (edit){
             add.text = "Update"
-            prodInfo.addListenerForSingleValueEvent(object : ValueEventListener{
+            prodInfo.addValueEventListener(object : ValueEventListener{
                 override fun onCancelled(p0: DatabaseError) {
 
                 }

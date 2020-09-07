@@ -105,12 +105,11 @@ class DashboardFragmentOutside : Fragment()
         var thisWeekSales = 0.0
         val allDaySales = ArrayList<DaySales>()
 
-        val dialog = ProgressDialog.progressDialog(requireContext())
-        dialog.findViewById<TextView>(R.id.login_tv_dialog).text = "Please Wait..."
-
+        val dialog = ProgressDialog(requireContext(), "Please Wait...")
         dialog.show()
+
         val transactionRef = FirebaseDatabase.getInstance().reference.child("transactionData/$shopName")
-        transactionRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        transactionRef.addValueEventListener(object : ValueEventListener {
             override fun onCancelled(p0: DatabaseError) {
 
             }

@@ -44,7 +44,7 @@ class DashboardFragmentInside : Fragment() {
         val shopName = sharedPref?.getString("shopName","Temp Store")!!
 
         val transactionRef = FirebaseDatabase.getInstance().reference.child("inventoryData/$shopName")
-        transactionRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        transactionRef.addValueEventListener(object : ValueEventListener {
             override fun onCancelled(p0: DatabaseError) {
 
             }

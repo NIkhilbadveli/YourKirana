@@ -69,7 +69,7 @@ class ProfileFragment : Fragment() {
         groupAdapter.add(ProfileItem(R.drawable.icons8_share_48px, "Share App"))
         groupAdapter.add(ProfileItem(R.drawable.icons8_logout_rounded_left_48px, "Logout"))
 
-        val dialog = ProgressDialog.progressDialog(requireContext())
+        val dialog = ProgressDialog(requireContext(), "Logging out...")
         groupAdapter.setOnItemClickListener { _, itemView ->
             when (recyclerView.getChildAdapterPosition(itemView)) {
                 0 -> editProfile(user)
@@ -97,7 +97,7 @@ class ProfileFragment : Fragment() {
                     "Steps to follow after installing: \n " +
                     "1) Login with any of the providers\n " +
                     "2) Tap on 'Join Later' when asked for a shop name\n " +
-                    "3) Now close the app if opened & select the below link for joining" +
+                    "3) Select the below link for joining" +
                     "\n \n Click here to join ----> " + it.shortLink
 
             layoutView.findViewById<ImageView>(R.id.btn_add_user).setOnClickListener {
@@ -117,7 +117,7 @@ class ProfileFragment : Fragment() {
         val viewGroup = layoutView.findViewById<ViewGroup>(android.R.id.content)
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_profile, viewGroup, false)
 
-        userRef.addListenerForSingleValueEvent(object : ValueEventListener{
+        userRef.addValueEventListener(object : ValueEventListener{
             override fun onDataChange(p0: DataSnapshot) {
                 val dpName = p0.child("userName").value.toString()
                 val storeName = p0.child("shopName").value.toString()
@@ -173,7 +173,7 @@ class ProfileFragment : Fragment() {
                 .startChooser()
     }
 
-    private fun logoutFromApp(dialog:Dialog){
+    private fun logoutFromApp(dialog:ProgressDialog){
         dialog.show()
         AuthUI.getInstance()
                 .signOut(requireContext())
