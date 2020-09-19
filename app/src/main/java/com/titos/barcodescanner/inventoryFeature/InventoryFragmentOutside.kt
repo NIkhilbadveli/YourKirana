@@ -6,48 +6,32 @@ import android.os.Parcelable
 
 import androidx.fragment.app.Fragment
 
-import androidx.recyclerview.widget.RecyclerView
-
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.widget.Toolbar
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.titos.barcodescanner.*
 
 
-import com.github.mikephil.charting.charts.BarChart
-import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
-import com.github.mikephil.charting.data.BarEntry
-
-import java.text.SimpleDateFormat
-
-import java.util.*
 import kotlin.collections.ArrayList
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.titos.barcodescanner.profileFeature.ProfileFragment
+import com.titos.barcodescanner.utils.FirebaseHelper
+import com.titos.barcodescanner.utils.ProgressDialog
 import kotlinx.android.parcel.Parcelize
-import kotlinx.android.synthetic.main.fragment_dashboard_outside.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class InventoryFragmentOutside : Fragment()
 {
     private val inventoryList = ArrayList<ArrayList<InventoryDetails>>()
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View?
     {
@@ -62,6 +46,8 @@ class InventoryFragmentOutside : Fragment()
         val sharedPref = activity?.getSharedPreferences("sharedPref",Context.MODE_PRIVATE)!!
         val shopName = sharedPref.getString("shopName","Temp Store")!!
 
+        val firebaseHelper = FirebaseHelper(shopName)
+
         //Adding empty list for all categories
         for (i in category.indices)
             inventoryList.add(ArrayList())
@@ -70,6 +56,8 @@ class InventoryFragmentOutside : Fragment()
         dialog.show()
 
         val prodRef = FirebaseDatabase.getInstance().reference.child("inventoryData/$shopName")
+        prodRef.keepSynced(true)
+
         prodRef.addValueEventListener(object : ValueEventListener {
             override fun onCancelled(p0: DatabaseError) {
 
@@ -84,8 +72,10 @@ class InventoryFragmentOutside : Fragment()
                     val qty = barcode.child("qty").value.toString().toInt()
                     val cp = barcode.child("costPrice").value.toString().toInt()
                     val item = InventoryDetails(barcode.key!!,name, sp, qty, cp)
+                    val cat = barcode.child("category").value.toString()
+                    val subcat = barcode.child("subCategory").value.toString()
 
-                    val matchedPos = category.indexOf(barcode.child("category").value.toString())
+                    val matchedPos = category.indexOf(cat)
                     inventoryList[matchedPos].add(item)
                 }
 

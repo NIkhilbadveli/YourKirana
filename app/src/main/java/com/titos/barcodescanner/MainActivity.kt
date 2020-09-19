@@ -25,6 +25,7 @@ import androidx.core.content.FileProvider
 import androidx.core.content.edit
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.observe
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.navigation.findNavController
@@ -38,10 +39,12 @@ import com.google.firebase.database.*
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
 import com.google.firebase.storage.FirebaseStorage
 import com.ismaeldivita.chipnavigation.ChipNavigationBar
+import com.titos.barcodescanner.base.BaseActivity
+import com.titos.barcodescanner.dashboardFeature.BarcodeAndQty
 import java.io.File
 
-class MainActivity : androidx.appcompat.app.AppCompatActivity() {
-    private var shopName = "Temp Store"
+class MainActivity : BaseActivity(R.layout.activity_main) {
+
     //private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var btnBluetooth: ImageButton
     private lateinit var sharedPref: SharedPreferences
@@ -51,18 +54,15 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         private const val MY_CAMERA_REQUEST_CODE = 100
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+    override fun initView() {
         setSupportActionBar(findViewById(R.id.toolbar_main))
 
+        //add locaton permission later
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(arrayOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION), MY_CAMERA_REQUEST_CODE)
+                requestPermissions(arrayOf(Manifest.permission.CAMERA), MY_CAMERA_REQUEST_CODE)
             }
         }
-
-        //FirebaseDatabase.getInstance().reference.child("appVersion").keepSynced(true)
 
         //fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
@@ -95,25 +95,20 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         val userRef = FirebaseDatabase.getInstance().reference.child("userData").child(user?.uid!!)
         val picassoLoader = PicassoLoader()
 
-        userRef.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(p0: DataSnapshot) {
-                shopName = p0.child("shopName").value.toString()
-                val userName = p0.child("userName").value.toString()
-                sharedPref.edit {
-                    putString("shopName", shopName)
-                    putString("userName", userName)
-                    commit()
-                }
+        firebaseHelper.getUserDetails(user.uid).observe(this){
+            shopName = it.shopName
 
-                if (userName!="null") {
-                    picassoLoader.loadImage(profileAvatar, user.photoUrl.toString(), userName)
-                } else
-                    picassoLoader.loadImage(profileAvatar, user.photoUrl.toString(), "UserName")
+            sharedPref.edit {
+                putString("shopName", it.shopName)
+                putString("userName", it.userName)
+                commit()
             }
 
-            override fun onCancelled(p0: DatabaseError) {
-            }
-        })
+            if (it.userName!="null") {
+                picassoLoader.loadImage(profileAvatar, user.photoUrl.toString(), it.userName)
+            } else
+                picassoLoader.loadImage(profileAvatar, user.photoUrl.toString(), "UserName")
+        }
 
         profileAvatar.setOnClickListener { findNavController(R.id.fragment).navigate(R.id.profileFragment) }
 
@@ -128,7 +123,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
                     if (pendingDynamicLinkData != null) {
                         deepLink = pendingDynamicLinkData.link
                         shopName = deepLink?.getQueryParameter("shopName")!!
-                        userRef.child("shopName").setValue(shopName)
+                        firebaseHelper.updateShopName(user.uid, shopName)
                         sharedPref.edit {
                             putString("shopName", shopName)
                             commit()
@@ -165,6 +160,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         noInternetDialog = NoInternetDialog.Builder(this).build()
         noInternetDialog.setCancelable(false)
     }
+
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -214,7 +210,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
 
     private fun saveDataToCsv() {
         val sharedPref = getSharedPreferences("sharedPref", Context.MODE_PRIVATE) ?: return
-        val filePath = getString( R.string.file_path)
+
         FirebaseDatabase.getInstance().reference.child("productInfoData")
                 .addValueEventListener(object : ValueEventListener{
             override fun onDataChange(p0: DataSnapshot) {

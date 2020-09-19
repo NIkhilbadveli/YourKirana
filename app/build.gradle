@@ -8,7 +8,7 @@ android {
 
     signingConfigs {
         releaseconfig {
-        storeFile file('F:\\New folder\\upload_key.jks')
+            storeFile file('F:\\New folder\\upload_key.jks')
             storePassword 'hacker@123'
             keyAlias 'key0'
             keyPassword 'uploadkey'
@@ -60,6 +60,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-dynamic-links:19.1.0'
     implementation 'com.google.firebase:firebase-ml-vision:24.0.3'
 
+    implementation 'com.google.firebase:firebase-firestore:21.6.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
@@ -68,7 +69,6 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel:2.2.0'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
 
-    implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.core:core-ktx:1.5.0-alpha02'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
 

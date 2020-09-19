@@ -1,4 +1,4 @@
-package com.titos.barcodescanner
+package com.titos.barcodescanner.khataFeature
 
 import android.app.AlertDialog
 import android.content.Context
@@ -8,16 +8,13 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
-import androidx.cardview.widget.CardView
 import com.google.firebase.database.FirebaseDatabase
 import com.titos.barcodescanner.R
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
-import kotlinx.android.synthetic.main.item_customer_request.*
 
-class CustomerItem(private val customerId: String, val customerName: String, private val mobileNumber: String,
-val amountDue: String,val dueDate: String, val takenTime: String,val onItemRemoveClick:((Int)->Unit)): Item() {
+class khataItem(private val customerId: String, val customerName: String, private val mobileNumber: String,
+                val amountDue: String, val dueDate: String, val takenTime: String, val onItemRemoveClick:((Int)->Unit)): Item() {
     override fun bind(viewHolder: GroupieViewHolder, position: Int){
         viewHolder.apply {
             val tvCustomerName = containerView.findViewById<TextView>(R.id.tv_customer_name)

@@ -32,7 +32,6 @@ import com.xwray.groupie.GroupieViewHolder
 import java.util.*
 import kotlin.collections.ArrayList
 
-
 class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
 
     private lateinit var groupAdapterScanned : GroupAdapter<GroupieViewHolder>
@@ -96,23 +95,14 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
             bundle.putBoolean("edit", true)
 
             //Update inventoryList using the list from callback
-            val callAddToList: (ArrayList<String>)->Unit = { list ->
+            /*val callAddToList: (ArrayList<String>)->Unit = { list ->
                 filteredList[pos].barcode = list[0]
                 filteredList[pos].itemName = list[1]
                 filteredList[pos].itemPrice = list[2]
                 filteredList[pos].itemQty = list[3]
                 groupAdapterScanned.notifyItemChanged(pos)
-            }
-            val addNewProductFragment = AddNewProductFragment(callAddToList)
-            addNewProductFragment.arguments = bundle
-
-            val manager = parentFragmentManager
-            val ft = manager.findFragmentByTag("addNewProductFragment")
-            if (ft!=null)
-                manager.beginTransaction().remove(ft)
-
-            addNewProductFragment.show(manager, "addNewProductFragment")
-
+            }*/
+            findNavController().navigate(R.id.action_myStoreFragment_to_addNewProductFragment, bundle)
         }
 
         populateView()

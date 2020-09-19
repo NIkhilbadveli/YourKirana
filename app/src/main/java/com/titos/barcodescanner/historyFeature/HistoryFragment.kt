@@ -2,10 +2,7 @@ package com.titos.barcodescanner.historyFeature
 
 import android.app.AlertDialog
 import android.content.Context
-import android.content.DialogInterface
-import android.content.Intent
 import android.os.Bundle
-import android.os.Parcelable
 
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -23,26 +20,20 @@ import androidx.appcompat.widget.Toolbar
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 
-import com.titos.barcodescanner.R
-
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.titos.barcodescanner.ProgressDialog
-import com.titos.barcodescanner.SwipeToAgreement
+import com.titos.barcodescanner.*
+import com.titos.barcodescanner.utils.FirebaseHelper
+import com.titos.barcodescanner.utils.ProgressDialog
+import com.titos.barcodescanner.utils.SwipeToAgreement
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 import com.xwray.groupie.Section
-import kotlinx.android.synthetic.main.item_history.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.threeten.bp.LocalDate
 import org.threeten.bp.format.DateTimeFormatter
-import java.util.*
 import kotlin.collections.ArrayList
 
 class HistoryFragment : Fragment(){
@@ -132,12 +123,13 @@ class HistoryFragment : Fragment(){
         val dialog = ProgressDialog(requireContext(), "Please Wait...")
         dialog.show()
 
+        val firebaseHelper = FirebaseHelper(shopName)
+
         val transactionRef = FirebaseDatabase.getInstance().reference.child("transactionData/$shopName")
         val dateStrToLocalDate: (String) -> LocalDate = {
             LocalDate.parse(it, DateTimeFormatter.ofPattern("dd-MM-yyyy"))
         }
-
-        transactionRef.addValueEventListener(object : ValueEventListener{
+        val listener = object : ValueEventListener{
             override fun onCancelled(p0: DatabaseError) {
 
             }
@@ -193,12 +185,15 @@ class HistoryFragment : Fragment(){
                     }
 
                     dialog.dismiss()
+                    transactionRef.removeEventListener(this)
                 }
                 else
                     view.findViewById<LinearLayout>(R.id.empty_view_history).visibility = View.VISIBLE
             }
 
-        })
+        }
+        transactionRef.addValueEventListener(listener)
+
     }
 }
 

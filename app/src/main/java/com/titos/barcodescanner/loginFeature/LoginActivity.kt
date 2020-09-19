@@ -11,10 +11,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
+import androidx.lifecycle.observe
 import com.firebase.ui.auth.AuthMethodPickerLayout
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.ErrorCodes
@@ -26,13 +26,14 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.titos.barcodescanner.*
+import com.titos.barcodescanner.base.BaseActivity
+import com.titos.barcodescanner.utils.ProgressDialog
+import com.titos.barcodescanner.utils.UserDetails
 
 
-class LoginActivity : AppCompatActivity() {
+class LoginActivity : BaseActivity(-1) {
     private val RC_SIGN_IN = 123
     private val auth = FirebaseAuth.getInstance()
-    private var shopName = "Temp Store"
-    private lateinit var sharedPref: SharedPreferences
 
     companion object {
         init {
@@ -40,13 +41,10 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun initView() {
 
         val dialog = Dialog(this)
         val inflate = LayoutInflater.from(this).inflate(R.layout.splash_screen, null)
-
-        sharedPref = getSharedPreferences("sharedPrefLogin", Context.MODE_PRIVATE)
 
         dialog.setContentView(inflate)
         dialog.setCancelable(false)
@@ -62,16 +60,8 @@ class LoginActivity : AppCompatActivity() {
                 .build()
 
 
-        if (auth.currentUser!=null) {
-            sharedPref.edit {
-                putBoolean("alreadyLoggedIn", true)
-                apply()
-            }
-        }
-
         if(auth.currentUser!=null){ //If user is signed in
             //Toast.makeText(this,"Sign In successful",Toast.LENGTH_SHORT).show()
-            //getShopName(true)
             startActivity(Intent(this@LoginActivity, MainActivity::class.java))
             finish()
         }
@@ -97,7 +87,7 @@ class LoginActivity : AppCompatActivity() {
             RC_SIGN_IN -> {
                     val response = IdpResponse.fromResultIntent(data)
                     if (resultCode == Activity.RESULT_OK) {
-                        getShopName(false)
+                        handleLogin()
                         //Toast.makeText(this,"Sign In successful",Toast.LENGTH_SHORT).show()
 
                         return
@@ -121,52 +111,41 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun getShopName(alreadyLoggedIn: Boolean){
-        val progressDialog = ProgressDialog(this, "Logging in ...")
-
-        if (!alreadyLoggedIn)
-            progressDialog.show()
-        val user = auth.currentUser
-        val userRef = FirebaseDatabase.getInstance().reference.child("userData").child(user!!.uid)
+    private fun handleLogin(){
+        showProgress("Logging in ...")
+        val user = auth.currentUser!!
 
         val view = layoutInflater.inflate(R.layout.dialog_bottom_sheet, null)
         val dialog = BottomSheetDialog(this)
         dialog.setContentView(view)
         dialog.setCanceledOnTouchOutside(false)
 
-        userRef.addValueEventListener(object : ValueEventListener{
-            override fun onDataChange(p0: DataSnapshot) {
-                if (p0.child("userName").exists())
-                    println("User Data exists")
-                else
-                {
-                    userRef.child("phoneNumber").setValue(user.phoneNumber)
-                    userRef.child("userName").setValue(user.displayName)
-                    userRef.child("userEmail").setValue(user.email)
+        val userDetails = UserDetails()
+        userDetails.phoneNumber = user.phoneNumber.toString()
+        userDetails.userName = user.displayName.toString()
+        userDetails.userEmail = user.email.toString()
 
-                }
+        firebaseHelper.isUserOld(user.uid).observe(this){ old ->
+            if (isShowing())
+                dismissProgress()
 
-                if(p0.child("shopName").exists()){
-                    progressDialog.dismiss()
-                    startActivity(Intent(this@LoginActivity, MainActivity::class.java))
-                    finish()
-                }
-                else {
-                    dialog.show()
-                }
+            if (old){
+                startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                finish()
             }
-            override fun onCancelled(p0: DatabaseError) {
-
+            else{
+                dialog.show()
             }
-        })
+        }
 
         val editShopName = dialog.findViewById<EditText>(R.id.edit_shop_name)
         val addButton = dialog.findViewById<Button>(R.id.btn_add_shop)
 
         addButton!!.setOnClickListener {
             if(editShopName!!.text.isNotEmpty()){
-                userRef.child("shopName").setValue(editShopName.text.toString())
-                shopName = editShopName.text.toString()
+                userDetails.shopName = editShopName.text.toString()
+                firebaseHelper.addNewUser(user.uid, userDetails)
+
                 dialog.dismiss()
                 startActivity(Intent(this, MainActivity::class.java))
                 finish()
@@ -176,7 +155,6 @@ class LoginActivity : AppCompatActivity() {
         }
 
         dialog.findViewById<Button>(R.id.btn_join_later)!!.setOnClickListener {
-            userRef.child("shopName").setValue(shopName)
             dialog.dismiss()
             startActivity(Intent(this, MainActivity::class.java))
             finish()

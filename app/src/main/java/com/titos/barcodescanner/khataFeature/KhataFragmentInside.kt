@@ -1,4 +1,4 @@
-package com.titos.barcodescanner
+package com.titos.barcodescanner.khataFeature
 
 import android.content.Context
 import android.os.Bundle
@@ -14,17 +14,18 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.titos.barcodescanner.utils.ProgressDialog
+import com.titos.barcodescanner.R
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 import java.util.*
-import java.util.Locale.filter
 import java.util.Locale.getDefault
 import kotlin.collections.ArrayList
 
 class KhataFragmentInside : Fragment(), SearchView.OnQueryTextListener {
 
     private  val groupAdapter = GroupAdapter<GroupieViewHolder>()
-    private val customerList = ArrayList<CustomerItem>()
+    private val customerList = ArrayList<khataItem>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -76,7 +77,7 @@ class KhataFragmentInside : Fragment(), SearchView.OnQueryTextListener {
                         val amountDue = timeStamp.child("amountDue").value.toString()
 
 
-                      customerList.add(CustomerItem(customerId, customerName, mobileNumber, amountDue, dueDate, timeStamp.key!!,onItemRemoveClick))
+                      customerList.add(khataItem(customerId, customerName, mobileNumber, amountDue, dueDate, timeStamp.key!!,onItemRemoveClick))
                     }
                 }
                 groupAdapter.addAll(customerList)

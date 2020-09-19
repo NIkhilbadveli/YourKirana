@@ -1,4 +1,4 @@
-package com.titos.barcodescanner
+package com.titos.barcodescanner.khataFeature
 
 
 import android.content.Context
@@ -18,6 +18,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.titos.barcodescanner.R
 
 
 class KhataFragmentOutside : Fragment() {

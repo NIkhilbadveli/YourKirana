@@ -17,6 +17,8 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.activity.addCallback
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.observe
+import androidx.navigation.fragment.findNavController
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -26,6 +28,8 @@ import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.google.firebase.storage.FirebaseStorage
 import com.titos.barcodescanner.R
+import com.titos.barcodescanner.base.BaseFragment
+import com.titos.barcodescanner.utils.ProductDetails
 import kotlinx.android.synthetic.main.fragment_add_new_product.view.*
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -36,10 +40,8 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 
-class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : DialogFragment() {
+class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
 
-    private lateinit var sharedPref: SharedPreferences
-    private var shopName = "Temp Store"
     private val REQUEST_IMAGE_CAPTURE = 111
     private lateinit var pName: AutoCompleteTextView
     private lateinit var sp: EditText
@@ -47,34 +49,12 @@ class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : Di
     private lateinit var etQuantity: EditText
     private lateinit var url: String
     private var barcode = "00000"
-    private lateinit var layoutView: View
 
-    override fun onStart() {
-        super.onStart()
-        val dialog: Dialog? = dialog
-        if (dialog != null) {
-            val width = ViewGroup.LayoutParams.MATCH_PARENT
-            val height = ViewGroup.LayoutParams.MATCH_PARENT
-            dialog.window?.setLayout(width, height)
-        }
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
-
-        layoutView = inflater.inflate(R.layout.fragment_add_new_product, container, false)
-
-        val callback = requireActivity().onBackPressedDispatcher.addCallback(this) {
-            Log.d("tag","back button pressed")    // Handle the back button event
-        }
-        callback.isEnabled = true
+    override fun initView() {
 
         val spinType = layoutView.findViewById<Spinner>(R.id.spinner)
         val spinCategory = layoutView.findViewById<Spinner>(R.id.spinner1)
         val spinSubCategory = layoutView.findViewById<Spinner>(R.id.spinner2)
-
-        sharedPref = activity?.getSharedPreferences("sharedPref", Context.MODE_PRIVATE)!!
-        shopName = sharedPref.getString("shopName",shopName)!!
 
         val type = arrayOf<String>("units", "kgs")
         val category = arrayOf<String>("Branded Foods","Loose Items","Fridge Products","Beauty","Health and Hygiene","Home Needs")
@@ -123,7 +103,7 @@ class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : Di
 
         barcode = if(arguments?.getString("barcode")!=null) arguments?.getString("barcode")!! else "00000"
 
-        val prodInfo = FirebaseDatabase.getInstance().reference.child("inventoryData/$shopName/$barcode")
+        val prodInfo = ProductDetails()
 
         pName = layoutView.findViewById(R.id.edit_name)
         val productData = csvReader().readAll(File(activity?.filesDir, "productData.csv"))
@@ -132,41 +112,35 @@ class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : Di
 
         sp = layoutView.findViewById(R.id.edit_sp)
         cp = layoutView.findViewById(R.id.edit_cp)
-        etQuantity = layoutView.findViewById<EditText>(R.id.edit_quantity)
+        etQuantity = layoutView.findViewById(R.id.edit_quantity)
 
         url = "https://google.com"
-
-        val stockRef = FirebaseDatabase.getInstance().reference.child("stockMovement/$shopName/$barcode")
-
-        val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.US)
-        val simpleTimeFormat = SimpleDateFormat("hh:mm:ss a", Locale.US)
 
         val edit = if(arguments?.getBoolean("edit")!=null) arguments?.getBoolean("edit")!! else false
 
         val add = layoutView.findViewById<Button>(R.id.addBtn)
         add.setOnClickListener {
-            val dateFormat = simpleDateFormat.format(Date())
-            val timeFormat = simpleTimeFormat.format(Date())
+
             if (pName.text.isNotEmpty()&&sp.text.isNotEmpty()&&cp.text.isNotEmpty()
                     &&etQuantity.text.isNotEmpty()&&barcode!="00000") {
                 if(sp.text.toString().toInt()>=cp.text.toString().toInt()) {
-                    prodInfo.child("name").setValue(pName.text.toString())
-                    prodInfo.child("sellingPrice").setValue(sp.text.toString())
-                    prodInfo.child("costPrice").setValue(cp.text.toString())
-                    prodInfo.child("qty").setValue(etQuantity.text.toString())
-                    prodInfo.child("url").setValue(url)
-                    prodInfo.child("type").setValue(spinType.selectedItem.toString())
-                    prodInfo.child("category").setValue(spinCategory.selectedItem.toString())
+
+                    prodInfo.name=(pName.text.toString())
+                    prodInfo.sellingPrice=(sp.text.toString())
+                    prodInfo.costPrice=(cp.text.toString())
+                    prodInfo.qty=(etQuantity.text.toString().toInt())
+                    prodInfo.url=(url)
+                    prodInfo.type=(spinType.selectedItem.toString())
+                    prodInfo.category=(spinCategory.selectedItem.toString())
+                    prodInfo.subCategory=(spinSubCategory.selectedItem.toString())
 
                     if(edit)
-                        stockRef.child("$dateFormat $timeFormat").setValue(etQuantity.text.toString())
-                    else
-                        stockRef.child("$dateFormat $timeFormat").setValue("+" + etQuantity.text.toString())
-
-                    prodInfo.child("subCategory").setValue(spinSubCategory.selectedItem.toString())
-                    if (!edit)
+                        firebaseHelper.addOrUpdateProduct(barcode, prodInfo, 2)
+                    else {
+                        firebaseHelper.addOrUpdateProduct(barcode, prodInfo, 0)
                         Toast.makeText(context, "Added to Inventory", Toast.LENGTH_SHORT).show()
-                    dismiss()
+                    }
+                    findNavController().navigateUp()
                 }
                 else
                     Toast.makeText(context, "Selling Price should be greater than cost price", Toast.LENGTH_SHORT).show()
@@ -174,7 +148,8 @@ class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : Di
             else
                 Toast.makeText(context, "Please enter all the required values", Toast.LENGTH_SHORT).show()
         }
-        layoutView.findViewById<Button>(R.id.cancelBtn).setOnClickListener { dismiss() }
+
+        layoutView.findViewById<Button>(R.id.cancelBtn).setOnClickListener { findNavController().navigateUp() }
 
         val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         layoutView.findViewById<ImageView>(R.id.imageBtn).setOnClickListener {
@@ -185,26 +160,18 @@ class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : Di
 
         if (edit){
             add.text = "Update"
-            prodInfo.addValueEventListener(object : ValueEventListener{
-                override fun onCancelled(p0: DatabaseError) {
+            firebaseHelper.getProductDetails(barcode).observe(this) { p0->
+                pName.setText(p0.name)
+                sp.setText(p0.sellingPrice)
+                cp.setText(p0.costPrice)
+                etQuantity.setText(p0.qty.toString())
 
-                }
-
-                override fun onDataChange(p0: DataSnapshot) {
-                    pName.setText(p0.child("name").value.toString())
-                    sp.setText(p0.child("sellingPrice").value.toString())
-                    cp.setText(p0.child("costPrice").value.toString())
-                    etQuantity.setText(p0.child("qty").value.toString())
-
-                    val index = category.indexOf(p0.child("category").value.toString())
-                    spinCategory.setSelection(index)
-                    spinSubCategory.setSelection(subCategoryList[index].indexOf(p0.child("subCategory").value.toString()))
-                }
-
-            })
+                val index = category.indexOf(p0.category)
+                spinCategory.setSelection(index)
+                spinSubCategory.setSelection(subCategoryList[index].indexOf(p0.subCategory))
+            }
         }
 
-        return layoutView
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -229,20 +196,6 @@ class AddNewProductFragment(val callAddToList: ((ArrayList<String>)->Unit)) : Di
                     pName.setText(detectedText)
                 }
                 .addOnFailureListener { Toast.makeText(context,"Failed to detect any text... add manually",Toast.LENGTH_SHORT).show() }
-    }
-
-    private fun getRequiredData(): ArrayList<String>{
-        val list = ArrayList<String>()
-        list.add(barcode)
-        list.add(pName.text.toString())
-        list.add(sp.text.toString())
-        list.add(etQuantity.text.toString())
-
-        return list
-    }
-
-    override fun onDismiss(dialog: DialogInterface) {
-        callAddToList.invoke(getRequiredData())
     }
 
     private fun uploadImageAndUpdateUrl(bitmap: Bitmap){

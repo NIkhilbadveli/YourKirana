@@ -19,6 +19,7 @@ import androidx.core.content.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.google.zxing.ResultPoint
 import com.google.zxing.client.android.BeepManager
 import com.google.zxing.integration.android.IntentIntegrator
@@ -72,7 +73,7 @@ class BarcodeFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         barcode_view = inflater.inflate(R.layout.fragment_barcode, container, false)
-        model = ViewModelProviders.of(requireParentFragment()).get(MainActivity.SharedViewModel::class.java)
+        model = ViewModelProvider(requireParentFragment()).get(MainActivity.SharedViewModel::class.java)
         barcodeScannerView = barcode_view!!.findViewById(R.id.zxing_barcode_scanner)
         viewfinderView = barcode_view!!.findViewById(R.id.zxing_viewfinder_view)
 

@@ -4,7 +4,6 @@ package com.titos.barcodescanner.profileFeature
 import agency.tango.android.avatarview.loader.PicassoLoader
 import agency.tango.android.avatarview.views.AvatarView
 import android.app.AlertDialog
-import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -29,7 +28,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.dynamiclinks.DynamicLink
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
-import com.titos.barcodescanner.ProgressDialog
+import com.titos.barcodescanner.utils.ProgressDialog
 
 import com.titos.barcodescanner.R
 import com.titos.barcodescanner.loginFeature.LoginActivity
@@ -173,7 +172,7 @@ class ProfileFragment : Fragment() {
                 .startChooser()
     }
 
-    private fun logoutFromApp(dialog:ProgressDialog){
+    private fun logoutFromApp(dialog: ProgressDialog){
         dialog.show()
         AuthUI.getInstance()
                 .signOut(requireContext())

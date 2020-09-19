@@ -7,15 +7,12 @@ import android.os.Parcelable
 
 import androidx.fragment.app.Fragment
 
-import androidx.recyclerview.widget.RecyclerView
-
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.widget.Toolbar
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.titos.barcodescanner.*
@@ -38,12 +35,8 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.titos.barcodescanner.utils.ProgressDialog
 import kotlinx.android.parcel.Parcelize
-import kotlinx.android.synthetic.main.fragment_dashboard_outside.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class DashboardFragmentOutside : Fragment()
 {

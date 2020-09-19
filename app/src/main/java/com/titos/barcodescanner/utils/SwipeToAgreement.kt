@@ -1,4 +1,4 @@
-package com.titos.barcodescanner
+package com.titos.barcodescanner.utils
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -9,6 +9,7 @@ import android.graphics.drawable.ColorDrawable
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import com.titos.barcodescanner.R
 
 abstract class SwipeToAgreement(context: Context) : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
 

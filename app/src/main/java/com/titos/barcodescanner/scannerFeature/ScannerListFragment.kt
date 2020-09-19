@@ -13,12 +13,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.appcompat.widget.SwitchCompat
-import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -28,50 +28,44 @@ import com.google.firebase.database.*
 
 import com.titos.barcodescanner.*
 import com.titos.barcodescanner.R
-import kotlinx.coroutines.withContext
+import com.titos.barcodescanner.base.BaseFragment
+import com.titos.barcodescanner.dashboardFeature.BarcodeAndQty
+import com.titos.barcodescanner.utils.FirebaseHelper
+import com.titos.barcodescanner.utils.TransactionDetails
 
 
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.concurrent.schedule
 
 
-class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButton,val btnInv: Button) : Fragment() {
+class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButton,
+                          val btnInv: Button) : BaseFragment(R.layout.fragment_list_scanner) {
 
     private var listValues = ArrayList<ScannerItem>()
     private var barcodeList = ArrayList<String>()
     private var recyclerViewAdapter: ScannerItemAdapter? = null
     private var recyclerView:RecyclerView?=null
     private lateinit var model: MainActivity.SharedViewModel
-    private var databaseReference: DatabaseReference? = null
 
     private var emptyView: LinearLayout? = null
-    private var shopName = "Temp Store"
 
-    private lateinit var floatingActionButton: FloatingActionButton
     private lateinit var sharedPref: SharedPreferences
-    private var allItemsCurrentQty: MutableMap<String, Int> = mutableMapOf()
-    private lateinit var inventoryRef: DatabaseReference
 
     private var phoneNum = "1234567890"
     private lateinit var dialog: Dialog
     lateinit var tvContact: TextView
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    override fun initView() {
 
-        val view = inflater.inflate(R.layout.fragment_list_scanner, container, false)
-        model = ViewModelProviders.of(requireParentFragment()).get(MainActivity.SharedViewModel::class.java)
+        val view = layoutView
+        model = ViewModelProvider(requireParentFragment()).get(MainActivity.SharedViewModel::class.java)
         
         handleSwitching(view)
-        
-        databaseReference = FirebaseDatabase.getInstance().reference
 
         model.selected.observe(viewLifecycleOwner, Observer { s -> searchForProduct(s) })
 
         sharedPref = activity?.getSharedPreferences("sharedPref",Context.MODE_PRIVATE)!!
-        shopName = sharedPref.getString("shopName",shopName)!!
 
         recyclerView = view.findViewById(R.id.list)
 
@@ -114,27 +108,12 @@ class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButto
                 Toast.makeText(context, "Please scan at least one item :)", Toast.LENGTH_SHORT).show()
         }
 
-        inventoryRef = databaseReference!!.child("inventoryData").child(shopName)
-        inventoryRef.addValueEventListener(object : ValueEventListener{
-            override fun onCancelled(p0: DatabaseError) {
-
-            }
-
-            override fun onDataChange(p0: DataSnapshot) {
-                for (barcode in p0.children){
-                    allItemsCurrentQty[barcode.key!!] = barcode.child("qty").value.toString().toInt()
-                }
-            }
-
-        })
-
         tvContact = view.findViewById(R.id.tv_contact)
         tvContact.setOnClickListener {
             dialog.show()
             model.pauseScanner()
         }
 
-        return view
     }
 
     private fun handleSwitching(view: View){
@@ -168,50 +147,18 @@ class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButto
     }
 
     private fun searchForProduct(barcode: String) {
-
-        val inventoryRef = databaseReference!!.child("inventoryData").child(shopName).child(barcode)
-        inventoryRef.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    val list = ArrayList<String>()
-                    list.add(barcode)
-                    list.add(dataSnapshot.child("name").value.toString())
-                    list.add(dataSnapshot.child("sellingPrice").value.toString())
-                    list.add("dummyURL")
-                    addToListView(list[0], list[1], list[2], list[3])
-                }
-                else{
+        firebaseHelper.searchBarcode(barcode).observe(this) { productDetails ->
+                if (productDetails.name.isNotEmpty())
+                    addToListView(barcode, productDetails.name, productDetails.sellingPrice, "dummyURL")
+                else
                     showNewProductDialog(barcode)
-                }
-            }
-
-            override fun onCancelled(databaseError: DatabaseError) {
-
-            }
-        })
+        }
     }
 
-
     private fun showNewProductDialog(s: String) {
-        model?.pauseScanner()
-
-        val callAddToList: (ArrayList<String>)->Unit = { list ->
-            model?.resumeScanner()
-            /*if (list[0].isNotEmpty()&&list[1].isNotEmpty())
-                addToListView(list[0], list[1], list[2], list[3])*/
-        }
-
-        val addNewProductFragment = AddNewProductFragment(callAddToList)
         val bundle = Bundle()
         bundle.putString("barcode",s)
-        addNewProductFragment.arguments = bundle
-
-        val manager = parentFragmentManager
-        val ft = manager.findFragmentByTag("addNewProductFragment")
-        if (ft!=null)
-            manager.beginTransaction().remove(ft)
-
-        addNewProductFragment.show(manager, "addNewProductFragment")
+        findNavController().navigate(R.id.action_scannerListFragment_to_addNewProductFragment, bundle)
     }
 
     @SuppressLint("SetTextI18n")
@@ -231,48 +178,33 @@ class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButto
         if (emptyView?.visibility==View.VISIBLE)
             emptyView?.visibility = View.GONE
 
-        tvTotal!!.text = "Rs. " + listValues.sumByDouble { it.price.toDouble() }.toString()
+        tvTotal.text = "Rs. " + listValues.sumByDouble { it.price.toDouble() }.toString()
 
     }
-
-    var stockRef = FirebaseDatabase.getInstance().reference.child("stockMovement")
-    val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.US)
-    val simpleTimeFormat = SimpleDateFormat("hh:mm:ss a", Locale.US)
 
     private fun addToTransactionData() {
 
         val itemCount = recyclerView?.childCount!!
 
-        val date = Date()
-        val dateFormat = simpleDateFormat.format(date)
-        val timeFormat = simpleTimeFormat.format(date)
-
-        val transactionRef = databaseReference?.child("transactionData/$shopName/$dateFormat/$timeFormat")!!
-
         var qty: EditText?
         var itemView: View?
+
+        val items = mutableMapOf<String, String>()
 
         //Adding items to data
         for (i in 0 until itemCount) {
             itemView = recyclerView?.getChildAt(i)
             if (itemView != null) {
                 qty = itemView.findViewById(R.id.item_quantity)
-                val updatedQty = allItemsCurrentQty[barcodeList[i]]!! - qty.text.toString().toInt()
-                inventoryRef.child("${barcodeList[i]}/qty").setValue(updatedQty.toString())
-                transactionRef.child("items/${barcodeList[i]}").setValue(qty.text.toString())
-                stockRef.child("$shopName/${barcodeList[i]}/$dateFormat $timeFormat").setValue("-${qty.text}")
+                items[barcodeList[i]] = qty.text.toString()
             }
         }
 
-        //Adding orderValue to data
-        transactionRef.child("orderValue").setValue(tvTotal?.text.toString().split(' ').last())
+        if (phoneNum.length==10)
+            firebaseHelper.addTransaction(TransactionDetails(phoneNum, tvTotal.text.toString().split(' ').last(), items))
+        else
+            showToast("Please Enter full Mobile number!")
 
-        //Adding customer data
-        if (phoneNum!="1234567890"&&phoneNum.length==10) {
-            transactionRef.child("contact").setValue(phoneNum)
-            val key = databaseReference!!.push().key
-            databaseReference!!.child("customerData/$phoneNum/$key").setValue("$dateFormat, $timeFormat")
-        }
 
         val snack = Snackbar.make(requireView(), "Added to Transaction History!", Snackbar.LENGTH_SHORT)
         snack.setAction("View History") {
@@ -283,27 +215,24 @@ class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButto
         snack.show()
 
         listValues.clear()
-        tvTotal!!.text = "Rs."
+        tvTotal.text = "Rs."
         recyclerViewAdapter!!.notifyDataSetChanged()
     }
 
     private fun addToInventoryData(){
         val itemCount = recyclerView!!.childCount
-        val inventoryRef = databaseReference!!.child("inventoryData").child(shopName)
 
-        val date = Date()
-        val dateFormat = simpleDateFormat.format(date)
-        val timeFormat = simpleTimeFormat.format(date)
-
+        val bqList = ArrayList<BarcodeAndQty>()
         for (i in 0 until itemCount) {
             val itemView = recyclerView!!.getChildAt(i)
             if (itemView != null) {
                 val qty = itemView.findViewById<EditText>(R.id.item_quantity)
-                val updatedQty = allItemsCurrentQty[barcodeList[i]]!! + qty.text.toString().toInt()
-                inventoryRef.child("${barcodeList[i]}/qty").setValue(updatedQty.toString())
-                stockRef.child("$shopName/${barcodeList[i]}/$dateFormat $timeFormat").setValue("+${qty.text}")
+                bqList.add(BarcodeAndQty(barcodeList[i], qty.text.toString().toInt()))
             }
         }
+
+        firebaseHelper.addInventory(bqList)
+
         val snack = Snackbar.make(requireView(), "Added to Inventory!", Snackbar.LENGTH_SHORT)
         snack.setActionTextColor(Color.parseColor("#ffffff"))
         snack.setAction("Check Inventory") {
