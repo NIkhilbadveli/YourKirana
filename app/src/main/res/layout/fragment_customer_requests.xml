@@ -25,16 +25,35 @@
         android:layout_gravity="center_horizontal"
         android:layout_margin="20dp"/>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_requests"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/tv_asked"
         android:layout_above="@id/add_new_request"
-        tools:listitem="@layout/item_customer_request"
-        android:layout_margin="10dp"
-        tools:itemCount="6"/>
+        android:layout_marginBottom="16dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_requests"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:listitem="@layout/item_customer_request"
+                android:layout_margin="10dp"
+                tools:itemCount="2"
+                android:nestedScrollingEnabled="false"/>
 
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_requests_checked"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:listitem="@layout/item_customer_request"
+                android:layout_margin="10dp"
+                tools:itemCount="2"
+                android:nestedScrollingEnabled="false"/>
+        </LinearLayout>
+    </ScrollView>
     <androidx.cardview.widget.CardView
         android:id="@+id/input_container"
         android:layout_width="match_parent"

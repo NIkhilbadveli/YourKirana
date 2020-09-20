@@ -103,11 +103,12 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
 
         barcode = if(arguments?.getString("barcode")!=null) arguments?.getString("barcode")!! else "00000"
 
-        val prodInfo = ProductDetails()
+        var prodInfo = ProductDetails()
 
         pName = layoutView.findViewById(R.id.edit_name)
         val productData = csvReader().readAll(File(activity?.filesDir, "productData.csv"))
         val adapter = ArrayAdapter(requireContext(), R.layout.item_text,R.id.text1, productData[0])
+        val add = layoutView.findViewById<Button>(R.id.addBtn)
         pName.setAdapter(adapter)
 
         sp = layoutView.findViewById(R.id.edit_sp)
@@ -116,9 +117,25 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
 
         url = "https://google.com"
 
+        //If edit is true... get data from firestore
         val edit = if(arguments?.getBoolean("edit")!=null) arguments?.getBoolean("edit")!! else false
+        if (edit){
+            showProgress("Please wait...")
+            add.text = "Update"
+            firebaseHelper.getProductDetails(barcode).observe(this) { p0->
+                pName.setText(p0.name)
+                sp.setText(p0.sellingPrice)
+                cp.setText(p0.costPrice)
+                etQuantity.setText(p0.qty.toString())
+                prodInfo = p0
 
-        val add = layoutView.findViewById<Button>(R.id.addBtn)
+                val index = category.indexOf(p0.category)
+                spinCategory.setSelection(index)
+                spinSubCategory.setSelection(subCategoryList[index].indexOf(p0.subCategory))
+                dismissProgress()
+            }
+        }
+
         add.setOnClickListener {
 
             if (pName.text.isNotEmpty()&&sp.text.isNotEmpty()&&cp.text.isNotEmpty()
@@ -128,16 +145,26 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
                     prodInfo.name=(pName.text.toString())
                     prodInfo.sellingPrice=(sp.text.toString())
                     prodInfo.costPrice=(cp.text.toString())
-                    prodInfo.qty=(etQuantity.text.toString().toInt())
+
+                    var equal = true
+                    if (prodInfo.qty!=etQuantity.text.toString().toInt()) {
+                        prodInfo.qty = (etQuantity.text.toString().toInt())
+                        equal = false
+                    }
+
                     prodInfo.url=(url)
                     prodInfo.type=(spinType.selectedItem.toString())
                     prodInfo.category=(spinCategory.selectedItem.toString())
                     prodInfo.subCategory=(spinSubCategory.selectedItem.toString())
 
-                    if(edit)
-                        firebaseHelper.addOrUpdateProduct(barcode, prodInfo, 2)
+                    if(edit){
+                        if (equal) //If the qty is same, don't trigger updateQty
+                            firebaseHelper.addOrUpdateProduct(barcode, prodInfo, 4)
+                        else
+                            firebaseHelper.addOrUpdateProduct(barcode, prodInfo, 2)
+                    }
                     else {
-                        firebaseHelper.addOrUpdateProduct(barcode, prodInfo, 0)
+                        firebaseHelper.addOrUpdateProduct(barcode, prodInfo, 3)
                         Toast.makeText(context, "Added to Inventory", Toast.LENGTH_SHORT).show()
                     }
                     findNavController().navigateUp()
@@ -158,19 +185,7 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
             }
         }
 
-        if (edit){
-            add.text = "Update"
-            firebaseHelper.getProductDetails(barcode).observe(this) { p0->
-                pName.setText(p0.name)
-                sp.setText(p0.sellingPrice)
-                cp.setText(p0.costPrice)
-                etQuantity.setText(p0.qty.toString())
 
-                val index = category.indexOf(p0.category)
-                spinCategory.setSelection(index)
-                spinSubCategory.setSelection(subCategoryList[index].indexOf(p0.subCategory))
-            }
-        }
 
     }
 

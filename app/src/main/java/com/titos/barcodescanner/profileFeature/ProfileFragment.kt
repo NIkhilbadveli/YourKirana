@@ -16,6 +16,7 @@ import android.widget.*
 import androidx.core.app.ShareCompat
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -31,18 +32,16 @@ import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
 import com.titos.barcodescanner.utils.ProgressDialog
 
 import com.titos.barcodescanner.R
+import com.titos.barcodescanner.base.BaseFragment
 import com.titos.barcodescanner.loginFeature.LoginActivity
+import com.titos.barcodescanner.utils.UserDetails
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 
 
-class ProfileFragment : Fragment() {
+class ProfileFragment : BaseFragment(R.layout.fragment_profile) {
 
-    private lateinit var layoutView: View
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
-
-        layoutView = inflater.inflate(R.layout.fragment_profile, container, false)
+    override fun initView() {
 
         val profileAvatar = layoutView.findViewById<AvatarView>(R.id.profile_avatar)
         val user = FirebaseAuth.getInstance().currentUser!!
@@ -108,28 +107,24 @@ class ProfileFragment : Fragment() {
             }
         }.addOnFailureListener{ }
 
-        return layoutView
     }
 
     private fun editProfile(user:FirebaseUser){
-        val userRef = FirebaseDatabase.getInstance().reference.child("userData").child(user.uid)
+
         val viewGroup = layoutView.findViewById<ViewGroup>(android.R.id.content)
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_profile, viewGroup, false)
 
-        userRef.addValueEventListener(object : ValueEventListener{
-            override fun onDataChange(p0: DataSnapshot) {
-                val dpName = p0.child("userName").value.toString()
-                val storeName = p0.child("shopName").value.toString()
-                if (dpName!="null"&&storeName!="null") {
-                    dialogView.findViewById<TextView>(R.id.et_dp_name).text = dpName
-                    dialogView.findViewById<TextView>(R.id.et_store_name).text = storeName
-                }
-            }
+        val etName = dialogView.findViewById<EditText>(R.id.et_dp_name)
+        val etStore = dialogView.findViewById<EditText>(R.id.et_store_name)
 
-            override fun onCancelled(p0: DatabaseError) {
+        firebaseHelper.getUserDetails(user.uid).observe(this) {
 
+            if (it.userName!="null"&&it.shopName!="null") {
+                etName.setText(it.userName)
+                etStore.setText(it.shopName)
             }
-        })
+        }
+
         val sharedPref = activity?.getSharedPreferences("sharedPref", Context.MODE_PRIVATE)!!
         val builder = AlertDialog.Builder(requireContext())
         builder.setView(dialogView)
@@ -137,11 +132,10 @@ class ProfileFragment : Fragment() {
         alertDialog.show()
 
         dialogView.findViewById<Button>(R.id.product_add_button).setOnClickListener {
-            val userName = dialogView.findViewById<TextView>(R.id.et_dp_name).text
-            val shopName = dialogView.findViewById<TextView>(R.id.et_store_name).text
+            val userName = etName.text
+            val shopName = etStore.text
             if (userName.isNotEmpty()&&shopName.isNotEmpty()){
-                userRef.child("userName").setValue(userName.toString())
-                userRef.child("shopName").setValue(shopName.toString())
+                firebaseHelper.updateUserName(user.uid, userName.toString(), shopName.toString())
                 sharedPref.edit {
                     putString("shopName", shopName.toString())
                     putString("userName", userName.toString())

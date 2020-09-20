@@ -21,26 +21,18 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.titos.barcodescanner.base.BaseFragment
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 
-class StockMovementFragment : Fragment()
-{
-    private lateinit var sharedPref: SharedPreferences
-    private var shopName = "Temp Store"
-    private var barcode = "00000"
+class StockMovementFragment : BaseFragment(R.layout.fragment_stock_movement) {
+
     private var stockList = ArrayList<StockItem>()
     private var groupAdapter = GroupAdapter<GroupieViewHolder>()
 
+    override fun initView() {
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View?
-    {
-        val layoutView = inflater.inflate(R.layout.fragment_stock_movement, container, false)
-
-        sharedPref = activity?.getSharedPreferences("sharedPref",Context.MODE_PRIVATE)!!
-        shopName = sharedPref.getString("shopName",shopName)!!
-        barcode = if(arguments?.getString("barcode")!=null) arguments?.getString("barcode")!! else "00000"
+        val invDetails = arguments?.getParcelable<InventoryFragmentOutside.InventoryDetails>("invDetails")!!
 
         val recyclerView = layoutView.findViewById<RecyclerView>(R.id.rv_stock)
 
@@ -51,44 +43,30 @@ class StockMovementFragment : Fragment()
 
         val stcQty = layoutView.findViewById<TextView>(R.id.tv_stockQty)
         val tvName = layoutView.findViewById<TextView>(R.id.tv_name)
-        tvName.text = arguments?.getString("name")!!
+        tvName.text = invDetails.pd.name
 
-        val stockRef = FirebaseDatabase.getInstance().reference
-                .child("stockMovement/$shopName/$barcode")
+        var finalQty = 0
+        invDetails.pd.changes.forEach {
+            val timeStamp = it.key
+            val currentQty = it.value
 
-        stockRef.addValueEventListener(object :ValueEventListener{
-            override fun onCancelled(p0: DatabaseError) {
-
-            }
-
-            override fun onDataChange(p0: DataSnapshot) {
-                var finalQty = 0
-                for(timeStamp in p0.children) {
-                    val currentQty = timeStamp.value.toString()
-
-                    when {
-                        currentQty.take(1) == "+" -> {
-                            finalQty += currentQty.substringAfter("+").toInt()
-                            stockList.add(StockItem("Added: $currentQty",timeStamp.key!!, finalQty.toString()))
-                        }
-                        currentQty.take(1) == "-" -> {
-                            finalQty -= currentQty.substringAfter("-").toInt()
-                            stockList.add(StockItem("Sold: $currentQty",timeStamp.key!!, finalQty.toString()))
-                        }
-                        else -> {
-                            finalQty = currentQty.toInt()
-                            stockList.add(StockItem("Updated to: $currentQty",timeStamp.key!!, finalQty.toString()))
-                        }
-                    }
+            when {
+                currentQty.take(1) == "+" -> {
+                    finalQty += currentQty.substringAfter("+").toInt()
+                    stockList.add(StockItem("Added: $currentQty", timeStamp, finalQty.toString()))
                 }
-                stcQty.text = finalQty.toString()
-                groupAdapter.addAll(stockList.reversed())
-
+                currentQty.take(1) == "-" -> {
+                    finalQty -= currentQty.substringAfter("-").toInt()
+                    stockList.add(StockItem("Sold: $currentQty", timeStamp, finalQty.toString()))
+                }
+                else -> {
+                    finalQty = currentQty.toInt()
+                    stockList.add(StockItem("Updated to: $currentQty", timeStamp, finalQty.toString()))
+                }
             }
-
-        })
-
-        return layoutView
+        }
+        stcQty.text = finalQty.toString()
+        groupAdapter.addAll(stockList.reversed())
     }
-
 }
+

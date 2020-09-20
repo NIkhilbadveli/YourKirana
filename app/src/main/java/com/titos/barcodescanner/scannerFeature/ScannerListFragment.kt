@@ -158,7 +158,7 @@ class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButto
     private fun showNewProductDialog(s: String) {
         val bundle = Bundle()
         bundle.putString("barcode",s)
-        findNavController().navigate(R.id.action_scannerListFragment_to_addNewProductFragment, bundle)
+        findNavController().navigate(R.id.action_scannerFragment_to_addNewProductFragment, bundle)
     }
 
     @SuppressLint("SetTextI18n")

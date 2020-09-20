@@ -1,5 +1,9 @@
 package com.titos.barcodescanner.utils
 
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
+
+@Parcelize
 data class ProductDetails(
                 var name: String = "",
                 var sellingPrice: String = "",
@@ -10,4 +14,4 @@ data class ProductDetails(
                 var category: String = "",
                 var subCategory: String = "",
                 var sold: Int = 0,
-                var changes: Map<String, String> = mapOf())
+                var changes: Map<String, String> = mapOf()): Parcelable

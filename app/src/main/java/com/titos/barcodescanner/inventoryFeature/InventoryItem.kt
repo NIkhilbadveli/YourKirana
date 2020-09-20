@@ -9,19 +9,15 @@ import com.xwray.groupie.kotlinandroidextensions.Item
 import kotlinx.android.synthetic.main.item_inventory.*
 import java.util.*
 
-class InventoryItem(var barcode: String, var itemName: String, var itemQty: String, var itemPrice:String, val onItemRemoveClick:((Int)->Unit),
+class InventoryItem(var inventoryDetails: InventoryFragmentOutside.InventoryDetails, val onItemRemoveClick:((Int)->Unit),
                     val onItemStockClick:((Int)->Unit), val onItemEditClick: ((Int)->Unit)): Item() {
 
     override fun bind(viewHolder: GroupieViewHolder, position: Int){
         viewHolder.apply {
 
-            mystore_item_price.text = itemPrice
-            mystore_item_name.text = itemName
-            mystore_item_qty.setText(itemQty)
-
-            val sharedPref = containerView.context?.getSharedPreferences("sharedPref", Context.MODE_PRIVATE)
-            val shopName = sharedPref?.getString("shopName","shop")!!
-            val itemRef = FirebaseDatabase.getInstance().reference.child("inventoryData/$shopName/$barcode")
+            mystore_item_price.text = inventoryDetails.pd.sellingPrice
+            mystore_item_name.text = inventoryDetails.pd.name
+            mystore_item_qty.text = inventoryDetails.pd.qty.toString()
 
             mystore_item_name.setOnClickListener {
                 onItemStockClick.invoke(position)

@@ -35,6 +35,11 @@ class StockItem(private val action: String, private val actionTime: String, priv
                 stockLeft.setTextColor(R.color.green)
                 iv_arrows.setImageResource(R.drawable.up_arrow)
             }
+            if(action.contains("Updated"))
+            {
+                stockLeft.setTextColor(R.color.black)
+                iv_arrows.visibility = View.GONE
+            }
             else {
                 stockLeft.setTextColor(R.color.red)
                 iv_arrows.setImageResource(R.drawable.down_arrow)

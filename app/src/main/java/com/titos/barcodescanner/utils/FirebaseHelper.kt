@@ -44,12 +44,40 @@ class FirebaseHelper(val shopName: String) {
         return pd
     }
 
-    fun getAllInventory(): LiveData<List<ProductDetails>>{
+    fun getMultipleProductDetails(barcodeList: ArrayList<String>):LiveData<List<ProductDetails>>{
         val ldProductDetails = MutableLiveData<List<ProductDetails>>()
         firestore.collection("stores/$shopName/inventoryData")
                 .get()
                 .addOnSuccessListener {
-                    ldProductDetails.value = it.toObjects(ProductDetails::class.java)
+                    val tempList = ArrayList<ProductDetails>()
+                    for (doc in it.documents){
+                        if (barcodeList.contains(doc.id))
+                            tempList.add(doc.toObject(ProductDetails::class.java)!!)
+                    }
+                    ldProductDetails.value = tempList
+                }
+                .addOnFailureListener { Log.d("TAG", "failedToGetTransactions") }
+
+        return ldProductDetails
+    }
+
+    fun removeProduct(barcode: String){
+        firestore.collection("stores/$shopName/inventoryData")
+                .document(barcode)
+                .delete()
+                .addOnSuccessListener { Log.d("TAG", "deleteSuccess: $barcode") }
+    }
+
+    fun getAllInventory(): LiveData<Map<String,ProductDetails>>{
+        val ldProductDetails = MutableLiveData<Map<String,ProductDetails>>()
+        firestore.collection("stores/$shopName/inventoryData")
+                .get()
+                .addOnSuccessListener {
+                    val map = mutableMapOf<String,ProductDetails>()
+                    for (doc in it.documents)
+                        map[doc.id] = doc.toObject(ProductDetails::class.java)!!
+
+                    ldProductDetails.value = map
                 }
                 .addOnFailureListener { Log.d("TAG", "failedToGetTransactions") }
 
@@ -90,13 +118,17 @@ class FirebaseHelper(val shopName: String) {
         addTransactionToCustomer(transactionDetails.contact, "$dateFormat $timeFormat")
     }
 
-    fun getAllTransactions(): LiveData<List<TransactionDetails>>{
-        val ldTransactionDetails = MutableLiveData<List<TransactionDetails>>()
+    fun getAllTransactions(): LiveData<Map<String,TransactionDetails>>{
+        val ldTransactionDetails = MutableLiveData<Map<String,TransactionDetails>>()
 
         firestore.collection("stores/$shopName/transactionData")
                 .get()
                 .addOnSuccessListener {
-                    ldTransactionDetails.value = it.toObjects(TransactionDetails::class.java)
+                    val map = mutableMapOf<String,TransactionDetails>()
+                    for (doc in it.documents)
+                        map[doc.id] = doc.toObject(TransactionDetails::class.java)!!
+
+                    ldTransactionDetails.value = map
                 }
                 .addOnFailureListener { Log.d("TAG", "failedToGetTransactions") }
 
@@ -122,6 +154,13 @@ class FirebaseHelper(val shopName: String) {
                 .addOnSuccessListener { Log.d("TAG", "addedNewUser: $uid") }
                 .addOnFailureListener {e -> Log.d("TAG", "failedToAdd: $e") }
 
+    }
+
+    fun updateUserName(uid: String, userName: String, shopName: String){
+        firestore.collection("users")
+                .document(uid)
+                .update("userName", userName)
+        updateShopName(uid, shopName)
     }
 
     fun getUserDetails(uid: String): LiveData<UserDetails>{
@@ -155,14 +194,22 @@ class FirebaseHelper(val shopName: String) {
 
     fun getAllKhata(): LiveData<List<KhataDetails>>{
         val ldKhataDetails = MutableLiveData<List<KhataDetails>>()
-        firestore.collection("stores/$shopName/inventoryData")
+        firestore.collection("stores/$shopName/khataBook")
                 .get()
                 .addOnSuccessListener {
                     ldKhataDetails.value = it.toObjects(KhataDetails::class.java)
                 }
-                .addOnFailureListener { Log.d("TAG", "failedToGetTransactions") }
+                .addOnFailureListener { Log.d("TAG", "failedToGetKhata") }
 
         return ldKhataDetails
+    }
+
+    fun updateKhataStatus(time: String){
+        firestore.collection("stores/$shopName/khataBook")
+                .document(time)
+                .update("status", "paid")
+                .addOnSuccessListener { Log.d("TAG", "UpdatedKhata: $time") }
+                .addOnFailureListener { Log.d("TAG", "failedToAdd: $it") }
     }
 
     //Handling scannerlistfragment stuff
@@ -181,7 +228,7 @@ class FirebaseHelper(val shopName: String) {
         return productDetails
     }
 
-    //mode = 0: plus, 1: minus, 2: update
+    //mode = 0: plus, 1: minus, 2: update, 3: new, 4: don't trigger
     fun updateQty(time: String, barcode: String, qty: Int, mode: Int) {
         val doc = firestore.collection("stores/$shopName/inventoryData/")
                 .document(barcode)
@@ -213,6 +260,11 @@ class FirebaseHelper(val shopName: String) {
                         .addOnFailureListener { Log.d("TAG", "failedToUpdate: $it") }
                 doc.set(mapOf("changes" to data), SetOptions.merge())
             }
+            3 -> {
+                data[time] = "+$qty"
+                doc.set(mapOf("changes" to data), SetOptions.merge())
+            }
+            4 -> {}
         }
     }
 
@@ -230,11 +282,50 @@ class FirebaseHelper(val shopName: String) {
         return ldMap
     }
 
+    fun deleteTransaction(time: String){
+        firestore.collection("stores/$shopName/transactionData")
+                .document(time)
+                .delete()
+                .addOnSuccessListener { Log.d("TAG", "deleteSuccess: $time") }
+    }
+
     fun addTransactionToCustomer(phone: String, time: String){
         val doc =  firestore.collection("stores/$shopName/customerData")
                 .document(phone)
         val data = mutableMapOf<String, String>()
         data[doc.id] = time
-        doc.set(mapOf("changes" to data), SetOptions.merge())
+        doc.set(mapOf("entries" to data), SetOptions.merge())
+    }
+
+    //Customer Requests
+    fun addCustomerRequest(requestDetails: RequestDetails): String{
+        val doc = firestore.collection("stores/$shopName/customerRequests")
+                .document()
+
+        doc.set(requestDetails)
+
+        return doc.id
+    }
+
+    fun updateRequest(docId: String, requestDetails: RequestDetails){
+        val doc = firestore.collection("stores/$shopName/customerRequests")
+                .document(docId)
+        doc.set(requestDetails)
+    }
+
+    fun getAllRequests(): LiveData<Map<String, RequestDetails>>{
+        val ldRequestDetails = MutableLiveData<Map<String, RequestDetails>>()
+        firestore.collection("stores/$shopName/customerRequests")
+                .get()
+                .addOnSuccessListener {
+                    val map = mutableMapOf<String,RequestDetails>()
+                    for (doc in it.documents)
+                        map[doc.id] = doc.toObject(RequestDetails::class.java)!!
+
+                    ldRequestDetails.value = map
+                }
+                .addOnFailureListener { Log.d("TAG", "failedToGetRequests") }
+
+        return ldRequestDetails
     }
 }

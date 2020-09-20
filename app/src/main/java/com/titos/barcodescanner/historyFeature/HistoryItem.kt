@@ -12,7 +12,7 @@ class HistoryItem(private val orderNumber: String, val orderTime: String, val or
             history_order_number.text = orderNumber
             history_order_time.text = orderTime
             history_order_value.text = orderValue
-            val hour = orderTime.split(":").first()
+            val hour = orderTime.split(" ")[1].split(":").first()
             val amPm = orderTime.split(" ").last()
 
             if (amPm=="PM"&&hour.toInt()>6)

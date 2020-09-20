@@ -11,6 +11,7 @@ import android.widget.Button
 import android.widget.Toast
 
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.observe
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
@@ -20,24 +21,20 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
 import com.titos.barcodescanner.R
+import com.titos.barcodescanner.base.BaseFragment
+import com.titos.barcodescanner.utils.RequestDetails
 
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 import kotlinx.android.synthetic.main.fragment_customer_requests.*
 
+class CustomerRequestsFragment : BaseFragment(R.layout.fragment_customer_requests) {
+    private val checkedList = ArrayList<CustomerRequestItem>()
+    private val uncheckedList = ArrayList<CustomerRequestItem>()
+    private lateinit var onUpdateListener: (String,RequestDetails, Int, Int) -> Unit
+    private val groupAdapterChecked = GroupAdapter<GroupieViewHolder>()
 
-
-class CustomerRequestsFragment : Fragment() {
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
-
-        val layoutView = inflater.inflate(R.layout.fragment_customer_requests, container, false)
-
-        val sharedPref = activity?.getSharedPreferences("sharedPref",Context.MODE_PRIVATE)
-        val shopName = sharedPref?.getString("shopName","shop")!!
-        val requestRef = FirebaseDatabase.getInstance().reference.child("customerRequests").child(shopName)
-
+    override fun initView() {
         val recyclerView = layoutView.findViewById<RecyclerView>(R.id.rv_requests)
         val groupAdapter = GroupAdapter<GroupieViewHolder>()
         recyclerView.apply {
@@ -45,25 +42,31 @@ class CustomerRequestsFragment : Fragment() {
             layoutManager = LinearLayoutManager(requireContext())
         }
 
-        requestRef.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(p0: DataSnapshot) {
-                val checkedList = ArrayList<CustomerRequestItem>()
-                for (request in p0.children){
-                    val name = request.child("name").value.toString()
-                    val qty = request.child("qty").value.toString().toInt()
-                    val checked = request.child("checked").value.toString().toBoolean()
-                    if (!checked)
-                        groupAdapter.add(CustomerRequestItem(request.key!!,checked,name,qty))
-                    else
-                        checkedList.add(CustomerRequestItem(request.key!!,checked,name,qty))
+        val recyclerViewChecked = layoutView.findViewById<RecyclerView>(R.id.rv_requests_checked)
+        recyclerViewChecked.apply {
+            adapter = groupAdapterChecked
+            layoutManager = LinearLayoutManager(requireContext())
+        }
+
+        onUpdateListener = { refKey, rd, mode, pos ->
+            //mode = 0: uncheck to check, 1: check to uncheck, 2: subtract, 3: add, 4: namechange
+            firebaseHelper.updateRequest(refKey, rd)
+            when(mode){
+                0 -> {
+                    groupAdapter.removeGroupAtAdapterPosition(pos)
+                    groupAdapterChecked.add(CustomerRequestItem(refKey, rd, onUpdateListener))
                 }
-                groupAdapter.addAll(checkedList)
+                1 -> {
+                    groupAdapterChecked.removeGroupAtAdapterPosition(pos)
+                    groupAdapter.add(CustomerRequestItem(refKey, rd, onUpdateListener))
+                }
+                2 -> {  }
+                3 -> {  }
+                4 -> {  }
             }
+        }
 
-            override fun onCancelled(p0: DatabaseError) {
-
-            }
-        })
+        populateView(groupAdapter)
 
         var clicked = false
         val addNewRequestButton = layoutView.findViewById<Button>(R.id.add_new_request)
@@ -75,11 +78,8 @@ class CustomerRequestsFragment : Fragment() {
             }
             else{
                 if (product_name.text.isNotEmpty()){
-                    val key = requestRef.push().key!!
-                    requestRef.child(key).child("name").setValue(product_name.text.toString())
-                    requestRef.child(key).child("qty").setValue(1)
-                    requestRef.child(key).child("checked").setValue(false)
-                    groupAdapter.add(CustomerRequestItem(key,false,product_name.text.toString(),1))
+                    val key = firebaseHelper.addCustomerRequest(RequestDetails(product_name.text.toString()))
+                    groupAdapter.add(CustomerRequestItem(key, RequestDetails(product_name.text.toString()), onUpdateListener))
                 }
                 /*else
                     Toast.makeText(requireContext(),"Please Enter something", Toast.LENGTH_SHORT).show()*/
@@ -89,7 +89,23 @@ class CustomerRequestsFragment : Fragment() {
                 clicked = false
             }
         }
+    }
 
-        return layoutView
+    private fun populateView(groupAdapter: GroupAdapter<GroupieViewHolder>) {
+        showProgress("Please wait...")
+        checkedList.clear()
+        uncheckedList.clear()
+        firebaseHelper.getAllRequests().observe(this) { rdList ->
+            for (rd in rdList){
+                if (!rd.value.checked)
+                    uncheckedList.add(CustomerRequestItem(rd.key,rd.value, onUpdateListener))
+                else
+                    checkedList.add(CustomerRequestItem(rd.key,rd.value, onUpdateListener))
+            }
+
+            groupAdapter.addAll(uncheckedList)
+            groupAdapterChecked.addAll(checkedList)
+            dismissProgress()
+        }
     }
 }

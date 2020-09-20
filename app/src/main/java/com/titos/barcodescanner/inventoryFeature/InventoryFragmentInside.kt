@@ -26,13 +26,14 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
 import com.titos.barcodescanner.R
+import com.titos.barcodescanner.base.BaseFragment
 import com.titos.barcodescanner.scannerFeature.AddNewProductFragment
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 import java.util.*
 import kotlin.collections.ArrayList
 
-class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
+class InventoryFragmentInside : BaseFragment(R.layout.fragment_inventory_inside), SearchView.OnQueryTextListener {
 
     private lateinit var groupAdapterScanned : GroupAdapter<GroupieViewHolder>
 
@@ -43,12 +44,8 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
     private var recyclerViewScannedItems:RecyclerView? = null
     private var inventoryList = ArrayList<InventoryItem>()
     private var filteredList = ArrayList<InventoryItem>()
-    private lateinit var layoutView: View
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
-
-        layoutView =  inflater.inflate(R.layout.fragment_inventory_inside, container, false)
+    override fun initView() {
 
         groupAdapterScanned = GroupAdapter()
         recyclerViewScannedItems = layoutView.findViewById(R.id.rv_mystore_scannable)
@@ -56,9 +53,6 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
             adapter = groupAdapterScanned
             layoutManager = LinearLayoutManager(context)
         }
-
-        val sharedPref = activity?.getSharedPreferences("sharedPref",Context.MODE_PRIVATE)!!
-        val shopName = sharedPref.getString("shopName","Temp Store")!!
 
         onItemRemoveClick = {pos ->
 
@@ -68,9 +62,7 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
                     .setPositiveButton("Yes") { _, _ ->
                         groupAdapterScanned.removeGroupAtAdapterPosition(pos)
                         groupAdapterScanned.notifyItemRangeChanged(pos,groupAdapterScanned.itemCount)
-
-                        FirebaseDatabase.getInstance().reference
-                                .child("inventoryData/$shopName/${filteredList[pos].barcode}").removeValue()
+                        firebaseHelper.removeProduct(filteredList[pos].inventoryDetails.barcode)
                         Snackbar.make(requireView(),"Inventory Item deleted",Snackbar.LENGTH_SHORT).show()
                     }
                     .setNegativeButton("No") { dialog, id -> dialog.cancel()
@@ -84,24 +76,14 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
 
         onItemStockClick = {
             findNavController().navigate(R.id.action_myStoreFragment_to_stockMovementFragment, Bundle().apply{
-                putString("barcode",filteredList[it].barcode)
-                putString("name", filteredList[it].itemName)
+                putParcelable("invDetails", filteredList[it].inventoryDetails)
             })
         }
 
         onItemEditClick = { pos ->
             val bundle = Bundle()
-            bundle.putString("barcode", filteredList[pos].barcode)
+            bundle.putString("barcode", filteredList[pos].inventoryDetails.barcode)
             bundle.putBoolean("edit", true)
-
-            //Update inventoryList using the list from callback
-            /*val callAddToList: (ArrayList<String>)->Unit = { list ->
-                filteredList[pos].barcode = list[0]
-                filteredList[pos].itemName = list[1]
-                filteredList[pos].itemPrice = list[2]
-                filteredList[pos].itemQty = list[3]
-                groupAdapterScanned.notifyItemChanged(pos)
-            }*/
             findNavController().navigate(R.id.action_myStoreFragment_to_addNewProductFragment, bundle)
         }
 
@@ -110,7 +92,6 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
         val searchView = layoutView.findViewById<SearchView>(R.id.simpleSearchView)
         searchView.setOnQueryTextListener(this)
 
-        return layoutView
     }
 
     override fun onResume() {
@@ -136,7 +117,7 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
         if (lowerCaseText.isNotEmpty()) {
             groupAdapterScanned.clear()
             filteredList.clear()
-            filteredList = ArrayList(inventoryList.filter { it.itemName.toLowerCase(Locale.getDefault()).contains(lowerCaseText) })
+            filteredList = ArrayList(inventoryList.filter { it.inventoryDetails.pd.name.toLowerCase(Locale.getDefault()).contains(lowerCaseText) })
             groupAdapterScanned.addAll(filteredList)
         }
         else{
@@ -151,22 +132,18 @@ class InventoryFragmentInside : Fragment(), SearchView.OnQueryTextListener {
 
         val items = arguments?.getParcelableArrayList<InventoryFragmentOutside.InventoryDetails>("inventoryList")!!
 
+        items.forEach {
+            inventoryList.add(InventoryItem(it, onItemRemoveClick!!, onItemStockClick!!, onItemEditClick!!))
+        }
 
-            items.forEach {
-                inventoryList.add(InventoryItem(it.barcode, it.name, it.qty.toString(), it.price.toString(), onItemRemoveClick!!, onItemStockClick!!, onItemEditClick!!))
+        filteredList = ArrayList(inventoryList)
+        groupAdapterScanned.addAll(inventoryList)
+        if (items.size > 0) {
+            var marginSum = 0.0
+            for (i in 0 until items.size) {
+                marginSum += (items[i].pd.sellingPrice.toInt() - items[i].pd.costPrice.toInt()).toDouble() / items[i].pd.sellingPrice.toInt()
             }
-
-            filteredList = ArrayList(inventoryList)
-            groupAdapterScanned.addAll(inventoryList)
-
-            if (items.size > 0) {
-                var marginSum = 0.0
-                for (i in 0 until items.size) {
-                    marginSum += (items[i].price - items[i].cost).toDouble() / items[i].price
-                }
-                layoutView.findViewById<TextView>(R.id.tv_margin).text = "${(marginSum / items.size * 100).toInt()}%"
-            }
-
+            layoutView.findViewById<TextView>(R.id.tv_margin).text = "${(marginSum / items.size * 100).toInt()}%"
+        }
     }
-
 }

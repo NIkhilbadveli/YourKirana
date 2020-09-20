@@ -17,6 +17,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.widget.Toolbar
+import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 
@@ -26,6 +27,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.titos.barcodescanner.*
+import com.titos.barcodescanner.base.BaseFragment
 import com.titos.barcodescanner.utils.FirebaseHelper
 import com.titos.barcodescanner.utils.ProgressDialog
 import com.titos.barcodescanner.utils.SwipeToAgreement
@@ -33,23 +35,22 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 import com.xwray.groupie.Section
 import org.threeten.bp.LocalDate
+import org.threeten.bp.LocalDateTime
 import org.threeten.bp.format.DateTimeFormatter
 import kotlin.collections.ArrayList
 
-class HistoryFragment : Fragment(){
+class HistoryFragment : BaseFragment(R.layout.fragment_history){
 
     private var onItemRemoveClick :((Int, Int)->Unit)? = null
     private var onItemClick :((Int)->Unit)? = null
-    private var shopName = "Temp Store"
     private var keys = ArrayList<String>()
     private var contactList = ArrayList<String>()
     private var orderValueList = ArrayList<String>()
     private var qtyList = ArrayList<ArrayList<String>>()
     private var barcodeList = ArrayList<ArrayList<String>>()
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
-        val view = inflater.inflate(R.layout.fragment_history, container, false)
+    override fun initView(){
+        val view = layoutView
 
         val toolbar = activity?.findViewById<Toolbar>(R.id.toolbar_main)
         toolbar!!.findViewById<TextView>(R.id.text_view_toolbar).visibility = View.VISIBLE
@@ -83,19 +84,16 @@ class HistoryFragment : Fragment(){
         val itemTouchHelper = ItemTouchHelper(swipeHandler)
         itemTouchHelper.attachToRecyclerView(recyclerView)
 
-        val sharedPref = activity?.getSharedPreferences("sharedPref",Context.MODE_PRIVATE)
-        shopName = sharedPref?.getString("shopName",shopName)!!
-        val transactionRef = FirebaseDatabase.getInstance().reference.child("transactionData/$shopName")
         populateView(view, groupAdapter)
         onItemRemoveClick = { deletePosition, pos ->
             val dialogBuilder = AlertDialog.Builder(context)
             dialogBuilder.setMessage("Are you sure?")
                     .setCancelable(false)
                     .setPositiveButton("Yes") { _, _ ->
-                        transactionRef.child(keys[deletePosition]).removeValue()
+                        firebaseHelper.deleteTransaction(keys[deletePosition])
                         groupAdapter.removeGroupAtAdapterPosition(pos)
                         groupAdapter.notifyItemRangeChanged(pos,groupAdapter.itemCount)
-                        Snackbar.make(view!!,"Transaction successfully deleted",Snackbar.LENGTH_SHORT).show()
+                        Snackbar.make(requireView(),"Transaction successfully deleted",Snackbar.LENGTH_SHORT).show()
                     }
                     .setNegativeButton("No") { dialog, id -> dialog.cancel()
                     }
@@ -115,84 +113,65 @@ class HistoryFragment : Fragment(){
             findNavController().navigate(R.id.action_historyFragment_to_orderItemsFragment, bundle)
         }
 
-        return view
     }
 
     private fun populateView(view:View, groupAdapter:GroupAdapter<GroupieViewHolder>){
+        showProgress("Please wait...")
 
-        val dialog = ProgressDialog(requireContext(), "Please Wait...")
-        dialog.show()
-
-        val firebaseHelper = FirebaseHelper(shopName)
-
-        val transactionRef = FirebaseDatabase.getInstance().reference.child("transactionData/$shopName")
-        val dateStrToLocalDate: (String) -> LocalDate = {
-            LocalDate.parse(it, DateTimeFormatter.ofPattern("dd-MM-yyyy"))
+        val dateStrToLocalDateTime: (String) -> LocalDateTime = {
+            LocalDateTime.parse(it, DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss a"))
         }
-        val listener = object : ValueEventListener{
-            override fun onCancelled(p0: DatabaseError) {
 
-            }
+        firebaseHelper.getAllTransactions().observe(this) { tdMap ->
+            if (tdMap.isNotEmpty()){
+                var id = 0
+                val headerList = ArrayList<HistoryHeaderItem>()
+                val itemList = ArrayList<HistoryItem>()
 
-            override fun onDataChange(p0: DataSnapshot) {
-                if (p0.hasChildren()){
-                    var id = 0
-                    val headerList = ArrayList<HistoryHeaderItem>()
-                    val itemList = ArrayList<ArrayList<HistoryItem>>()
-                    val daySnapshot = ArrayList<DataSnapshot>()
-                    for (day in p0.children){
-                        daySnapshot.add(day)
-                    }
+                val sortedMap = tdMap.toSortedMap(compareByDescending { it })
 
-                    val daySnapshotSorted = daySnapshot.sortedByDescending { dateStrToLocalDate(it.key!!)}.reversed()
+                for(time in sortedMap){
+                    //val tempList = ArrayList<HistoryItem>()
+                    /*var daySales = 0
 
-                    for(day in daySnapshotSorted){
-                        var daySales = 0
-                        val tempList = ArrayList<HistoryItem>()
-                        for (time in day.children){
-                            id++
-                            val orderValue = time.child("orderValue").value.toString()
-                            daySales += orderValue.toDouble().toInt()
-                            tempList.add(HistoryItem("Order No. $id" ,
-                                    time.key!!, orderValue ,onItemRemoveClick!!, onItemClick!!))
-                            keys.add("${day.key}/${time.key}")
-                            orderValueList.add(orderValue)
-                            contactList.add(time.child("contact").value.toString())
-                        }
-                        headerList.add(HistoryHeaderItem(day.key!!, daySales.toDouble()))
-                        itemList.add(tempList)
-                    }
+                    for (time in day.children){*/
+                    id++
+                    val orderValue = time.value.orderValue
+                    //daySales += orderValue.toDouble().toInt()
+                    itemList.add(HistoryItem("Order No. $id" ,
+                            time.key!!, orderValue ,onItemRemoveClick!!, onItemClick!!))
+                    keys.add(time.key)
+                    orderValueList.add(orderValue)
+                    contactList.add(time.value.contact)
 
-                    for (i in headerList.size - 1 downTo 0 ){
-                        val section = Section()
-                        section.add(headerList[i])
-                        groupAdapter.add(section)
-                        groupAdapter.addAll(itemList[i].reversed())
-                    }
-
-                    //Putting this here since we don't want to impact the loading time
-                    daySnapshotSorted.forEach { day ->
-                        for (time in day.children) {
-                            val tempList2 = ArrayList<String>()
-                            val tempList3 = ArrayList<String>()
-                            for (barcode in time.child("items").children) {
-                                tempList2.add(barcode.key!!)
-                                tempList3.add(barcode.value.toString())
-                            }
-                            barcodeList.add(tempList2)
-                            qtyList.add(tempList3)
-                        }
-                    }
-
-                    dialog.dismiss()
-                    transactionRef.removeEventListener(this)
+                    //headerList.add(HistoryHeaderItem(day.key!!, daySales.toDouble()))
+                    //itemList.add(tempList)
                 }
-                else
-                    view.findViewById<LinearLayout>(R.id.empty_view_history).visibility = View.VISIBLE
-            }
+                groupAdapter.addAll(itemList)
+                /*for (i in headerList.size - 1 downTo 0 ){
+                    val section = Section()
+                    section.add(headerList[i])
+                    groupAdapter.add(section)
+                    groupAdapter.addAll(itemList[i].reversed())
+                }*/
 
+                //Putting this here since we don't want to impact the loading time
+                sortedMap.forEach { time ->
+
+                        val tempList2 = ArrayList<String>()
+                        val tempList3 = ArrayList<String>()
+                        for (barcode in time.value.items) {
+                            tempList2.add(barcode.key)
+                            tempList3.add(barcode.value)
+                        }
+                        barcodeList.add(tempList2)
+                        qtyList.add(tempList3)
+                }
+                dismissProgress()
+            }
+            else
+                view.findViewById<LinearLayout>(R.id.empty_view_history).visibility = View.VISIBLE
         }
-        transactionRef.addValueEventListener(listener)
 
     }
 }

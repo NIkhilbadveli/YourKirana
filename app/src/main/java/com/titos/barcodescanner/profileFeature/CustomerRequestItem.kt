@@ -4,44 +4,41 @@ import android.content.Context
 import android.text.InputType
 import com.google.firebase.database.FirebaseDatabase
 import com.titos.barcodescanner.R
+import com.titos.barcodescanner.utils.RequestDetails
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import kotlinx.android.synthetic.main.item_customer_request.*
 
-class CustomerRequestItem(val requestKey: String, private var checked: Boolean, var itemName: String, private var itemQty: Int): Item() {
+class CustomerRequestItem(val refKey: String, val requestDetails: RequestDetails, val onUpdateListener: (String, RequestDetails, Int, Int)->Unit): Item() {
     override fun bind(viewHolder: GroupieViewHolder, position: Int){
         viewHolder.apply {
-            request_item_name.setText(itemName)
-            request_item_qty.setText(itemQty.toString())
+            request_item_name.setText(requestDetails.name)
+            request_item_qty.setText(requestDetails.qty.toString())
 
-            val sharedPref = containerView.context?.getSharedPreferences("sharedPref", Context.MODE_PRIVATE)
-            val shopName = sharedPref?.getString("shopName","shop")!!
-            val requestRef = FirebaseDatabase.getInstance().reference.child("customerRequests/$shopName/$requestKey")
-
-            check_box.isChecked = checked
+            check_box.isChecked = requestDetails.checked
             check_box.setOnCheckedChangeListener { _, isChecked ->
-                requestRef.child("checked").setValue(isChecked)
-                checked = isChecked
-                notifyChanged()
-               /* groupAdapter.removeGroupAtAdapterPosition(position)
-                groupAdapter.add(this@CustomerRequestItem)*/
+                requestDetails.checked = isChecked
+                if (isChecked)
+                    onUpdateListener.invoke(refKey,requestDetails, 0, position)
+                else
+                    onUpdateListener.invoke(refKey,requestDetails ,1, position)
             }
 
             subtract_quantity_button.setOnClickListener {
                 val updatedQty = request_item_qty.text.toString().toInt() - 1
                 if (updatedQty>0){
-                    itemQty = updatedQty
-                    requestRef.child("qty").setValue(updatedQty)
+                    requestDetails.qty = updatedQty
                     notifyChanged()
+                    onUpdateListener.invoke(refKey, requestDetails,2, position)
                 }
             }
 
             add_quantity_button.setOnClickListener {
                 val updatedQty = request_item_qty.text.toString().toInt() + 1
-                itemQty = updatedQty
-                requestRef.child("qty").setValue(updatedQty)
+                requestDetails.qty = updatedQty
                 notifyChanged()
+                onUpdateListener.invoke(refKey, requestDetails,3, position)
             }
 
             request_item_name.isFocusable = false
@@ -59,9 +56,9 @@ class CustomerRequestItem(val requestKey: String, private var checked: Boolean, 
                     edited = true
                 }
                 else{
-                    requestRef.child("name").setValue(request_item_name.text.toString())
-                    itemName = request_item_name.text.toString()
+                    requestDetails.name = request_item_name.text.toString()
                     notifyChanged()
+                    onUpdateListener.invoke(refKey, requestDetails ,4, position)
                     request_item_name.isFocusable = false
                     request_item_name.isFocusableInTouchMode = false
                     request_item_name.inputType = InputType.TYPE_NULL
