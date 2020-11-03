@@ -8,38 +8,28 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.Bundle
-
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.fragment.app.Fragment
-
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.database.*
-
-import com.titos.barcodescanner.*
+import com.titos.barcodescanner.MainActivity
 import com.titos.barcodescanner.R
 import com.titos.barcodescanner.base.BaseFragment
 import com.titos.barcodescanner.dashboardFeature.BarcodeAndQty
-import com.titos.barcodescanner.utils.FirebaseHelper
+import com.titos.barcodescanner.utils.BillDetails
+import com.titos.barcodescanner.utils.PrintUtility
 import com.titos.barcodescanner.utils.TransactionDetails
 
 
-import java.text.SimpleDateFormat
-import java.util.*
-import kotlin.collections.ArrayList
-
-
-class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButton,
+class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButton,
                           val btnInv: Button) : BaseFragment(R.layout.fragment_list_scanner) {
 
     private var listValues = ArrayList<ScannerItem>()
@@ -65,7 +55,7 @@ class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButto
 
         model.selected.observe(viewLifecycleOwner, Observer { s -> searchForProduct(s) })
 
-        sharedPref = activity?.getSharedPreferences("sharedPref",Context.MODE_PRIVATE)!!
+        sharedPref = activity?.getSharedPreferences("sharedPref", Context.MODE_PRIVATE)!!
 
         recyclerView = view.findViewById(R.id.list)
 
@@ -74,22 +64,22 @@ class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButto
 
         recyclerViewAdapter = ScannerItemAdapter(listValues)
         recyclerViewAdapter!!.apply {
-            onItemClick = {pos,price,qty->
+            onItemClick = { pos, price, qty->
                 listValues[pos].price = price
                 listValues[pos].quantity = qty.toString()
-                tvTotal!!.text = "Rs. " + listValues.sumByDouble { it.price.toDouble() }.toString()
+                tvTotal.text = "Rs. " + listValues.sumByDouble { it.price.toDouble() }.toString()
             }
-            onItemRemoveClick = {pos ->
+            onItemRemoveClick = { pos ->
                 listValues.removeAt(pos)
                 recyclerViewAdapter!!.notifyItemRemoved(pos)
-                recyclerViewAdapter!!.notifyItemRangeChanged(pos,listValues.size)
-                tvTotal!!.text = "Rs. " + listValues.sumByDouble { it.price.toDouble() }.toString()
+                recyclerViewAdapter!!.notifyItemRangeChanged(pos, listValues.size)
+                tvTotal.text = "Rs. " + listValues.sumByDouble { it.price.toDouble() }.toString()
             }
         }
 
         //floatingActionButton = view.findViewById(R.id.btn_bill)
         recyclerView!!.apply {
-            layoutManager = LinearLayoutManager(context)
+            layoutManager = LinearLayoutManager(requireContext())
             adapter = recyclerViewAdapter
             btnTick.setOnClickListener {
                 if(listValues.isNotEmpty())
@@ -99,7 +89,6 @@ class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButto
             }
         }
 
-        //val inventoryButton = view.findViewById<Button>(R.id.check_out_button)
         btnInv.setOnClickListener {
             if(listValues.isNotEmpty()){
                 addToInventoryData()
@@ -142,7 +131,7 @@ class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButto
 
         dialogView.findViewById<Button>(R.id.btn_cancel).setOnClickListener {
             model.resumeScanner()
-            dialog.cancel()
+            dialog.dismiss()
         }
     }
 
@@ -157,7 +146,7 @@ class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButto
 
     private fun showNewProductDialog(s: String) {
         val bundle = Bundle()
-        bundle.putString("barcode",s)
+        bundle.putString("barcode", s)
         findNavController().navigate(R.id.action_scannerFragment_to_addNewProductFragment, bundle)
     }
 
@@ -165,7 +154,7 @@ class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButto
     private fun addToListView(barcode: String, name: String, price: String, url: String) {
 
         if (!listValues.any { it.name == name }){
-            listValues.add(ScannerItem(true, name, "1", price,url))
+            listValues.add(ScannerItem(true, name, "1", price, url))
             barcodeList.add(barcode)
             recyclerViewAdapter!!.notifyItemInserted(listValues.size)
         }
@@ -190,6 +179,7 @@ class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButto
         var itemView: View?
 
         val items = mutableMapOf<String, String>()
+        val billItems = ArrayList<ScannerItem>()
 
         //Adding items to data
         for (i in 0 until itemCount) {
@@ -197,26 +187,35 @@ class ScannerListFragment(val tvTotal: TextView,val btnTick: FloatingActionButto
             if (itemView != null) {
                 qty = itemView.findViewById(R.id.item_quantity)
                 items[barcodeList[i]] = qty.text.toString()
+                billItems.add(listValues[i])
             }
         }
 
-        if (phoneNum.length==10)
-            firebaseHelper.addTransaction(TransactionDetails(phoneNum, tvTotal.text.toString().split(' ').last(), items))
-        else
-            showToast("Please Enter full Mobile number!")
+        dialog.show()
+        model.pauseScanner()
 
+        dialog.setOnDismissListener {
 
-        val snack = Snackbar.make(requireView(), "Added to Transaction History!", Snackbar.LENGTH_SHORT)
+                firebaseHelper.addTransaction(TransactionDetails(phoneNum, tvTotal.text.toString().split(' ').last(), items))
+
+                val billDetails = BillDetails(phoneNum, tvTotal.text.toString().split(' ').last(), billItems)
+                listValues.clear()
+                tvTotal.text = "Rs."
+                recyclerViewAdapter!!.notifyDataSetChanged()
+
+                findNavController().navigate(R.id.action_scannerFragment_to_billFragment, Bundle().apply {
+                    putParcelable("billDetails", billDetails)
+                })
+
+        }
+
+        /*val snack = Snackbar.make(requireView(), "Added to Transaction History!", Snackbar.LENGTH_SHORT)
         snack.setAction("View History") {
             findNavController().navigate(R.id.historyFragment)
         }
 
         snack.setActionTextColor(Color.parseColor("#ffffff"))
-        snack.show()
-
-        listValues.clear()
-        tvTotal.text = "Rs."
-        recyclerViewAdapter!!.notifyDataSetChanged()
+        snack.show()*/
     }
 
     private fun addToInventoryData(){

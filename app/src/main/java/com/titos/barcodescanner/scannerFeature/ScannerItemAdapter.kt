@@ -57,7 +57,7 @@ class ScannerItemAdapter(private val mValues: ArrayList<ScannerItem>) : Recycler
 
         holder.mSubtractButton.setOnClickListener {
             val value = Integer.parseInt(holder.mQuantityview.text.toString()) - 1
-            if (value>=0){
+            if (value>0){
                 holder.mQuantityview.text = value.toString()
                 holder.mpriceview.text = (value * price).toString()
                 onItemClick?.invoke(position,(value * price).toString(),value)

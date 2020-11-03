@@ -139,11 +139,20 @@ class InventoryFragmentInside : BaseFragment(R.layout.fragment_inventory_inside)
         filteredList = ArrayList(inventoryList)
         groupAdapterScanned.addAll(inventoryList)
         if (items.size > 0) {
-            var marginSum = 0.0
+            var totalSellingPrice = 0.0
+            var totalCostPrice = 0.0
             for (i in 0 until items.size) {
-                marginSum += (items[i].pd.sellingPrice.toInt() - items[i].pd.costPrice.toInt()).toDouble() / items[i].pd.sellingPrice.toInt()
+                totalSellingPrice += items[i].pd.sellingPrice.toDouble()
+                totalCostPrice += items[i].pd.costPrice.toDouble()
             }
-            layoutView.findViewById<TextView>(R.id.tv_margin).text = "${(marginSum / items.size * 100).toInt()}%"
+
+            layoutView.findViewById<TextView>(R.id.tv_margin).text = "${((totalSellingPrice - totalCostPrice) * 100/ totalSellingPrice).round(2)}%"
         }
+    }
+
+    private fun Double.round(decimals: Int): Double {
+        var multiplier = 1.0
+        repeat(decimals) { multiplier *= 10 }
+        return kotlin.math.round(this * multiplier) / multiplier
     }
 }

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".BillFragment">
+    <TextView
+        android:id="@+id/tvBillContent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.9"
+        android:background="@drawable/thin_border"
+        android:layout_margin="10dp"
+        />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.1"
+        >
+        <Button
+            android:id="@+id/btnShareBill"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:text="Share Bill"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:background="@drawable/button_background"
+            android:drawableStart="@drawable/whatsapp"
+            android:padding="10dp"
+            android:textColor="@color/textColorWhite"
+            android:layout_toStartOf="@id/dummy"/>
+        <View
+            android:id="@+id/dummy"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_centerHorizontal="true"/>
+        <Button
+            android:id="@+id/btnPrintBill"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Print Bill"
+            android:background="@drawable/button_background_black"
+            android:drawableStart="@drawable/ic_baseline_description_24"
+            android:padding="10dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:textColor="@color/textColorWhite"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_toEndOf="@id/dummy"/>
+    </RelativeLayout>
+</LinearLayout>

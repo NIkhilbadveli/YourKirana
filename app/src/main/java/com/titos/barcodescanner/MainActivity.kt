@@ -29,6 +29,7 @@ import androidx.lifecycle.observe
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -66,7 +67,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
 
         //fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        val navController: NavController = Navigation.findNavController(this, R.id.fragment)
+        val navController: NavController = (supportFragmentManager.findFragmentById(R.id.fragment) as NavHostFragment).navController
         val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottomNav)
         val chipNavigationBar: ChipNavigationBar = findViewById(R.id.chip_nav)
 

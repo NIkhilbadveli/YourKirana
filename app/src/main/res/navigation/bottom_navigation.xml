@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_scannerFragment_to_addNewProductFragment"
             app:destination="@id/addNewProductFragment" />
+        <action
+            android:id="@+id/action_scannerFragment_to_billFragment"
+            app:destination="@id/billFragment" />
     </fragment>
     <fragment
         android:id="@+id/dashboardFragment"
@@ -94,4 +97,9 @@
         tools:layout="@layout/fragment_stock_movement"
         android:name="com.titos.barcodescanner.inventoryFeature.StockMovementFragment"
         android:label="StockMovementFragment" />
+    <fragment
+        android:id="@+id/billFragment"
+        android:name="com.titos.barcodescanner.BillFragment"
+        android:label="fragment_bill"
+        tools:layout="@layout/fragment_bill" />
 </navigation>

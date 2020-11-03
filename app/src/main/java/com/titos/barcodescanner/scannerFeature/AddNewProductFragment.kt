@@ -140,7 +140,7 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
 
             if (pName.text.isNotEmpty()&&sp.text.isNotEmpty()&&cp.text.isNotEmpty()
                     &&etQuantity.text.isNotEmpty()&&barcode!="00000") {
-                if(sp.text.toString().toInt()>=cp.text.toString().toInt()) {
+                if(sp.text.toString().toDouble()>=cp.text.toString().toDouble()) {
 
                     prodInfo.name=(pName.text.toString())
                     prodInfo.sellingPrice=(sp.text.toString())

@@ -22,21 +22,16 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 import com.titos.barcodescanner.*
 import com.titos.barcodescanner.base.BaseFragment
-import com.titos.barcodescanner.utils.FirebaseHelper
-import com.titos.barcodescanner.utils.ProgressDialog
 import com.titos.barcodescanner.utils.SwipeToAgreement
+import com.titos.barcodescanner.utils.TransactionDetails
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
-import com.xwray.groupie.Section
 import org.threeten.bp.LocalDate
 import org.threeten.bp.LocalDateTime
 import org.threeten.bp.format.DateTimeFormatter
+import java.util.*
 import kotlin.collections.ArrayList
 
 class HistoryFragment : BaseFragment(R.layout.fragment_history){
@@ -118,46 +113,28 @@ class HistoryFragment : BaseFragment(R.layout.fragment_history){
     private fun populateView(view:View, groupAdapter:GroupAdapter<GroupieViewHolder>){
         showProgress("Please wait...")
 
-        val dateStrToLocalDateTime: (String) -> LocalDateTime = {
-            LocalDateTime.parse(it, DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss a"))
-        }
-
         firebaseHelper.getAllTransactions().observe(this) { tdMap ->
             if (tdMap.isNotEmpty()){
-                var id = 0
-                val headerList = ArrayList<HistoryHeaderItem>()
-                val itemList = ArrayList<HistoryItem>()
+                var id = tdMap.size
 
-                val sortedMap = tdMap.toSortedMap(compareByDescending { it })
+                val allDaySales = getAllDaySales(tdMap)
+                allDaySales.forEach {ds ->
+                    groupAdapter.add(HistoryHeaderItem(ds.orderDate, ds.sales))
+                    for (time in tdMap.filter { it.key.split(' ').first() == ds.orderDate }
+                            .toSortedMap(compareByDescending { it })){
+                        val orderValue = time.value.orderValue
+                        val hour = time.key.split(" ")[1].split(":").first()
+                        val amPm = time.key.split(" ").last()
 
-                for(time in sortedMap){
-                    //val tempList = ArrayList<HistoryItem>()
-                    /*var daySales = 0
+                        var isItNight = false
+                        if (amPm=="PM"&&hour.toInt()>6)
+                            isItNight = true
 
-                    for (time in day.children){*/
-                    id++
-                    val orderValue = time.value.orderValue
-                    //daySales += orderValue.toDouble().toInt()
-                    itemList.add(HistoryItem("Order No. $id" ,
-                            time.key!!, orderValue ,onItemRemoveClick!!, onItemClick!!))
-                    keys.add(time.key)
-                    orderValueList.add(orderValue)
-                    contactList.add(time.value.contact)
-
-                    //headerList.add(HistoryHeaderItem(day.key!!, daySales.toDouble()))
-                    //itemList.add(tempList)
-                }
-                groupAdapter.addAll(itemList)
-                /*for (i in headerList.size - 1 downTo 0 ){
-                    val section = Section()
-                    section.add(headerList[i])
-                    groupAdapter.add(section)
-                    groupAdapter.addAll(itemList[i].reversed())
-                }*/
-
-                //Putting this here since we don't want to impact the loading time
-                sortedMap.forEach { time ->
-
+                        groupAdapter.add(HistoryItem("Order No. $id" ,
+                                time.key, isItNight, orderValue ,onItemRemoveClick!!, onItemClick!!))
+                        keys.add(time.key)
+                        orderValueList.add(orderValue)
+                        contactList.add(time.value.contact)
                         val tempList2 = ArrayList<String>()
                         val tempList3 = ArrayList<String>()
                         for (barcode in time.value.items) {
@@ -166,13 +143,45 @@ class HistoryFragment : BaseFragment(R.layout.fragment_history){
                         }
                         barcodeList.add(tempList2)
                         qtyList.add(tempList3)
+                        id--
+                    }
                 }
+
+                reverseAllTheLists()
+
                 dismissProgress()
             }
-            else
+            else{
                 view.findViewById<LinearLayout>(R.id.empty_view_history).visibility = View.VISIBLE
+                dismissProgress()
+            }
         }
 
     }
+
+    private fun reverseAllTheLists() {
+        keys.reverse()
+        orderValueList.reverse()
+        contactList.reverse()
+        barcodeList.reverse()
+        qtyList.reverse()
+    }
+
+    private fun getAllDaySales(tdMap: Map<String, TransactionDetails>): List<DaySales> {
+        val allDaySales = ArrayList<DaySales>()
+        tdMap.forEach { td ->
+            if (!allDaySales.filter { it.orderDate == td.key.split(" ").first() }.any()) {
+                allDaySales.add(DaySales(td.key.split(" ").first(), td.value.orderValue.toDouble()))
+            }
+            else
+                allDaySales.first { it.orderDate == td.key.split(" ").first() }.sales += td.value.orderValue.toDouble()
+        }
+
+        val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+
+        return allDaySales.sortedByDescending { LocalDate.parse(it.orderDate, dateTimeFormatter) }
+    }
 }
+
+data class DaySales(val orderDate: String, var sales: Double = 0.0)
 

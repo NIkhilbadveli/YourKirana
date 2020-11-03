@@ -79,10 +79,11 @@ class BarcodeFragment : Fragment() {
 
         //intializing scan object
         qrScan = IntentIntegrator(activity)
-        qrScan!!.setDesiredBarcodeFormats(IntentIntegrator.PRODUCT_CODE_TYPES)
+        qrScan!!.setDesiredBarcodeFormats(IntentIntegrator.ONE_D_CODE_TYPES)
         qrScan!!.setOrientationLocked(false)
         qrScan!!.setPrompt("Place barcode inside")
 
+        barcodeScannerView!!.barcodeView.cameraSettings.isAutoFocusEnabled = false
         barcodeScannerView!!.initializeFromIntent(qrScan!!.createScanIntent())
         barcodeScannerView!!.decodeContinuous(callback)
 

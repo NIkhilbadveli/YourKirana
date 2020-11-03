@@ -224,7 +224,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/edit_sp"
                 android:layout_marginStart="10dp"
-                android:inputType="number"
+                android:inputType="numberDecimal"
                 android:backgroundTint="#999999"
                 />
             <TextView
@@ -240,7 +240,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/edit_cp"
                 android:layout_marginStart="10dp"
-                android:inputType="number"
+                android:inputType="numberDecimal"
                 android:backgroundTint="#999999"
                 />
 

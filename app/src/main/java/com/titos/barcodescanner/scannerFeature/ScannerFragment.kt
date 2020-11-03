@@ -13,7 +13,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.titos.barcodescanner.R
 import org.w3c.dom.Text
 
-
 class ScannerFragment : Fragment() {
     private var fragmentTransaction:FragmentTransaction? = null
 

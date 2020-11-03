@@ -12,6 +12,7 @@
         android:drawablePadding="10dp"
         android:layout_margin="10dp"
         android:layout_centerHorizontal="true"
+        android:visibility="gone"
         android:drawableStart="@drawable/ic_call_black_24dp"/>
 
     <LinearLayout

@@ -64,6 +64,7 @@ class ProfileFragment : BaseFragment(R.layout.fragment_profile) {
         }
 
         groupAdapter.add(ProfileItem(R.drawable.icons8_administrator_male_48px_2, "Edit Profile"))
+        groupAdapter.add(ProfileItem(R.drawable.ic_rupee_indian, "Calculate Margin"))
         groupAdapter.add(ProfileItem(R.drawable.icons8_share_48px, "Share App"))
         groupAdapter.add(ProfileItem(R.drawable.icons8_logout_rounded_left_48px, "Logout"))
 
@@ -71,8 +72,9 @@ class ProfileFragment : BaseFragment(R.layout.fragment_profile) {
         groupAdapter.setOnItemClickListener { _, itemView ->
             when (recyclerView.getChildAdapterPosition(itemView)) {
                 0 -> editProfile(user)
-                1 -> shareApp()
-                2 -> logoutFromApp(dialog)
+                1 -> calcMargin()
+                2 -> shareApp()
+                3 -> logoutFromApp(dialog)
             }
         }
 
@@ -106,6 +108,35 @@ class ProfileFragment : BaseFragment(R.layout.fragment_profile) {
                         .startChooser()
             }
         }.addOnFailureListener{ }
+
+    }
+
+    private fun calcMargin(){
+        val viewGroup = layoutView.findViewById<ViewGroup>(android.R.id.content)
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_margin, viewGroup, false)
+
+        val etDisc = dialogView.findViewById<EditText>(R.id.etDisc)
+        val etMrp = dialogView.findViewById<EditText>(R.id.etMrp)
+
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setView(dialogView)
+        val alertDialog = builder.create()
+        alertDialog.setCanceledOnTouchOutside(false)
+        alertDialog.show()
+
+        dialogView.findViewById<Button>(R.id.btnCalc).setOnClickListener {
+            if (etDisc.text.isNotEmpty() && etMrp.text.isNotEmpty()){
+                val margin = (etDisc.text.toString().toDouble()*100/etMrp.text.toString().toDouble()).round(2)
+
+                dialogView.findViewById<TextView>(R.id.tvTitle).text = "Margin - $margin %"
+            }
+            else
+                showToast("Don't leave empty")
+        }
+
+        dialogView.findViewById<Button>(R.id.btnCancel).setOnClickListener {
+            alertDialog.cancel()
+        }
 
     }
 
@@ -175,5 +206,11 @@ class ProfileFragment : BaseFragment(R.layout.fragment_profile) {
                     startActivity(Intent(requireContext(), LoginActivity::class.java))
                     activity?.finish()
                 }
+    }
+
+    private fun Double.round(decimals: Int): Double {
+        var multiplier = 1.0
+        repeat(decimals) { multiplier *= 10 }
+        return kotlin.math.round(this * multiplier) / multiplier
     }
 }
