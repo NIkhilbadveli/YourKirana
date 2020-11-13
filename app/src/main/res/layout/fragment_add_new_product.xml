@@ -143,7 +143,6 @@
                     android:layout_toStartOf="@id/imageBtn"
                     android:layout_toEndOf="@id/spinner"
                     android:backgroundTint="#999999"
-                    android:digits="0123456789"
                     android:inputType="number" />
 
                 <LinearLayout

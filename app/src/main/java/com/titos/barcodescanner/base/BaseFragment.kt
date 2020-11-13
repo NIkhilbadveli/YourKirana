@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.google.android.material.snackbar.Snackbar
 import com.titos.barcodescanner.R
 import com.titos.barcodescanner.utils.FirebaseHelper
 import com.titos.barcodescanner.utils.ProgressDialog
@@ -48,4 +49,8 @@ abstract class BaseFragment(private val layoutId: Int): Fragment() {
     }
 
     fun isShowing(): Boolean { return progressDialog.isShowing() }
+
+    fun showSnackBar(msg: String){
+        Snackbar.make(layoutView, msg, Snackbar.LENGTH_SHORT).show()
+    }
 }

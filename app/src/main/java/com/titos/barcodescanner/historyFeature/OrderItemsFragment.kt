@@ -55,25 +55,31 @@ class OrderItemsFragment : BaseFragment(R.layout.fragment_items_order){
         val barcodeList = arguments?.getStringArrayList("barcodeList")!!
         val qtyList = arguments?.getStringArrayList("qtyList")!!
 
-        firebaseHelper.getMultipleProductDetails(barcodeList).observe(this) {pdList ->
-            for(i in pdList.indices) {
-                val sp = pdList[i].sellingPrice
-                val name = pdList[i].name
+        firebaseHelper.getMultipleProductDetails(barcodeList).observe(this) {pdMap ->
+            for(pd in pdMap) {
+                val sp = pd.value.sellingPrice
+                val name = pd.value.name
 
                 val total = view.findViewById<TextView>(R.id.tvItemTotalval)
                 val savings = view.findViewById<TextView>(R.id.tvDiscountVal)
                 val grandTotal = view.findViewById<TextView>(R.id.tvGrandTotalVal)
                 view.findViewById<TextView>(R.id.dealerName).text = shopName
 
-                val discount = 0.02 * orderValue.toFloat()
+                val discount = 0.02 * orderValue.toDouble().round(2)
 
                 total.text = "₹ $orderValue"
                 savings.text = "- ₹ $discount"
                 grandTotal.text = "₹ ${orderValue.toFloat() - discount}"
 
-                groupAdapter.add(OrderItem(name, qtyList[i], sp))
+                val loose = pd.value.type == "kgs"
+                groupAdapter.add(OrderItem(name, qtyList[barcodeList.indexOf(pd.key)], sp, loose))
             }
         }
     }
 
+    private fun Double.round(decimals: Int): Double {
+        var multiplier = 1.0
+        repeat(decimals) { multiplier *= 10 }
+        return kotlin.math.round(this * multiplier) / multiplier
+    }
 }

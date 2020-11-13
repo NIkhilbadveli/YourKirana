@@ -3,6 +3,7 @@ package com.titos.barcodescanner.utils
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -44,22 +45,37 @@ class FirebaseHelper(val shopName: String) {
         return pd
     }
 
-    fun getMultipleProductDetails(barcodeList: ArrayList<String>):LiveData<List<ProductDetails>>{
-        val ldProductDetails = MutableLiveData<List<ProductDetails>>()
+    fun getMultipleProductDetails(barcodeList: ArrayList<String>):LiveData<Map<String, ProductDetails>>{
+        val ldProductDetails = MutableLiveData<Map<String, ProductDetails>>()
         firestore.collection("stores/$shopName/inventoryData")
+                .whereIn(FieldPath.documentId(), barcodeList)
                 .get()
                 .addOnSuccessListener {
-                    val tempList = ArrayList<ProductDetails>()
+                    val map = mutableMapOf<String, ProductDetails>()
                     for (doc in it.documents){
-                        if (barcodeList.contains(doc.id))
-                            tempList.add(doc.toObject(ProductDetails::class.java)!!)
+                        map[doc.id] = doc.toObject(ProductDetails::class.java)!!
                     }
-                    ldProductDetails.value = tempList
+
+                    ldProductDetails.value = map
                 }
                 .addOnFailureListener { Log.d("TAG", "failedToGetTransactions") }
 
         return ldProductDetails
     }
+
+/*    fun addOrUpdateLooseItem(barcode: String){
+        val date = Date()
+        val dateFormat = simpleDateFormat.format(date)
+        val timeFormat = simpleTimeFormat.format(date)
+
+        firestore.collection("stores/$shopName/inventoryData")
+                .document(barcode)
+                .set(productDetails)
+                .addOnSuccessListener { Log.d("TAG", "addProduct: $barcode") }
+                .addOnFailureListener { Log.d("TAG", "failedToAdd: $barcode") }
+
+        updateQty("$dateFormat $timeFormat", barcode, productDetails.qty ,mode)
+    }*/
 
     fun removeProduct(barcode: String){
         firestore.collection("stores/$shopName/inventoryData")
@@ -82,6 +98,17 @@ class FirebaseHelper(val shopName: String) {
                 .addOnFailureListener { Log.d("TAG", "failedToGetTransactions") }
 
         return ldProductDetails
+    }
+
+    fun updateIntToDouble(){
+        firestore.collection("stores/$shopName/inventoryData")
+                .get()
+                .addOnSuccessListener {
+                    val map = mutableMapOf<String,ProductDetails>()
+                    for (doc in it.documents)
+                        map[doc.id] = doc.toObject(ProductDetails::class.java)!!
+                }
+                .addOnFailureListener { Log.d("TAG", "failedToGetTransactions") }
     }
 
     //Handling transaction stuff
@@ -111,7 +138,7 @@ class FirebaseHelper(val shopName: String) {
 
         //Updating changes in inventory
         transactionDetails.items.forEach {
-            updateQty("$dateFormat $timeFormat", it.key, it.value.toInt(), 1)
+            updateQty("$dateFormat $timeFormat", it.key, it.value.toDouble(), 1)
         }
 
         //Adding this transaction to corresponding customer
@@ -229,7 +256,7 @@ class FirebaseHelper(val shopName: String) {
     }
 
     //mode = 0: plus, 1: minus, 2: update, 3: new, 4: don't trigger
-    fun updateQty(time: String, barcode: String, qty: Int, mode: Int) {
+    private fun updateQty(time: String, barcode: String, qty: Double, mode: Int) {
         val doc = firestore.collection("stores/$shopName/inventoryData/")
                 .document(barcode)
 
@@ -237,18 +264,18 @@ class FirebaseHelper(val shopName: String) {
         when (mode) {
             0 -> {
                 data[time] = "+$qty"
-                doc.update("qty", FieldValue.increment(qty.toLong()))
+                doc.update("qty", FieldValue.increment(qty))
                         .addOnSuccessListener { Log.d("TAG", "updateQty: $barcode") }
                         .addOnFailureListener { Log.d("TAG", "failedToUpdate: $it") }
                 doc.set(mapOf("changes" to data), SetOptions.merge())
             }
             1 -> {
                 data[time] = "-$qty"
-                doc.update("qty", FieldValue.increment((0 - qty).toLong()))
+                doc.update("qty", FieldValue.increment(0 - qty))
                         .addOnSuccessListener { Log.d("TAG", "updateQty: $barcode") }
                         .addOnFailureListener { Log.d("TAG", "failedToUpdate: $it") }
                 //Adding this qty to sold
-                doc.update("sold", FieldValue.increment(qty.toLong()))
+                doc.update("sold", FieldValue.increment(qty))
                         .addOnSuccessListener { Log.d("TAG", "updateQty: $barcode") }
                         .addOnFailureListener { Log.d("TAG", "failedToUpdate: $it") }
                 doc.set(mapOf("changes" to data), SetOptions.merge())
@@ -289,7 +316,7 @@ class FirebaseHelper(val shopName: String) {
                 .addOnSuccessListener { Log.d("TAG", "deleteSuccess: $time") }
     }
 
-    fun addTransactionToCustomer(phone: String, time: String){
+    private fun addTransactionToCustomer(phone: String, time: String){
         val doc =  firestore.collection("stores/$shopName/customerData")
                 .document(phone)
         val data = mutableMapOf<String, String>()

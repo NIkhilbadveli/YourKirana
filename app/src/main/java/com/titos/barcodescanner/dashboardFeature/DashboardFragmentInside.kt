@@ -45,8 +45,8 @@ class DashboardFragmentInside : BaseFragment(R.layout.fragment_dashboard_inside)
             }
 
             when(arguments?.getInt("itemType")){
-                0 -> {groupAdapter.addAll(topFiveList.sortedByDescending { it.sales.toInt() }.take(25))}
-                1 -> {groupAdapter.addAll(topFiveList.sortedByDescending { it.sales.toInt() }.takeLast(25))}
+                0 -> {groupAdapter.addAll(topFiveList.sortedByDescending { it.sales.toDouble() }.take(25))}
+                1 -> {groupAdapter.addAll(topFiveList.sortedByDescending { it.sales.toDouble() }.takeLast(25))}
             }
         }
     }

@@ -12,6 +12,7 @@
         android:layout_weight="0.9"
         android:background="@drawable/thin_border"
         android:layout_margin="10dp"
+        android:padding="10dp"
         />
     <RelativeLayout
         android:layout_width="match_parent"

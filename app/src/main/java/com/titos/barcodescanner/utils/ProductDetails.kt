@@ -8,10 +8,10 @@ data class ProductDetails(
                 var name: String = "",
                 var sellingPrice: String = "",
                 var costPrice: String = "",
-                var qty: Int = 0,
+                var qty: Double = 0.0,
                 var url: String = "",
                 var type: String = "",
                 var category: String = "",
                 var subCategory: String = "",
-                var sold: Int = 0,
+                var sold: Double = 0.0,
                 var changes: Map<String, String> = mapOf()): Parcelable

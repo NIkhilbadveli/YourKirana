@@ -19,6 +19,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.*
+import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
@@ -35,6 +36,7 @@ import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
@@ -129,7 +131,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
                             putString("shopName", shopName)
                             commit()
                         }
-                        Toast.makeText(this, "You are successfully added to $shopName", Toast.LENGTH_SHORT).show()
+                        Snackbar.make(findViewById(android.R.id.content), "You are successfully added to $shopName", Snackbar.LENGTH_SHORT).show()
                     }
                 }
                 .addOnFailureListener(this) { e -> Log.w("RikiError", "getDynamicLink:onFailure", e) }

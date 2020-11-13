@@ -29,6 +29,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.dynamiclinks.DynamicLink
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
+import com.google.firebase.storage.FirebaseStorage
 import com.titos.barcodescanner.utils.ProgressDialog
 
 import com.titos.barcodescanner.R
@@ -90,23 +91,31 @@ class ProfileFragment : BaseFragment(R.layout.fragment_profile) {
                 .setAndroidParameters(DynamicLink.AndroidParameters.Builder("com.titos.rikistores").build())
                 .buildShortDynamicLink()
 
-        val downloadLink = "https://firebasestorage.googleapis.com/v0/b/barcode-scanner-b4a04.appspot.com/o/app-release.apk"
-        shortTask.addOnSuccessListener {
-            val msg = "$userName invited you to join his store $shopName on Rikistores app.\n" +
-                    "Download link ----> $downloadLink\n \n " +
-                    "Steps to follow after installing: \n " +
-                    "1) Login with any of the providers\n " +
-                    "2) Tap on 'Join Later' when asked for a shop name\n " +
-                    "3) Select the below link for joining" +
-                    "\n \n Click here to join ----> " + it.shortLink
+        val storageRef = FirebaseStorage.getInstance().reference
 
-            layoutView.findViewById<ImageView>(R.id.btn_add_user).setOnClickListener {
-                ShareCompat.IntentBuilder.from(requireActivity())
-                        .setType("text/plain")
-                        .setChooserTitle("Send the store link via...")
-                        .setText(msg)
-                        .startChooser()
+
+        shortTask.addOnSuccessListener {sd ->
+            storageRef.child("app-release.apk").downloadUrl.addOnSuccessListener {
+                val downloadLink = it.toString()
+                val msg = "$userName invited you to join his store $shopName on Rikistores app.\n" +
+                        "Download link ----> $downloadLink\n \n " +
+                        "Steps to follow after installing: \n " +
+                        "1) Login with any of the providers\n " +
+                        "2) Tap on 'Join Later' when asked for a shop name\n " +
+                        "3) Select the below link for joining" +
+                        "\n \n Click here to join ----> " + sd.shortLink
+
+                layoutView.findViewById<ImageView>(R.id.btn_add_user).setOnClickListener {
+                    ShareCompat.IntentBuilder.from(requireActivity())
+                            .setType("text/plain")
+                            .setChooserTitle("Send the store link via...")
+                            .setText(msg)
+                            .startChooser()
+                }
+            }.addOnFailureListener {
+
             }
+
         }.addOnFailureListener{ }
 
     }

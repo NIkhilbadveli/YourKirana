@@ -17,7 +17,11 @@ class InventoryItem(var inventoryDetails: InventoryFragmentOutside.InventoryDeta
 
             mystore_item_price.text = inventoryDetails.pd.sellingPrice
             mystore_item_name.text = inventoryDetails.pd.name
-            mystore_item_qty.text = inventoryDetails.pd.qty.toString()
+
+            if(inventoryDetails.pd.type=="units")
+                mystore_item_qty.text = inventoryDetails.pd.qty.toInt().toString()
+            else if(inventoryDetails.pd.type=="kgs")
+                mystore_item_qty.text = inventoryDetails.pd.qty.toString()
 
             mystore_item_name.setOnClickListener {
                 onItemStockClick.invoke(position)

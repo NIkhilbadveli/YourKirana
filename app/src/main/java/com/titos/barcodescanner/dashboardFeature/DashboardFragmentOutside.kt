@@ -218,4 +218,4 @@ class DashboardFragmentOutside : BaseFragment(R.layout.fragment_dashboard_outsid
 data class DaySales(val orderDate: String, var sales: Double = 0.0)
 
 @Parcelize
-data class BarcodeAndQty(val barcode: String, var qty: Int):Parcelable
+data class BarcodeAndQty(val barcode: String, var qty: Double):Parcelable

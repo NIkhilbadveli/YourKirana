@@ -10,6 +10,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.text.InputType
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -126,7 +127,13 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
                 pName.setText(p0.name)
                 sp.setText(p0.sellingPrice)
                 cp.setText(p0.costPrice)
-                etQuantity.setText(p0.qty.toString())
+                if (p0.type=="kgs"){
+                    etQuantity.inputType = InputType.TYPE_NUMBER_FLAG_DECIMAL
+                    etQuantity.setText(p0.qty.toString())
+                }
+                else
+                    etQuantity.setText(p0.qty.toInt().toString())
+
                 prodInfo = p0
 
                 val index = category.indexOf(p0.category)
@@ -147,8 +154,8 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
                     prodInfo.costPrice=(cp.text.toString())
 
                     var equal = true
-                    if (prodInfo.qty!=etQuantity.text.toString().toInt()) {
-                        prodInfo.qty = (etQuantity.text.toString().toInt())
+                    if (prodInfo.qty!=etQuantity.text.toString().toDouble()) {
+                        prodInfo.qty = (etQuantity.text.toString().toDouble())
                         equal = false
                     }
 

@@ -47,14 +47,14 @@ class ScannerFragment : Fragment() {
                 scannerView.findViewById<LinearLayout>(R.id.checkout_container)!!.visibility = View.GONE
                 btnTick.visibility = View.VISIBLE
                 switch.text = getString(R.string.scanner_mode)
-                scannerListFragment.tvContact.visibility = View.VISIBLE
+                //scannerListFragment.tvContact.visibility = View.VISIBLE
             }
             else{
                 scannerView.findViewById<LinearLayout>(R.id.total_price_container)!!.visibility = View.GONE
                 scannerView.findViewById<LinearLayout>(R.id.checkout_container)!!.visibility = View.VISIBLE
                 btnTick.visibility = View.GONE
                 switch.text = getString(R.string.inventory_mode)
-                scannerListFragment.tvContact.visibility = View.GONE
+                //scannerListFragment.tvContact.visibility = View.GONE
             }
         }
 

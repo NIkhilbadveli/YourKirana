@@ -1,6 +1,5 @@
 package com.titos.barcodescanner.scannerFeature
 
-
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.Dialog
@@ -8,10 +7,13 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.appcompat.widget.SwitchCompat
+import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.observe
@@ -27,17 +29,18 @@ import com.titos.barcodescanner.dashboardFeature.BarcodeAndQty
 import com.titos.barcodescanner.utils.BillDetails
 import com.titos.barcodescanner.utils.PrintUtility
 import com.titos.barcodescanner.utils.TransactionDetails
-
+import com.xwray.groupie.GroupAdapter
+import com.xwray.groupie.GroupieViewHolder
 
 class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButton,
                           val btnInv: Button) : BaseFragment(R.layout.fragment_list_scanner) {
 
     private var listValues = ArrayList<ScannerItem>()
-    private var barcodeList = ArrayList<String>()
-    private var recyclerViewAdapter: ScannerItemAdapter? = null
     private var recyclerView:RecyclerView?=null
     private lateinit var model: MainActivity.SharedViewModel
-
+    private val groupAdapter = GroupAdapter<GroupieViewHolder>()
+    private lateinit var onItemClick:((Int,String,Double)->Unit)
+    private lateinit var onItemRemoveClick:((Int)->Unit)
     private var emptyView: LinearLayout? = null
 
     private lateinit var sharedPref: SharedPreferences
@@ -62,31 +65,27 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
         emptyView = view.findViewById(R.id.empty_view_scanner)
         emptyView?.visibility = View.VISIBLE
 
-        recyclerViewAdapter = ScannerItemAdapter(listValues)
-        recyclerViewAdapter!!.apply {
-            onItemClick = { pos, price, qty->
-                listValues[pos].price = price
+        onItemClick = { pos, price, qty->
                 listValues[pos].quantity = qty.toString()
-                tvTotal.text = "Rs. " + listValues.sumByDouble { it.price.toDouble() }.toString()
+                tvTotal.text = "Rs. " + listValues.sumByDouble { (it.quantity.toDouble()*it.price.toDouble()).round(2) }.toString()
             }
-            onItemRemoveClick = { pos ->
+        onItemRemoveClick = { pos ->
                 listValues.removeAt(pos)
-                recyclerViewAdapter!!.notifyItemRemoved(pos)
-                recyclerViewAdapter!!.notifyItemRangeChanged(pos, listValues.size)
-                tvTotal.text = "Rs. " + listValues.sumByDouble { it.price.toDouble() }.toString()
+                groupAdapter.removeGroupAtAdapterPosition(pos)
+                tvTotal.text = "Rs. " + listValues.sumByDouble { (it.quantity.toDouble()*it.price.toDouble()).round(2) }.toString()
             }
-        }
 
         //floatingActionButton = view.findViewById(R.id.btn_bill)
         recyclerView!!.apply {
-            layoutManager = LinearLayoutManager(requireContext())
-            adapter = recyclerViewAdapter
-            btnTick.setOnClickListener {
-                if(listValues.isNotEmpty())
-                    addToTransactionData()
-                else
-                    Toast.makeText(context, "Please scan at least one item :)", Toast.LENGTH_SHORT).show()
-            }
+            layoutManager = LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, true)
+            adapter = groupAdapter
+        }
+
+        btnTick.setOnClickListener {
+            if(listValues.isNotEmpty())
+                addToTransactionData()
+            else
+                Toast.makeText(context, "Please scan at least one item :)", Toast.LENGTH_SHORT).show()
         }
 
         btnInv.setOnClickListener {
@@ -136,10 +135,14 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
     }
 
     private fun searchForProduct(barcode: String) {
+        val toolbar = requireActivity().findViewById<Toolbar>(R.id.toolbar_main)
+        val switch = toolbar.findViewById<SwitchCompat>(R.id.inventory_scanner_switch)
         firebaseHelper.searchBarcode(barcode).observe(this) { productDetails ->
                 if (productDetails.name.isNotEmpty())
-                    addToListView(barcode, productDetails.name, productDetails.sellingPrice, "dummyURL")
-                else
+                    addToListView(barcode, productDetails.name, productDetails.sellingPrice, productDetails.type , "dummyURL")
+                else if (productDetails.name.isEmpty() && switch.isChecked)
+                    showSnackBar("Item not found.")
+                else if (productDetails.name.isEmpty() && !switch.isChecked)
                     showNewProductDialog(barcode)
         }
     }
@@ -151,15 +154,21 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
     }
 
     @SuppressLint("SetTextI18n")
-    private fun addToListView(barcode: String, name: String, price: String, url: String) {
+    private fun addToListView(barcode: String, name: String, price: String, type:String,  url: String) {
 
         if (!listValues.any { it.name == name }){
-            listValues.add(ScannerItem(true, name, "1", price, url))
-            barcodeList.add(barcode)
-            recyclerViewAdapter!!.notifyItemInserted(listValues.size)
+            val item = ScannerItem(barcode, name, "1.0", price, false, url)
+            if (type=="kgs")
+                item.loose = true
+            listValues.add(item)
+
+            groupAdapter.add(ListItem(requireContext(), item, onItemClick, onItemRemoveClick))
         }
         else {
             val matchedItem = listValues.first { it.name == name }
+            if (!matchedItem.loose)
+                matchedItem.quantity = (matchedItem.quantity.toDouble() + 1).toString()
+
             val item = recyclerView?.getChildAt(listValues.indexOf(matchedItem))
             item?.findViewById<ImageButton>(R.id.add_quantity_button)?.performClick()
         }
@@ -167,28 +176,18 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
         if (emptyView?.visibility==View.VISIBLE)
             emptyView?.visibility = View.GONE
 
-        tvTotal.text = "Rs. " + listValues.sumByDouble { it.price.toDouble() }.toString()
+        tvTotal.text = "Rs. " + listValues.sumByDouble { (it.quantity.toDouble()*it.price.toDouble()).round(2) }.toString()
 
     }
 
     private fun addToTransactionData() {
-
-        val itemCount = recyclerView?.childCount!!
-
-        var qty: EditText?
-        var itemView: View?
-
         val items = mutableMapOf<String, String>()
         val billItems = ArrayList<ScannerItem>()
 
         //Adding items to data
-        for (i in 0 until itemCount) {
-            itemView = recyclerView?.getChildAt(i)
-            if (itemView != null) {
-                qty = itemView.findViewById(R.id.item_quantity)
-                items[barcodeList[i]] = qty.text.toString()
-                billItems.add(listValues[i])
-            }
+        for (i in 0 until listValues.size) {
+            items[listValues[i].barcode] = listValues[i].quantity
+            billItems.add(listValues[i])
         }
 
         dialog.show()
@@ -201,7 +200,7 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
                 val billDetails = BillDetails(phoneNum, tvTotal.text.toString().split(' ').last(), billItems)
                 listValues.clear()
                 tvTotal.text = "Rs."
-                recyclerViewAdapter!!.notifyDataSetChanged()
+                groupAdapter.clear()
 
                 findNavController().navigate(R.id.action_scannerFragment_to_billFragment, Bundle().apply {
                     putParcelable("billDetails", billDetails)
@@ -226,7 +225,7 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
             val itemView = recyclerView!!.getChildAt(i)
             if (itemView != null) {
                 val qty = itemView.findViewById<EditText>(R.id.item_quantity)
-                bqList.add(BarcodeAndQty(barcodeList[i], qty.text.toString().toInt()))
+                bqList.add(BarcodeAndQty(listValues[i].barcode, qty.text.toString().toDouble()))
             }
         }
 
@@ -240,6 +239,12 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
         snack.show()
 
         listValues.clear()
-        recyclerViewAdapter!!.notifyDataSetChanged()
+        groupAdapter.clear()
+    }
+
+    private fun Double.round(decimals: Int): Double {
+        var multiplier = 1.0
+        repeat(decimals) { multiplier *= 10 }
+        return kotlin.math.round(this * multiplier) / multiplier
     }
 }

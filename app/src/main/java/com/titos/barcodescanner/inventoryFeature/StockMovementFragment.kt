@@ -45,22 +45,22 @@ class StockMovementFragment : BaseFragment(R.layout.fragment_stock_movement) {
         val tvName = layoutView.findViewById<TextView>(R.id.tv_name)
         tvName.text = invDetails.pd.name
 
-        var finalQty = 0
+        var finalQty = 0.0
         invDetails.pd.changes.forEach {
             val timeStamp = it.key
             val currentQty = it.value
 
             when {
                 currentQty.take(1) == "+" -> {
-                    finalQty += currentQty.substringAfter("+").toInt()
+                    finalQty += currentQty.substringAfter("+").toDouble()
                     stockList.add(StockItem("Added: $currentQty", timeStamp, finalQty.toString()))
                 }
                 currentQty.take(1) == "-" -> {
-                    finalQty -= currentQty.substringAfter("-").toInt()
+                    finalQty -= currentQty.substringAfter("-").toDouble()
                     stockList.add(StockItem("Sold: $currentQty", timeStamp, finalQty.toString()))
                 }
                 else -> {
-                    finalQty = currentQty.toInt()
+                    finalQty = currentQty.toDouble()
                     stockList.add(StockItem("Updated to: $currentQty", timeStamp, finalQty.toString()))
                 }
             }

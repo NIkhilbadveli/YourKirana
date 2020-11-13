@@ -7,13 +7,20 @@ import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import kotlinx.android.synthetic.main.item_order.*
 
-class OrderItem(val itemName: String, val itemQty: String, val itemPrice: String): Item() {
+class OrderItem(val itemName: String, val itemQty: String, val itemPrice: String, val loose:Boolean): Item() {
 
     override fun bind(viewHolder: GroupieViewHolder, position: Int){
         viewHolder.apply {
             tvProductName.text = itemName
-            tvTotalPrice.text = "₹ ${itemPrice.toInt()*itemQty.toInt()}"
-            tvProductQuantity.text = "$itemQty units x ₹ $itemPrice"
+            if (loose) {
+                tvTotalPrice.text = "₹ ${(itemPrice.toDouble() * itemQty.toDouble()).round(2)}"
+                tvProductQuantity.text = "$itemQty units x ₹ $itemPrice"
+            }
+            else{
+                tvTotalPrice.text = "₹ ${itemPrice.toDouble() * itemQty.toDouble()}"
+                tvProductQuantity.text = "$itemQty units x ₹ $itemPrice"
+            }
+
             val mImageView: ImageView = containerView.findViewById(R.id.img)
 
             when (position) {
@@ -31,4 +38,11 @@ class OrderItem(val itemName: String, val itemQty: String, val itemPrice: String
     }
 
     override fun getLayout(): Int = R.layout.item_order
+
+    private fun Double.round(decimals: Int): Double {
+        var multiplier = 1.0
+        repeat(decimals) { multiplier *= 10 }
+        return kotlin.math.round(this * multiplier) / multiplier
+    }
+
 }

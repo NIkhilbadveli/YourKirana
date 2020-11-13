@@ -1,39 +1,24 @@
 package com.titos.barcodescanner
 
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Bundle
-import android.os.Parcelable
-
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.observe
-
-import androidx.viewpager2.adapter.FragmentStateAdapter
-import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.tabs.TabLayout
-import com.google.android.material.tabs.TabLayoutMediator
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
-import com.titos.barcodescanner.R
 import com.titos.barcodescanner.base.BaseFragment
 import com.titos.barcodescanner.utils.BillDetails
-import com.titos.barcodescanner.utils.KhataDetails
 import com.titos.barcodescanner.utils.PrintUtility
 
 class BillFragment : BaseFragment(R.layout.fragment_bill) {
     private var message = ""
     override fun initView() {
         val billDetails = requireArguments().getParcelable<BillDetails>("billDetails")!!
+        message = "Name     Qty*RikiPrice      Total\n\n--------------------------------------------\n"
+        billDetails.billItems.forEach {
+            message += it.name + "\n            ${it.quantity} * ${it.price}    =    Rs. ${(it.price.toDouble()*it.quantity.toDouble()).round(2)}\n" +
+                            "\n"
+        }
 
-        message = "Hi, how are you? We're from Riki Stores, your local convenience store"
+        message += "---------------------------------------------\n\nOrder Total: ${billDetails.orderValue}"
 
         val tvBillContent = layoutView.findViewById<TextView>(R.id.tvBillContent)
         tvBillContent.text = message
@@ -72,5 +57,11 @@ class BillFragment : BaseFragment(R.layout.fragment_bill) {
 
     private fun printBill(billDetails: BillDetails){
         PrintUtility(requireContext(), billDetails)
+    }
+
+    private fun Double.round(decimals: Int): Double {
+        var multiplier = 1.0
+        repeat(decimals) { multiplier *= 10 }
+        return kotlin.math.round(this * multiplier) / multiplier
     }
 }

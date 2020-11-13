@@ -63,15 +63,14 @@ class PrintUtility(val ctx: Context, val billDetails: BillDetails) {
             val printer = EscPosPrinter(printerConnection, 203, 58f, 32)
             var itemsText = ""
             billDetails.billItems.forEach {
-                itemsText =
+                itemsText +=
                         "[L]<font size='small'>${it.name}</font>\n"+
-                        "[L]<font size='small'>        ${it.quantity} * ${it.price}</font>[R]<font size='small'>${(it.price.toDouble()*it.quantity.toInt()).round(2)}</font>\n" +
+                        "[L]<font size='small'>                 ${it.quantity} * ${it.price}</font>[R]<font size='small'>${(it.price.toDouble()*it.quantity.toInt()).round(2)}</font>\n" +
                         "[L]\n"
             }
 
             //[C]<img>${PrinterTextParserImg.bitmapToHexadecimalString(printer, ctx.resources.getDrawableForDensity(R.drawable.ic_store_black_24dp, DisplayMetrics.DENSITY_MEDIUM))}</img>
             val formattedText =
-                    "[C]<img>" + PrinterTextParserImg.bitmapToHexadecimalString(printer, ctx.getResources().getDrawableForDensity(R.drawable.logo, DisplayMetrics.DENSITY_MEDIUM))+"</img>\n" +
                     "[L]\n" +
                     "[C]<u><font size='big'>Riki Stores</font></u>\n" +
                     "[C]<font size='small'>${format.format(Date())}</font>\n" +
