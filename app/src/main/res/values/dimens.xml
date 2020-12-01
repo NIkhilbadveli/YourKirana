@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="text_margin">10dp</dimen>
+    <dimen name="first_item_qty">16sp</dimen>
+    <dimen name="first_item_sales">22sp</dimen>
+</resources>

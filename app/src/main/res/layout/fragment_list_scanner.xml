@@ -1,0 +1,52 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <TextView
+        android:id="@+id/tv_contact"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Mobile Number not entered"
+        android:textColor="@color/black"
+        android:drawablePadding="10dp"
+        android:layout_margin="10dp"
+        android:layout_centerHorizontal="true"
+        android:visibility="gone"
+        android:drawableStart="@drawable/ic_call_black_24dp"/>
+
+    <LinearLayout
+        android:id="@+id/empty_view_scanner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@id/tv_contact"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="150dp"
+        android:visibility="gone">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Scan a product to add here !!!"
+            android:textSize="20sp"
+            android:textColor="@color/greyBaseShade"
+            android:layout_margin="10dp"/>
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/list"
+            android:name="com.example.barcodescanner.ListFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="vertical"
+            app:layoutManager="LinearLayoutManager"
+            tools:context=".scannerFeature.ScannerListFragment"
+            tools:listitem="@layout/item_scanner"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+        android:layout_below="@id/tv_contact"/>
+</RelativeLayout>
+
+
+

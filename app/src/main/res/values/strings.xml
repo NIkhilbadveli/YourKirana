@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Your Kirana</string>
+    <string name="database_path">/data/user/0/com.titos.barcodescanner/databases/</string>
+    <string name="file_path">/data/user/0/com.titos.barcodescanner/files/</string>
+    <string name="terms_and_conditions">By creating an account you agree with the
+        <a href="https://www.yourkirana.com/terms-and-conditions/" target="_top">Terms of Use</a> and the
+        <a href="https://www.yourkirana.com/privacy-policy/" target="_top">Privacy policy</a>
+    </string>
+    <string name="facebook_application_id" translatable="false">181981169684712</string>
+    <string name="contact_email">developer@yourkirana.com</string>
+    <string name="contact_phone">+91 8309572197</string>
+    <string name="scanner_mode">Billing</string>
+    <string name="inventory_mode">Inventory</string>
+    <string name="step_1">Click on this button to switch to My Store Mode</string>
+    <string name="step_2">Now, scan any product you wish to add</string>
+    <!--<string name="step_3">Fill in the details (Name and Price) for this product and click \'Add\'</string>-->
+    <string name="step_3">You can change the quantity by clicking on \'+\' or \'-\'</string>
+    <string name="step_4">Now, you can click on this button to Add to your store</string>
+    <string name="step_5">To see that the product has been added successfully, click on the My Store icon (2nd option)</string>
+    <string name="step_6">Yayy! The product is added successfully. You can tap on edit icon to change any details.</string>
+    <string name="your_kirana">Your Kirana</string>
+    <string name="update_text">With the latest update, the app will be more secure and it will have a lot of new features. You must update in order to get full benefit of the app</string>
+</resources>

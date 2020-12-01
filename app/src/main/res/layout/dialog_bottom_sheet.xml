@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="20dp">
+    <TextView
+        android:id="@+id/tv_shop_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enter Shop / Business Name"
+        android:layout_margin="10dp"
+        android:textColor="@color/textColorBlack"/>
+    <EditText
+        android:id="@+id/edit_shop_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_below="@id/tv_shop_name"
+        android:inputType="text"
+        android:hint="For example: Krishna's general store"
+        android:textStyle="italic"
+        android:layout_marginBottom="20dp"
+        android:padding="10dp"
+        android:background="@drawable/thin_border"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_marginTop="20dp"
+        android:layout_below="@id/edit_shop_name">
+        <Button
+            android:id="@+id/btn_add_shop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add Shop"
+            android:padding="10dp"
+            android:textColor="@color/textColorWhite"
+            android:background="@color/colorPrimaryDark"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="40dp"/>
+
+        <Button
+            android:id="@+id/btn_join_later"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Join later"
+            android:padding="10dp"
+            android:textColor="@color/black"
+            android:background="@drawable/thin_border"
+            android:layout_marginEnd="40dp"
+            android:layout_alignParentEnd="true"/>
+    </RelativeLayout>
+</RelativeLayout>
