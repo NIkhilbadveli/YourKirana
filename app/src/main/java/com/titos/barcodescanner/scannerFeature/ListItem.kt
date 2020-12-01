@@ -14,32 +14,34 @@ import com.bumptech.glide.Glide
 import com.titos.barcodescanner.R
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import com.xwray.groupie.kotlinandroidextensions.Item
+import kotlinx.android.synthetic.main.item_scanner.view.*
 
 class ListItem(val context: Context, val scannerItem: ScannerItem, val onItemClick:((Int,String,Double)->Unit), val onItemRemoveClick:((Int)->Unit)): Item() {
     override fun bind(viewHolder: GroupieViewHolder, position: Int){
         viewHolder.apply {
 
-            val mNameview:TextView = containerView.findViewById(R.id.item_name)
-            val mQuantityview:TextView = containerView.findViewById(R.id.item_quantity)
-            val mpriceview:TextView = containerView.findViewById(R.id.item_price)
-            val mAddButton: ImageButton = containerView.findViewById(R.id.add_quantity_button)
-            val mSubtractButton: ImageButton = containerView.findViewById(R.id.subtract_quantity_button)
-            val mRemoveItemButton: ImageButton = containerView.findViewById(R.id.remove_item_button)
-            val mThumbnail = containerView.findViewById<ImageView>(R.id.product_thumbnail)
-
-            val etQuantity = containerView.findViewById<EditText>(R.id.et_quantity)
+            val mNameview:TextView = viewHolder.itemView.item_name
+            val mQuantityview:TextView = viewHolder.itemView.item_quantity
+            val mpriceview:TextView = viewHolder.itemView.item_price
+            val mAddButton: ImageButton = viewHolder.itemView.add_quantity_button
+            val mSubtractButton: ImageButton = viewHolder.itemView.subtract_quantity_button
+            val mRemoveItemButton: ImageButton = viewHolder.itemView.remove_item_button
+            val mThumbnail = viewHolder.itemView.product_thumbnail
+            val etQuantity = viewHolder.itemView.et_quantity
 
             mNameview.text = scannerItem.name.take(35)
-            mpriceview.text = scannerItem.price
+            mpriceview.text = (scannerItem.price.toDouble() * scannerItem.quantity.toDouble()).round(2).toString()
             mQuantityview.text = scannerItem.quantity
 
             val price = scannerItem.price.toDouble()
 
+            //Setting visibilities for loose items
             if (scannerItem.loose){
                 mAddButton.visibility = View.GONE
                 mSubtractButton.visibility = View.GONE
                 mQuantityview.visibility = View.GONE
                 etQuantity.visibility = View.VISIBLE
+                etQuantity.setText(scannerItem.quantity)
             }
 
             Glide.with(context).load(scannerItem.thumbnailUrl)
@@ -51,7 +53,7 @@ class ListItem(val context: Context, val scannerItem: ScannerItem, val onItemCli
             mAddButton.setOnClickListener {
                 val value = mQuantityview.text.toString().toDouble() + 1
                 mQuantityview.setText(value.toString())
-                mpriceview.text = (value * price).toString()
+                mpriceview.text = (value * price).round(2).toString()
                 onItemClick.invoke(position,(value * price).toString(), value)
             }
 
@@ -59,8 +61,8 @@ class ListItem(val context: Context, val scannerItem: ScannerItem, val onItemCli
                 val value = mQuantityview.text.toString().toDouble() - 1
                 if (value>0){
                     mQuantityview.text = value.toString()
-                    mpriceview.text = (value * price).toString()
-                    onItemClick.invoke(position,(value * price).toString(), value)
+                    mpriceview.text = (value * price).round(2).toString()
+                    onItemClick.invoke(position, (value * price).toString(), value)
                 }
             }
 
@@ -69,7 +71,7 @@ class ListItem(val context: Context, val scannerItem: ScannerItem, val onItemCli
                     if (s!!.isNotEmpty()) {
                         val qty = s.toString().toDouble()
                         mpriceview.text = (qty * price).toString()
-                        onItemClick.invoke(position,(qty * price).toString(), qty)
+                        onItemClick.invoke(position, (qty * price).toString(), qty)
                     }
                 }
 
@@ -93,16 +95,15 @@ class ListItem(val context: Context, val scannerItem: ScannerItem, val onItemCli
             mRemoveItemButton.setOnClickListener {
                 onItemRemoveClick.invoke(position)
             }
-
         }
     }
 
     override fun getLayout(): Int = R.layout.item_scanner
 
-    override fun createViewHolder(itemView: View): GroupieViewHolder {
-        return super.createViewHolder(itemView).apply {
-            setIsRecyclable(false)
-        }
+    private fun Double.round(decimals: Int): Double {
+        var multiplier = 1.0
+        repeat(decimals) { multiplier *= 10 }
+        return kotlin.math.round(this * multiplier) / multiplier
     }
 
 }

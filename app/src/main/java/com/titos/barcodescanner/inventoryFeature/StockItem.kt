@@ -1,6 +1,7 @@
 package com.titos.barcodescanner.inventoryFeature
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.view.View
 import android.widget.TextView
 import com.google.firebase.database.FirebaseDatabase
@@ -32,16 +33,13 @@ class StockItem(private val action: String, private val actionTime: String, priv
 
             if(action.contains("Added"))
             {
-                stockLeft.setTextColor(R.color.green)
                 iv_arrows.setImageResource(R.drawable.up_arrow)
             }
-            if(action.contains("Updated"))
+            else if(action.contains("Updated"))
             {
-                stockLeft.setTextColor(R.color.black)
                 iv_arrows.visibility = View.GONE
             }
             else {
-                stockLeft.setTextColor(R.color.red)
                 iv_arrows.setImageResource(R.drawable.down_arrow)
             }
 

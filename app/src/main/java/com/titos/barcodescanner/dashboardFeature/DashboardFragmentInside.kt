@@ -40,8 +40,8 @@ class DashboardFragmentInside : BaseFragment(R.layout.fragment_dashboard_inside)
         firebaseHelper.getAllInventory().observe(this) { pdList ->
             val topFiveList = ArrayList<TopFiveItem>()
             for (pd in pdList){
-                val sales = pd.value.sellingPrice.toInt()*pd.value.sold
-                topFiveList.add(TopFiveItem(pd.value.name, pd.value.sold.toString(), sales.toString()))
+                val sales = pd.value.sellingPrice.toDouble()*pd.value.sold
+                topFiveList.add(TopFiveItem(pd.value.name, pd.value.sold.toString(), sales.round(2).toString()))
             }
 
             when(arguments?.getInt("itemType")){
@@ -49,5 +49,11 @@ class DashboardFragmentInside : BaseFragment(R.layout.fragment_dashboard_inside)
                 1 -> {groupAdapter.addAll(topFiveList.sortedByDescending { it.sales.toDouble() }.takeLast(25))}
             }
         }
+    }
+
+    private fun Double.round(decimals: Int): Double {
+        var multiplier = 1.0
+        repeat(decimals) { multiplier *= 10 }
+        return kotlin.math.round(this * multiplier) / multiplier
     }
 }

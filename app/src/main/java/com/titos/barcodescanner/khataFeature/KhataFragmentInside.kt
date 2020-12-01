@@ -34,18 +34,19 @@ class KhataFragmentInside : BaseFragment(R.layout.fragment_khata_inside), Search
             layoutManager = LinearLayoutManager(requireContext())
         }
 
-        val onItemRemoveClick :((Int)->Unit) = { pos ->
+        val onItemRemoveClick :((String, Int)->Unit) = { time, pos ->
+            firebaseHelper.updateKhataStatus(time)
             groupAdapter.removeGroupAtAdapterPosition(pos)
         }
 
-        val kdList = arguments?.getParcelableArrayList<KhataDetails>("kdList")!!
+        val kdList = arguments?.getSerializable("kdList")!! as HashMap<String, KhataDetails>
 
                 if (kdList.isEmpty())
                     layoutView.findViewById<TextView>(R.id.tv_empty).visibility = View.VISIBLE
 
                 for (kd in kdList) {
-                    if (kd.status==status)
-                        customerList.add(KhataItem(kd, onItemRemoveClick))
+                    if (kd.value.status==status)
+                        customerList.add(KhataItem(kd.key, kd.value, onItemRemoveClick))
                 }
                 groupAdapter.addAll(customerList)
 

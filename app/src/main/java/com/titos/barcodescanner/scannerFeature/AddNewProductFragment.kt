@@ -1,42 +1,25 @@
 package com.titos.barcodescanner.scannerFeature
 
 import android.app.Activity
-import android.app.Dialog
-import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
-import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.net.Uri
-import android.os.Bundle
 import android.provider.MediaStore
 import android.text.InputType
-import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.*
-import androidx.activity.addCallback
-import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.google.firebase.storage.FirebaseStorage
 import com.titos.barcodescanner.R
 import com.titos.barcodescanner.base.BaseFragment
 import com.titos.barcodescanner.utils.ProductDetails
-import kotlinx.android.synthetic.main.fragment_add_new_product.view.*
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
@@ -58,14 +41,14 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
         val spinSubCategory = layoutView.findViewById<Spinner>(R.id.spinner2)
 
         val type = arrayOf<String>("units", "kgs")
-        val category = arrayOf<String>("Branded Foods","Loose Items","Fridge Products","Beauty","Health and Hygiene","Home Needs")
+        val category = arrayOf<String>("Branded Foods", "Loose Items", "Fridge Products", "Beauty", "Health and Hygiene", "Home Needs")
 
-        val branded = arrayOf<String>("Ready to Eat" , "Snacks ","Biscuits","Breakfast Cereals" , "Packaged kitchen needs")
-        val loose = arrayOf<String>("Rice","Sugar","Rock Salt","Wheat","Maida","Dal & Pulses","Others (Eggs)")
-        val fridge = arrayOf<String>("Milk", "Curd", "Cheese", "Panner","Cool drinks","Batter","Chocolates","Mushroom & Others")
-        val beauty = arrayOf<String>("Oral care","Hair care","Skin care","Baby care")
-        val health = arrayOf<String>("Pads","Covid Protection","Condoms","Tissues & Gloves","OTC")
-        val home = arrayOf<String>("Laundry","Cleaning","Pooja Needs","Toiletries")
+        val branded = arrayOf<String>("Ready to Eat", "Snacks ", "Biscuits", "Breakfast Cereals", "Packaged kitchen needs")
+        val loose = arrayOf<String>("Rice", "Sugar", "Flours", "Dals & Pulses", "Rava", "Vegetables", "Others")
+        val fridge = arrayOf<String>("Milk", "Curd", "Cheese", "Panner", "Cool drinks", "Batter", "Chocolates", "Mushroom & Others")
+        val beauty = arrayOf<String>("Oral care", "Hair care", "Skin care", "Baby care")
+        val health = arrayOf<String>("Pads", "Covid Protection", "Condoms", "Tissues & Gloves", "OTC")
+        val home = arrayOf<String>("Laundry", "Cleaning", "Pooja Needs", "Toiletries")
 
         val subCategoryList = ArrayList<Array<String>>()
         subCategoryList.add(branded)
@@ -75,7 +58,7 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
         subCategoryList.add(health)
         subCategoryList.add(home)
 
-        spinType.adapter = ArrayAdapter<String>(requireContext(),android.R.layout.simple_list_item_1,type)
+        spinType.adapter = ArrayAdapter<String>(requireContext(), android.R.layout.simple_list_item_1, type)
 
         spinType.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
             override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -91,14 +74,14 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
             }
         }
 
-        spinCategory.adapter = ArrayAdapter<String>(requireContext(),android.R.layout.simple_list_item_1,category)
+        spinCategory.adapter = ArrayAdapter<String>(requireContext(), android.R.layout.simple_list_item_1, category)
 
         spinCategory.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
             override fun onNothingSelected(parent: AdapterView<*>?) {
 
             }
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                spinSubCategory.adapter = ArrayAdapter(requireContext(),android.R.layout.simple_list_item_1,subCategoryList[position])
+                spinSubCategory.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, subCategoryList[position])
             }
         }
 
@@ -108,7 +91,7 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
 
         pName = layoutView.findViewById(R.id.edit_name)
         val productData = csvReader().readAll(File(activity?.filesDir, "productData.csv"))
-        val adapter = ArrayAdapter(requireContext(), R.layout.item_text,R.id.text1, productData[0])
+        val adapter = ArrayAdapter(requireContext(), R.layout.item_text, R.id.text1, productData[0])
         val add = layoutView.findViewById<Button>(R.id.addBtn)
         pName.setAdapter(adapter)
 
@@ -127,18 +110,22 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
                 pName.setText(p0.name)
                 sp.setText(p0.sellingPrice)
                 cp.setText(p0.costPrice)
-                if (p0.type=="kgs"){
-                    etQuantity.inputType = InputType.TYPE_NUMBER_FLAG_DECIMAL
+                spinType.setSelection(type.indexOf(p0.type))
+
+                if (p0.type=="kgs")
                     etQuantity.setText(p0.qty.toString())
-                }
-                else
+                else {
+                    etQuantity.inputType = InputType.TYPE_CLASS_NUMBER
                     etQuantity.setText(p0.qty.toInt().toString())
+                }
 
                 prodInfo = p0
 
                 val index = category.indexOf(p0.category)
                 spinCategory.setSelection(index)
-                spinSubCategory.setSelection(subCategoryList[index].indexOf(p0.subCategory))
+                Timer().schedule(100){
+                    requireActivity().runOnUiThread { spinSubCategory.setSelection(subCategoryList[index].indexOf(p0.subCategory)) }
+                }
                 dismissProgress()
             }
         }
@@ -169,6 +156,8 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
                             firebaseHelper.addOrUpdateProduct(barcode, prodInfo, 4)
                         else
                             firebaseHelper.addOrUpdateProduct(barcode, prodInfo, 2)
+
+                        showSnackBar("Updated successfully")
                     }
                     else {
                         firebaseHelper.addOrUpdateProduct(barcode, prodInfo, 3)
@@ -191,9 +180,6 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
             }
         }
-
-
-
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -214,10 +200,10 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
 
         textRecognizer.processImage(firebaseVisionImage)
                 .addOnSuccessListener {
-                    detectedText = it.text.replace(System.getProperty("line.separator")!!," ")
+                    detectedText = it.text.replace(System.getProperty("line.separator")!!, " ")
                     pName.setText(detectedText)
                 }
-                .addOnFailureListener { Toast.makeText(context,"Failed to detect any text... add manually",Toast.LENGTH_SHORT).show() }
+                .addOnFailureListener { Toast.makeText(context, "Failed to detect any text... add manually", Toast.LENGTH_SHORT).show() }
     }
 
     private fun uploadImageAndUpdateUrl(bitmap: Bitmap){
@@ -229,17 +215,17 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
         fOut.close()
         MediaStore.Images.Media.insertImage(activity?.contentResolver, file.absolutePath, file.name, file.name)
 
-        val imageRef = FirebaseStorage.getInstance().reference.child( "$shopName/${Uri.fromFile(file).lastPathSegment}")
+        val imageRef = FirebaseStorage.getInstance().reference.child("$shopName/${Uri.fromFile(file).lastPathSegment}")
         val uploadTask = imageRef.putFile(Uri.fromFile(file))
 
         //Toast.makeText(requireContext(),"Started uploading",Toast.LENGTH_SHORT).show()
 
         uploadTask.addOnSuccessListener {
-            Toast.makeText(requireContext(),"Successfully uploaded",Toast.LENGTH_SHORT).show()
-        }.addOnFailureListener { Toast.makeText(requireContext(),it.toString(),Toast.LENGTH_SHORT).show() }
+            Toast.makeText(requireContext(), "Successfully uploaded", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener { Toast.makeText(requireContext(), it.toString(), Toast.LENGTH_SHORT).show() }
 
         imageRef.downloadUrl.addOnSuccessListener {
             url = it.toString()
-        }.addOnFailureListener { Toast.makeText(requireContext(),it.toString(),Toast.LENGTH_SHORT).show() }
+        }.addOnFailureListener { Toast.makeText(requireContext(), it.toString(), Toast.LENGTH_SHORT).show() }
     }
 }

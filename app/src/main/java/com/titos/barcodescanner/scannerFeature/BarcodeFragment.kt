@@ -51,7 +51,7 @@ class BarcodeFragment : Fragment() {
             if (result.text != null && result.text == lastText) {
                 confirmCounter++
 
-                if (confirmCounter == 2) {
+                if (confirmCounter == 3) {
                     if (modelPreviousText != lastText){
                         model!!.select(lastText!!)
                         modelPreviousText = lastText

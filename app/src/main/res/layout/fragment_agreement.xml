@@ -5,7 +5,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:scrollbars="vertical"
-    tools:context=".historyFeature.AgreementFragment">
+    tools:context=".khataFeature.AgreementFragment">
 <LinearLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -15,7 +15,7 @@
         android:id="@+id/tv_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Not Paid Agreement    -    \u20B9 0"
+        android:text="New Khata Entry"
         android:textSize="20sp"
         android:textColor="#000000"
         android:layout_gravity="center"
@@ -35,124 +35,14 @@
             android:orientation="vertical"
             android:padding="10dp">
 
-             <!--<TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Customer ID"
-                android:textColor="#000000"
-                android:layout_marginStart="20dp"
-                 android:layout_marginTop="20dp" />
-            <EditText
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/custId"
-                android:layout_marginStart="20dp"
-                android:layout_marginEnd="20dp"
-                android:inputType="number"
-                android:maxLength="3"
-                android:background="@drawable/thin_border"
-                android:padding="10dp"
-                android:layout_marginTop="5dp"
-             />-->
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Customer Name"
-                android:textColor="#000000"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="20dp"/>
-            <EditText
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/custName"
-                android:layout_marginStart="20dp"
-                android:layout_marginEnd="20dp"
-                android:inputType="textPersonName"
-                android:background="@drawable/thin_border"
-                android:padding="10dp"
-                android:layout_marginTop="5dp"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="20dp">
-                <!--<TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.5"
-                    android:text="Taken on"
-                    android:layout_gravity="center"
-                    android:textAlignment="center"
-                    android:textColor="#000000"
-                    android:layout_marginStart="20dp"/>-->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Due date"
-                    android:textColor="#000000"
-                    android:layout_marginStart="20dp"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginStart="20dp"
-                android:layout_marginEnd="20dp"
-                android:layout_marginTop="10dp">
-               <!-- <TextView
-                    android:layout_width="0dp"
-                    android:layout_weight="0.4"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/tvTakenDate"
-                    android:textSize="20sp"
-                    android:textColor="#000000"
-                    android:layout_gravity="center"
-                    android:gravity="center"
-                    android:text="3/07/2020"/>
-                <ImageButton
-                    android:layout_width="0dp"
-                    android:layout_weight="0.1"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/calButtonTaken"
-                    android:layout_gravity="center_vertical"
-                    android:src="@drawable/ic_baseline_calendar_today_24"
-                    android:background="@null"
-                    />-->
-                <!--<View
-                    android:layout_width="1dp"
-                    android:layout_height="20dp"
-                    android:layout_margin="5dp"
-                    android:background="@color/greyLighterShade"/>-->
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_weight="0.4"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/tvDueDate"
-                    android:textColor="#000000"
-                    android:textSize="16sp"
-                    android:layout_gravity="center"
-                    android:gravity="center"
-                    android:text="00-00-0000"/>
-                <ImageButton
-                    android:layout_width="0dp"
-                    android:layout_weight="0.1"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/calButtonDue"
-                    android:layout_gravity="center_vertical"
-                    android:src="@drawable/ic_baseline_calendar_today_24"
-                    android:background="@null"
-                    />
-            </LinearLayout>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Customer Mobile Number"
+                android:text="Customer Mobile Number*"
                 android:layout_marginTop="20dp"
                 android:textColor="#000000"
                 android:layout_marginStart="20dp"/>
+
             <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -162,10 +52,52 @@
                 android:layout_marginBottom="20dp"
                 android:inputType="phone"
                 android:maxLength="10"
+                android:hint="1234567890"
                 android:background="@drawable/thin_border"
                 android:padding="10dp"
                 android:layout_marginTop="5dp"/>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Amount Taken (In Rs.)*"
+                android:layout_marginTop="20dp"
+                android:textColor="#000000"
+                android:layout_marginStart="20dp"/>
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/etAmount"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:layout_marginBottom="20dp"
+                android:inputType="phone"
+                android:hint="256"
+                android:maxLength="10"
+                android:background="@drawable/thin_border"
+                android:padding="10dp"
+                android:layout_marginTop="5dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Optional Notes"
+                android:textColor="#000000"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"/>
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/etOptional"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:inputType="textPersonName"
+                android:textStyle="italic"
+                android:hint="Ex: Milk, Eggs and Others"
+                android:background="@drawable/thin_border"
+                android:padding="10dp"
+                android:layout_marginTop="5dp"/>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
@@ -174,7 +106,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
-        android:text="Save Agreement"
+        android:text="Save Entry"
         android:id="@+id/saveButton"
         android:gravity="center"
         android:layout_marginTop="20dp"

@@ -24,6 +24,9 @@ import com.google.firebase.database.ValueEventListener
 import com.titos.barcodescanner.base.BaseFragment
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
+import org.threeten.bp.LocalDateTime
+import org.threeten.bp.format.DateTimeFormatter
+import java.util.*
 
 class StockMovementFragment : BaseFragment(R.layout.fragment_stock_movement) {
 
@@ -46,27 +49,38 @@ class StockMovementFragment : BaseFragment(R.layout.fragment_stock_movement) {
         tvName.text = invDetails.pd.name
 
         var finalQty = 0.0
-        invDetails.pd.changes.forEach {
+
+        val timeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss a", Locale.ENGLISH)
+        val sortedChanges = invDetails.pd.changes.toSortedMap(compareBy { LocalDateTime.parse(it, timeFormatter) })
+
+        sortedChanges.forEach {
             val timeStamp = it.key
             val currentQty = it.value
 
             when {
                 currentQty.take(1) == "+" -> {
                     finalQty += currentQty.substringAfter("+").toDouble()
-                    stockList.add(StockItem("Added: $currentQty", timeStamp, finalQty.toString()))
+                    stockList.add(StockItem("Added:     $currentQty", timeStamp, finalQty.round(2).toString()))
                 }
                 currentQty.take(1) == "-" -> {
                     finalQty -= currentQty.substringAfter("-").toDouble()
-                    stockList.add(StockItem("Sold: $currentQty", timeStamp, finalQty.toString()))
+                    stockList.add(StockItem("Sold:      $currentQty", timeStamp, finalQty.round(2).toString()))
                 }
                 else -> {
                     finalQty = currentQty.toDouble()
-                    stockList.add(StockItem("Updated to: $currentQty", timeStamp, finalQty.toString()))
+                    stockList.add(StockItem("Updated to:        $currentQty", timeStamp, finalQty.round(2).toString()))
                 }
             }
         }
+
         stcQty.text = finalQty.toString()
         groupAdapter.addAll(stockList.reversed())
+    }
+
+    private fun Double.round(decimals: Int): Double {
+        var multiplier = 1.0
+        repeat(decimals) { multiplier *= 10 }
+        return kotlin.math.round(this * multiplier) / multiplier
     }
 }
 

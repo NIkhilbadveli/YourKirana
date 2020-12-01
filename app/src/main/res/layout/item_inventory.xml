@@ -131,12 +131,6 @@
                     android:background="@drawable/right_half_btn"
                     android:layout_gravity="center"/>-->
             </LinearLayout>
-            <TextView
-                android:id="@+id/tv_in_stock"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Units "
-                android:layout_gravity="center_horizontal"/>
         </LinearLayout>
     </RelativeLayout>
 </androidx.cardview.widget.CardView>

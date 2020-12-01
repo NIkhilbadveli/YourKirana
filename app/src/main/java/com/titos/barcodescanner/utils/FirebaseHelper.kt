@@ -3,6 +3,7 @@ package com.titos.barcodescanner.utils
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.observe
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -219,12 +220,16 @@ class FirebaseHelper(val shopName: String) {
                 .addOnFailureListener { Log.d("TAG", "failedToAdd: $it") }
     }
 
-    fun getAllKhata(): LiveData<List<KhataDetails>>{
-        val ldKhataDetails = MutableLiveData<List<KhataDetails>>()
+    fun getAllKhata(): LiveData<Map<String, KhataDetails>>{
+        val ldKhataDetails = MutableLiveData<Map<String, KhataDetails>>()
         firestore.collection("stores/$shopName/khataBook")
                 .get()
                 .addOnSuccessListener {
-                    ldKhataDetails.value = it.toObjects(KhataDetails::class.java)
+                    val map = mutableMapOf<String,KhataDetails>()
+                    for (doc in it.documents)
+                        map[doc.id] = doc.toObject(KhataDetails::class.java)!!
+
+                    ldKhataDetails.value = map
                 }
                 .addOnFailureListener { Log.d("TAG", "failedToGetKhata") }
 
@@ -256,7 +261,7 @@ class FirebaseHelper(val shopName: String) {
     }
 
     //mode = 0: plus, 1: minus, 2: update, 3: new, 4: don't trigger
-    private fun updateQty(time: String, barcode: String, qty: Double, mode: Int) {
+    fun updateQty(time: String, barcode: String, qty: Double, mode: Int) {
         val doc = firestore.collection("stores/$shopName/inventoryData/")
                 .document(barcode)
 
@@ -313,7 +318,9 @@ class FirebaseHelper(val shopName: String) {
         firestore.collection("stores/$shopName/transactionData")
                 .document(time)
                 .delete()
-                .addOnSuccessListener { Log.d("TAG", "deleteSuccess: $time") }
+                .addOnSuccessListener {
+                    Log.d("TAG", "deleteSuccess: $time")
+                }
     }
 
     private fun addTransactionToCustomer(phone: String, time: String){

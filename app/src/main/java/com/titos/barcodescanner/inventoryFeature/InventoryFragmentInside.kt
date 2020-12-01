@@ -35,22 +35,21 @@ import kotlin.collections.ArrayList
 
 class InventoryFragmentInside : BaseFragment(R.layout.fragment_inventory_inside), SearchView.OnQueryTextListener {
 
-    private lateinit var groupAdapterScanned : GroupAdapter<GroupieViewHolder>
-
     private var onItemRemoveClick :((Int)->Unit)? = null
     private var onItemEditClick :((Int)->Unit)? = null
     private var onItemStockClick :((Int)->Unit)? = null
 
     private var recyclerViewScannedItems:RecyclerView? = null
-    private var inventoryList = ArrayList<InventoryItem>()
-    private var filteredList = ArrayList<InventoryItem>()
+    private lateinit var inventoryAdapter: InventoryAdapter
+    private val inventoryList = ArrayList<InventoryFragmentOutside.InventoryDetails>()
 
     override fun initView() {
 
-        groupAdapterScanned = GroupAdapter()
+        inventoryAdapter = InventoryAdapter(inventoryList, requireContext())
+
         recyclerViewScannedItems = layoutView.findViewById(R.id.rv_mystore_scannable)
         recyclerViewScannedItems!!.apply {
-            adapter = groupAdapterScanned
+            adapter = inventoryAdapter
             layoutManager = LinearLayoutManager(context)
         }
 
@@ -60,9 +59,10 @@ class InventoryFragmentInside : BaseFragment(R.layout.fragment_inventory_inside)
             dialogBuilder.setMessage("Are you sure?")
                     .setCancelable(false)
                     .setPositiveButton("Yes") { _, _ ->
-                        groupAdapterScanned.removeGroupAtAdapterPosition(pos)
-                        groupAdapterScanned.notifyItemRangeChanged(pos,groupAdapterScanned.itemCount)
-                        firebaseHelper.removeProduct(filteredList[pos].inventoryDetails.barcode)
+                        inventoryAdapter.countryFilterList.removeAt(pos)
+                        inventoryAdapter.notifyItemRemoved(pos)
+                        inventoryAdapter.notifyItemRangeChanged(pos, inventoryList.size)
+                        firebaseHelper.removeProduct(inventoryList[pos].barcode)
                         Snackbar.make(requireView(),"Inventory Item deleted",Snackbar.LENGTH_SHORT).show()
                     }
                     .setNegativeButton("No") { dialog, id -> dialog.cancel()
@@ -76,13 +76,13 @@ class InventoryFragmentInside : BaseFragment(R.layout.fragment_inventory_inside)
 
         onItemStockClick = {
             findNavController().navigate(R.id.action_myStoreFragment_to_stockMovementFragment, Bundle().apply{
-                putParcelable("invDetails", filteredList[it].inventoryDetails)
+                putParcelable("invDetails", inventoryAdapter.countryFilterList[it])
             })
         }
 
         onItemEditClick = { pos ->
             val bundle = Bundle()
-            bundle.putString("barcode", filteredList[pos].inventoryDetails.barcode)
+            bundle.putString("barcode", inventoryAdapter.countryFilterList[pos].barcode)
             bundle.putBoolean("edit", true)
             findNavController().navigate(R.id.action_myStoreFragment_to_addNewProductFragment, bundle)
         }
@@ -92,52 +92,27 @@ class InventoryFragmentInside : BaseFragment(R.layout.fragment_inventory_inside)
         val searchView = layoutView.findViewById<SearchView>(R.id.simpleSearchView)
         searchView.setOnQueryTextListener(this)
 
+        inventoryAdapter.onItemEditClick = onItemEditClick!!
+        inventoryAdapter.onItemRemoveClick = onItemRemoveClick!!
+        inventoryAdapter.onItemStockClick = onItemStockClick!!
     }
 
-    override fun onResume() {
-        super.onResume()
-        groupAdapterScanned.clear()
-        inventoryList.clear()
-        filteredList.clear()
-        populateView()
-    }
-
-    override fun onQueryTextSubmit(query: String?): Boolean {
+    override fun onQueryTextSubmit(query: String): Boolean {
         return false
     }
 
     override fun onQueryTextChange(newText: String): Boolean {
-        filter(newText)
+        inventoryAdapter.filter.filter(newText)
         return false
-    }
-
-    private fun filter(charText: String) {
-        val lowerCaseText = charText.toLowerCase(Locale.getDefault())
-
-        if (lowerCaseText.isNotEmpty()) {
-            groupAdapterScanned.clear()
-            filteredList.clear()
-            filteredList = ArrayList(inventoryList.filter { it.inventoryDetails.pd.name.toLowerCase(Locale.getDefault()).contains(lowerCaseText) })
-            groupAdapterScanned.addAll(filteredList)
-        }
-        else{
-            groupAdapterScanned.clear()
-            filteredList.clear()
-            filteredList = inventoryList
-            groupAdapterScanned.addAll(inventoryList)
-        }
     }
 
     private fun populateView(){
 
         val items = arguments?.getParcelableArrayList<InventoryFragmentOutside.InventoryDetails>("inventoryList")!!
 
-        items.forEach {
-            inventoryList.add(InventoryItem(it, onItemRemoveClick!!, onItemStockClick!!, onItemEditClick!!))
-        }
+        inventoryList.addAll(items)
+        inventoryAdapter.notifyDataSetChanged()
 
-        filteredList = ArrayList(inventoryList)
-        groupAdapterScanned.addAll(inventoryList)
         if (items.size > 0) {
             var totalSellingPrice = 0.0
             var totalCostPrice = 0.0

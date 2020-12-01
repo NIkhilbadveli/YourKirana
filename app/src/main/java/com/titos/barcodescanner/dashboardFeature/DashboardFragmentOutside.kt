@@ -122,9 +122,9 @@ class DashboardFragmentOutside : BaseFragment(R.layout.fragment_dashboard_outsid
 
             }.attach()
 
-            view.findViewById<TextView>(R.id.dbrd_total_sales_value).text = "\u20B9 $totalSales"
+            view.findViewById<TextView>(R.id.dbrd_total_sales_value).text = "\u20B9 ${totalSales.round(2)}"
             view.findViewById<TextView>(R.id.dbrd_this_week_sales_title).text = "$startDate - $endDate"
-            view.findViewById<TextView>(R.id.dbrd_this_week_sales_value).text = "\u20B9 $thisWeekSales"
+            view.findViewById<TextView>(R.id.dbrd_this_week_sales_value).text = "\u20B9 ${thisWeekSales.round(2)}"
 
             //Filter only those days that are in this week
             populateBarEntries(allDaySales.filter { weekDays.contains(it.orderDate) })
@@ -212,6 +212,12 @@ class DashboardFragmentOutside : BaseFragment(R.layout.fragment_dashboard_outsid
             first.add(Calendar.DAY_OF_MONTH, 1)
         }
         return days
+    }
+
+    private fun Double.round(decimals: Int): Double {
+        var multiplier = 1.0
+        repeat(decimals) { multiplier *= 10 }
+        return kotlin.math.round(this * multiplier) / multiplier
     }
 }
 

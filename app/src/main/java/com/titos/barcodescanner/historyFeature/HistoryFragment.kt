@@ -31,6 +31,7 @@ import com.xwray.groupie.GroupieViewHolder
 import org.threeten.bp.LocalDate
 import org.threeten.bp.LocalDateTime
 import org.threeten.bp.format.DateTimeFormatter
+import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -58,37 +59,31 @@ class HistoryFragment : BaseFragment(R.layout.fragment_history){
             adapter = groupAdapter
         }
 
-        val swipeHandler = object : SwipeToAgreement(requireContext()) {
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val tvOrderNumber = viewHolder.itemView.findViewById<TextView>(R.id.history_order_number)
-                if(tvOrderNumber!=null) {
-                    val orderNumber = tvOrderNumber.text.toString()
-                    val pos = orderNumber.split(" ").last().toInt() - 1
-
-                    val bundle = Bundle()
-                    bundle.putString("amountDue", orderValueList[pos])
-                    bundle.putString("contact", contactList[pos])
-                    findNavController().navigate(R.id.action_historyFragment_to_agreementFragment, bundle)
-                }
-                else{
-                    Toast.makeText(requireContext(), "Don't swipe here :)", Toast.LENGTH_SHORT).show()
-                    findNavController().navigate(R.id.historyFragment)
-                }
-            }
-        }
-        val itemTouchHelper = ItemTouchHelper(swipeHandler)
-        itemTouchHelper.attachToRecyclerView(recyclerView)
-
         populateView(view, groupAdapter)
+
+        val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", Locale.US)
         onItemRemoveClick = { deletePosition, pos ->
             val dialogBuilder = AlertDialog.Builder(context)
             dialogBuilder.setMessage("Are you sure?")
                     .setCancelable(false)
                     .setPositiveButton("Yes") { _, _ ->
-                        firebaseHelper.deleteTransaction(keys[deletePosition])
-                        groupAdapter.removeGroupAtAdapterPosition(pos)
-                        groupAdapter.notifyItemRangeChanged(pos,groupAdapter.itemCount)
-                        Snackbar.make(requireView(),"Transaction successfully deleted",Snackbar.LENGTH_SHORT).show()
+                        showProgress("Deleting transaction ${keys[deletePosition]}")
+                        firebaseHelper.getTransactionDetails(keys[deletePosition]).observe(this){
+                            //Adding back all the products to Inventory in this particular transaction
+                            val date = Date()
+                            val dateFormat = simpleDateFormat.format(date)
+                            it.items.forEach { item ->
+                                firebaseHelper.updateQty(dateFormat, item.key, item.value.toDouble(), 0)
+                            }
+                            firebaseHelper.deleteTransaction(keys[deletePosition])
+                            keys.removeAt(deletePosition)
+
+                            dismissProgress()
+
+                            groupAdapter.removeGroupAtAdapterPosition(pos)
+                            groupAdapter.notifyItemRangeChanged(pos,groupAdapter.itemCount)
+                            Snackbar.make(requireView(),"Transaction successfully deleted",Snackbar.LENGTH_SHORT).show()
+                        }
                     }
                     .setNegativeButton("No") { dialog, id -> dialog.cancel()
                     }
@@ -116,12 +111,12 @@ class HistoryFragment : BaseFragment(R.layout.fragment_history){
         firebaseHelper.getAllTransactions().observe(this) { tdMap ->
             if (tdMap.isNotEmpty()){
                 var id = tdMap.size
-
+                val timeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss a", Locale.ENGLISH)
                 val allDaySales = getAllDaySales(tdMap)
                 allDaySales.forEach {ds ->
                     groupAdapter.add(HistoryHeaderItem(ds.orderDate, ds.sales))
                     for (time in tdMap.filter { it.key.split(' ').first() == ds.orderDate }
-                            .toSortedMap(compareByDescending { it })){
+                            .toSortedMap(compareByDescending { LocalDateTime.parse(it, timeFormatter) })){
                         val orderValue = time.value.orderValue
                         val hour = time.key.split(" ")[1].split(":").first()
                         val amPm = time.key.split(" ").last()

@@ -65,7 +65,7 @@ class PrintUtility(val ctx: Context, val billDetails: BillDetails) {
             billDetails.billItems.forEach {
                 itemsText +=
                         "[L]<font size='small'>${it.name}</font>\n"+
-                        "[L]<font size='small'>                 ${it.quantity} * ${it.price}</font>[R]<font size='small'>${(it.price.toDouble()*it.quantity.toInt()).round(2)}</font>\n" +
+                        "[L]<font size='small'>                 ${it.quantity} * ${it.price}</font>[R]<font size='small'>${(it.price.toDouble()*it.quantity.toDouble()).round(2)}</font>\n" +
                         "[L]\n"
             }
 

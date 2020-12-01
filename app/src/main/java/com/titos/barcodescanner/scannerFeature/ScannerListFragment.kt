@@ -36,9 +36,9 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
                           val btnInv: Button) : BaseFragment(R.layout.fragment_list_scanner) {
 
     private var listValues = ArrayList<ScannerItem>()
-    private var recyclerView:RecyclerView?=null
+    private lateinit var recyclerView:RecyclerView
+    private lateinit var scannerItemAdapter: ScannerItemAdapter
     private lateinit var model: MainActivity.SharedViewModel
-    private val groupAdapter = GroupAdapter<GroupieViewHolder>()
     private lateinit var onItemClick:((Int,String,Double)->Unit)
     private lateinit var onItemRemoveClick:((Int)->Unit)
     private var emptyView: LinearLayout? = null
@@ -66,19 +66,27 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
         emptyView?.visibility = View.VISIBLE
 
         onItemClick = { pos, price, qty->
-                listValues[pos].quantity = qty.toString()
-                tvTotal.text = "Rs. " + listValues.sumByDouble { (it.quantity.toDouble()*it.price.toDouble()).round(2) }.toString()
-            }
-        onItemRemoveClick = { pos ->
-                listValues.removeAt(pos)
-                groupAdapter.removeGroupAtAdapterPosition(pos)
-                tvTotal.text = "Rs. " + listValues.sumByDouble { (it.quantity.toDouble()*it.price.toDouble()).round(2) }.toString()
-            }
+            val recyclerViewState = recyclerView.layoutManager?.onSaveInstanceState()
+            listValues[pos].quantity = qty.toString()
+            tvTotal.text = "Rs. " + listValues.sumByDouble { (it.quantity.toDouble()*it.price.toDouble()).round(2) }.toString()
+            recyclerView.layoutManager?.onRestoreInstanceState(recyclerViewState)
+        }
 
-        //floatingActionButton = view.findViewById(R.id.btn_bill)
-        recyclerView!!.apply {
-            layoutManager = LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, true)
-            adapter = groupAdapter
+        onItemRemoveClick = { pos ->
+            listValues.removeAt(pos)
+            recyclerView.adapter = scannerItemAdapter
+
+            if (listValues.isEmpty())
+                emptyView?.visibility = View.VISIBLE
+            tvTotal.text = "Rs. " + listValues.sumByDouble { (it.quantity.toDouble()*it.price.toDouble()).round(2) }.toString()
+        }
+
+        scannerItemAdapter = ScannerItemAdapter(listValues, requireContext(), onItemClick, onItemRemoveClick)
+        scannerItemAdapter.setHasStableIds(true)
+
+        recyclerView.apply {
+            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, true)
+            adapter = scannerItemAdapter
         }
 
         btnTick.setOnClickListener {
@@ -160,17 +168,23 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
             val item = ScannerItem(barcode, name, "1.0", price, false, url)
             if (type=="kgs")
                 item.loose = true
-            listValues.add(item)
-
-            groupAdapter.add(ListItem(requireContext(), item, onItemClick, onItemRemoveClick))
+            scannerItemAdapter.addItem(item)
+            recyclerView.scrollToPosition(listValues.size - 1)
         }
         else {
             val matchedItem = listValues.first { it.name == name }
-            if (!matchedItem.loose)
-                matchedItem.quantity = (matchedItem.quantity.toDouble() + 1).toString()
+            matchedItem.quantity = (matchedItem.quantity.toDouble() + 1).toString()
 
-            val item = recyclerView?.getChildAt(listValues.indexOf(matchedItem))
-            item?.findViewById<ImageButton>(R.id.add_quantity_button)?.performClick()
+            val item = recyclerView.getChildAt(listValues.indexOf(matchedItem))
+            if (item!=null) {
+                if (!matchedItem.loose) {
+                    item.findViewById<ImageButton>(R.id.add_quantity_button).performClick()
+                } else {
+                    val etQuantity = item.findViewById<EditText>(R.id.et_quantity)
+                    val updatedQty = etQuantity.text.toString().toDouble() + 1
+                    etQuantity.setText(updatedQty.toString())
+                }
+            }
         }
 
         if (emptyView?.visibility==View.VISIBLE)
@@ -198,9 +212,8 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
                 firebaseHelper.addTransaction(TransactionDetails(phoneNum, tvTotal.text.toString().split(' ').last(), items))
 
                 val billDetails = BillDetails(phoneNum, tvTotal.text.toString().split(' ').last(), billItems)
-                listValues.clear()
+                scannerItemAdapter.clear()
                 tvTotal.text = "Rs."
-                groupAdapter.clear()
 
                 findNavController().navigate(R.id.action_scannerFragment_to_billFragment, Bundle().apply {
                     putParcelable("billDetails", billDetails)
@@ -224,8 +237,14 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
         for (i in 0 until itemCount) {
             val itemView = recyclerView!!.getChildAt(i)
             if (itemView != null) {
-                val qty = itemView.findViewById<EditText>(R.id.item_quantity)
-                bqList.add(BarcodeAndQty(listValues[i].barcode, qty.text.toString().toDouble()))
+                if(listValues[i].loose) {
+                    val qty = itemView.findViewById<EditText>(R.id.et_quantity)
+                    bqList.add(BarcodeAndQty(listValues[i].barcode, qty.text.toString().toDouble()))
+                }
+                else{
+                    val qty = itemView.findViewById<TextView>(R.id.item_quantity)
+                    bqList.add(BarcodeAndQty(listValues[i].barcode, qty.text.toString().toDouble()))
+                }
             }
         }
 
@@ -238,8 +257,7 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
         }
         snack.show()
 
-        listValues.clear()
-        groupAdapter.clear()
+        scannerItemAdapter.clear()
     }
 
     private fun Double.round(decimals: Int): Double {

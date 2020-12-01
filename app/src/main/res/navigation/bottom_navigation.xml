@@ -38,9 +38,6 @@
         android:label="History"
         tools:layout="@layout/fragment_history" >
         <action
-            android:id="@+id/action_historyFragment_to_agreementFragment"
-            app:destination="@id/agreementFragment" />
-        <action
             android:id="@+id/action_historyFragment_to_orderItemsFragment"
             app:destination="@id/orderItemsFragment" />
     </fragment>
@@ -79,14 +76,18 @@
         tools:layout="@layout/fragment_customer_requests"/>
     <fragment
         android:id="@+id/agreementFragment"
-        android:name="com.titos.barcodescanner.historyFeature.AgreementFragment"
+        android:name="com.titos.barcodescanner.khataFeature.AgreementFragment"
         android:label="AgreementFragment"
         tools:layout="@layout/fragment_agreement"/>
     <fragment
         android:id="@+id/khataFragment"
         android:name="com.titos.barcodescanner.khataFeature.KhataFragmentOutside"
         android:label="KhataFragment"
-        tools:layout="@layout/fragment_khata_outside"/>
+        tools:layout="@layout/fragment_khata_outside">
+        <action
+            android:id="@+id/action_khataFragment_to_agreementFragment"
+            app:destination="@id/agreementFragment" />
+    </fragment>
     <fragment
         android:id="@+id/addNewProductFragment"
         android:name="com.titos.barcodescanner.scannerFeature.AddNewProductFragment"

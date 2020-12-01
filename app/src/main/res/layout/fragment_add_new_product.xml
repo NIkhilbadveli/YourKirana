@@ -143,7 +143,7 @@
                     android:layout_toStartOf="@id/imageBtn"
                     android:layout_toEndOf="@id/spinner"
                     android:backgroundTint="#999999"
-                    android:inputType="number" />
+                    android:inputType="numberDecimal" />
 
                 <LinearLayout
                     android:id="@+id/linear"

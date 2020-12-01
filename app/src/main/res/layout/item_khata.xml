@@ -31,18 +31,18 @@
                 android:layout_gravity="center_vertical">
 
                 <TextView
-                    android:id="@+id/tv_customer_name"
+                    android:id="@+id/tv_mobile_number"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:text="Tiberius"
-                    android:textColor="#000000" />
+                    android:textColor="#000000" /><!--
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/tv_due_date"
                     android:text="3/07/2020 "
                     android:textSize="12sp"
-                    />
+                    />-->
             </LinearLayout>
             <TextView
                 android:layout_width="0dp"
@@ -53,7 +53,7 @@
                 android:textColor="#000000"
                 android:gravity="center"
                 android:layout_gravity="center"
-                android:text="\u20B9 350"/>
+                android:text="\u20B9 350"/><!--
             <ImageView
                 android:layout_width="0dp"
                 android:layout_weight="0.2"
@@ -62,18 +62,17 @@
                 android:src="@drawable/ic_keyboard_arrow_right_black_24dp"
                 android:layout_gravity="center"
                android:layout_marginStart="20dp"
-                />
+                />-->
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/expand"
-            android:visibility="gone"
             android:layout_margin="10dp"
             android:orientation="horizontal">
 
-                <TextView
+               <!-- <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:id="@+id/call"
@@ -85,7 +84,7 @@
                     android:gravity="center"
                     android:text="@string/contact_phone"
                     android:textColor="@color/textColorBlack"
-                    />
+                    />-->
                 <Button
                     android:layout_width="0dp"
                     android:layout_weight="1"
