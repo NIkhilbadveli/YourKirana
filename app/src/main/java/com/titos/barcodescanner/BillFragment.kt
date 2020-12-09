@@ -28,8 +28,9 @@ class BillFragment : BaseFragment(R.layout.fragment_bill) {
             shareBill(billDetails)
         }
 
+        val printUtility = PrintUtility(requireContext())
         layoutView.findViewById<Button>(R.id.btnPrintBill).setOnClickListener {
-            printBill(billDetails)
+            printUtility.printBill(billDetails)
             showToast("Bill is being printed")
         }
     }
@@ -54,10 +55,6 @@ class BillFragment : BaseFragment(R.layout.fragment_bill) {
                     showToast("No app installed")
                     e.printStackTrace()
                 }
-    }
-
-    private fun printBill(billDetails: BillDetails){
-        PrintUtility(requireContext(), billDetails)
     }
 
     private fun Double.round(decimals: Int): Double {

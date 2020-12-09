@@ -26,9 +26,9 @@ import java.util.*
 import kotlin.math.round
 
 
-class PrintUtility(val ctx: Context, val billDetails: BillDetails) {
+class PrintUtility(val ctx: Context) {
     private val ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION"
-
+    private lateinit var printerConnection: DeviceConnection
     private val usbReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
@@ -38,7 +38,7 @@ class PrintUtility(val ctx: Context, val billDetails: BillDetails) {
                     val usbDevice = intent.getParcelableExtra<Parcelable>(UsbManager.EXTRA_DEVICE) as UsbDevice?
                     if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                         if (usbManager != null && usbDevice != null) {
-                            printBill(UsbConnection(usbManager, usbDevice))
+                            printerConnection = UsbConnection(usbManager, usbDevice)
                         }
                     }
                 }
@@ -57,7 +57,7 @@ class PrintUtility(val ctx: Context, val billDetails: BillDetails) {
         }
     }
 
-    private fun printBill(printerConnection: DeviceConnection){
+    fun printBill(billDetails: BillDetails){
         try {
             val format = SimpleDateFormat("'Ordered' 'on' dd-MM-yyyy 'at' HH:mm:ss a", Locale.ROOT)
             val printer = EscPosPrinter(printerConnection, 203, 58f, 32)
@@ -65,7 +65,7 @@ class PrintUtility(val ctx: Context, val billDetails: BillDetails) {
             billDetails.billItems.forEach {
                 itemsText +=
                         "[L]<font size='small'>${it.name}</font>\n"+
-                        "[L]<font size='small'>                 ${it.quantity} * ${it.price}</font>[R]<font size='small'>${(it.price.toDouble()*it.quantity.toDouble()).round(2)}</font>\n" +
+                        "[L]<font size='small'>                 ${it.quantity} * ${it.price}</font>[R]<font size='small'>₹ ${(it.price.toDouble()*it.quantity.toDouble()).round(2)}</font>\n" +
                         "[L]\n"
             }
 
@@ -74,6 +74,7 @@ class PrintUtility(val ctx: Context, val billDetails: BillDetails) {
                     "[L]\n" +
                     "[C]<u><font size='big'>Riki Stores</font></u>\n" +
                     "[C]<font size='small'>${format.format(Date())}</font>\n" +
+                            "[C]<font size='small'>GSTIN: 29DXUPB6065E1Z3</font>\n" +
                     "[L]\n" +
                     "[C]================================\n" +
                     "[L]\n" +
@@ -81,8 +82,7 @@ class PrintUtility(val ctx: Context, val billDetails: BillDetails) {
                     itemsText +
                     "[L]\n" +
                     "[C]--------------------------------\n" +
-                    "[R]TOTAL PRICE :[R]${billDetails.orderValue}\n" +
-                    "[R]TAX :[R]0.00\n" +
+                    "[R]TOTAL PRICE :[R] ₹ ${billDetails.orderValue}\n" +
                     "[L]\n" +
                     "[C]================================\n" +
                     "[L]\n" +
@@ -90,7 +90,7 @@ class PrintUtility(val ctx: Context, val billDetails: BillDetails) {
                     "[L]Riki Stores,\n" +
                     "[L]#68-5, 5th cross, Behind Ganapathi temple,\n" +
                     "[L]Begur Main road, Bommanahalli - 560068\n" +
-                    "[L]Mobile : 9182677727\n" +
+                    "[L]Mobile : 8919057292\n" +
                     "[L]\n"
 
             printer.printFormattedText(formattedText)
@@ -126,4 +126,6 @@ class PrintUtility(val ctx: Context, val billDetails: BillDetails) {
         repeat(decimals) { multiplier *= 10 }
         return round(this * multiplier) / multiplier
     }
+
+
 }

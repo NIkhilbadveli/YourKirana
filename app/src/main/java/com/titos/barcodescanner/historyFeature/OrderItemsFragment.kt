@@ -83,9 +83,11 @@ class OrderItemsFragment : BaseFragment(R.layout.fragment_items_order){
             }
         }
 
+        val printUtility = PrintUtility(requireContext())
         val billDetails = BillDetails(contact, orderValue, billItems)
         layoutView.findViewById<Button>(R.id.btn_print).setOnClickListener {
-            PrintUtility(requireContext(), billDetails)
+            printUtility.printBill(billDetails)
+            showToast("Bill is being printed")
         }
     }
 
