@@ -153,9 +153,6 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         if (!sharedPref.getBoolean("alreadySaved", false))
             saveDataToCsv()
 
-        //Checking for new updates
-        checkForUpdates()
-
         //No Internet dialog
         noInternetDialog = NoInternetDialog.Builder(this).build()
         noInternetDialog.setCancelable(false)
@@ -269,95 +266,8 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
             }
     }
 
+    //Add playstore built-in update dialog
     private fun checkForUpdates() {
-        val updateDialog = Dialog(this)
-        updateDialog.setContentView(R.layout.dialog_update)
-        updateDialog.setCanceledOnTouchOutside(false)
-        FirebaseDatabase.getInstance().reference.child("appVersion").addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(p0: DataSnapshot) {
-                val appVersion = packageManager.getPackageInfo(packageName, 0).versionName
-                /*if (appVersion=="null") {
-                    sharedPref.edit {
-                        putString("appVersion", p0.value.toString())
-                        commit()
-                    }
-                }
-                else */
-                if (appVersion != p0.value.toString()) {
-                    updateDialog.findViewById<TextView>(R.id.tv_title).text = "New Update Available! V${p0.value.toString()}"
-                    updateDialog.show()
-                }
-            }
-
-            override fun onCancelled(p0: DatabaseError) {
-            }
-        })
-
-        val latestRef = FirebaseStorage.getInstance().reference.child("app-release.apk")
-        val localFile = File.createTempFile("app-latest", ".apk")
-
-        var installReady = false
-        updateDialog.findViewById<TextView>(R.id.btn_update_now).setOnClickListener {
-            if (!installReady) {
-                updateDialog.findViewById<LinearLayout>(R.id.progress_container).visibility = View.VISIBLE
-                val linearLayout = updateDialog.findViewById<LinearLayout>(R.id.container_update)
-                linearLayout.visibility = View.GONE
-                latestRef.getFile(localFile).addOnSuccessListener {
-                    Toast.makeText(this, "Download completed", Toast.LENGTH_LONG).show()
-                    updateDialog.findViewById<TextView>(R.id.btn_update_now).text = "Install Now"
-                    installReady = true
-                    linearLayout.visibility = View.VISIBLE
-                }.addOnFailureListener {
-                    // Handle any errors
-                }.addOnProgressListener {
-                    val progress = (100.0 * it.bytesTransferred) / it.totalByteCount
-                    updateDialog.findViewById<ProgressBar>(R.id.progress_bar_horizontal).progress = progress.toInt()
-                    updateDialog.findViewById<TextView>(R.id.tv_progress).text = progress.toInt().toString() + "%"
-                }
-            }
-            else{
-                try {
-                    val intent = Intent(Intent.ACTION_VIEW)
-                     if (Build.VERSION.SDK_INT >= 24) {
-                         val downloadedApk: Uri = FileProvider.getUriForFile(this, "$packageName.provider", localFile)
-                         intent.setDataAndType(downloadedApk, "application/vnd.android.package-archive")
-                         val resInfoList: List<ResolveInfo> = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
-                        for (resolveInfo in resInfoList) {
-                            grantUriPermission("$packageName.provider", downloadedApk, Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        }
-                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                        intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
-                    } else {
-                         intent.action = Intent.ACTION_VIEW
-                         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                         intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
-                         intent.setDataAndType(Uri.fromFile(localFile), "application/vnd.android.package-archive")
-                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                     }
-                    startActivity(intent)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        }
-        val dialogBuilder = AlertDialog.Builder(this)
-        dialogBuilder.setMessage("Are you sure?")
-                .setCancelable(false)
-                .setPositiveButton("Yes") { dialog, _ ->
-                    dialog.dismiss()
-                    updateDialog.dismiss()
-                }
-                .setNegativeButton("No") { dialog, id -> dialog.cancel() }
-
-        val alert = dialogBuilder.create()
-        alert.setTitle("Installing later")
-
-        updateDialog.findViewById<TextView>(R.id.btn_maybe_later).setOnClickListener {
-            if (installReady)
-                alert.show()
-            else
-                updateDialog.cancel()
-        }
     }
 
     override fun onDestroy() {

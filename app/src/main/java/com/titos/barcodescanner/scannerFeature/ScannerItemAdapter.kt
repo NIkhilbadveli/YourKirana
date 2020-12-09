@@ -189,7 +189,7 @@ class ScannerItemAdapter(val scannerItemList: ArrayList<ScannerItem>, val contex
                     .userAgent("Mozilla")
                     .get()
             val img = doc.getElementsByTag("img")
-            url = img[1].absUrl("src")
+            url = if(img.size>1) img[1].absUrl("src") else "https://www.google.co.in"
             /*for (el in img) {
                 val src: String = el.absUrl("src")
                 println("src attribute is: $src")
