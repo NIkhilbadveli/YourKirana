@@ -31,6 +31,9 @@
         <action
             android:id="@+id/action_profileFragment_to_customerRequestsFragment"
             app:destination="@id/customerRequestsFragment" />
+        <action
+            android:id="@+id/action_profileFragment_to_addNewProductFragment"
+            app:destination="@id/addNewProductFragment" />
     </fragment>
     <fragment
         android:id="@+id/historyFragment"

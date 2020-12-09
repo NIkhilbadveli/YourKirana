@@ -68,6 +68,7 @@ class ProfileFragment : BaseFragment(R.layout.fragment_profile) {
         groupAdapter.add(ProfileItem(R.drawable.ic_rupee_indian, "Calculate Margin"))
         groupAdapter.add(ProfileItem(R.drawable.icons8_share_48px, "Share App"))
         groupAdapter.add(ProfileItem(R.drawable.icons8_logout_rounded_left_48px, "Logout"))
+        groupAdapter.add(ProfileItem(R.drawable.ic_baseline_product_add_24, "Add New Product"))
 
         val dialog = ProgressDialog(requireContext(), "Logging out...")
         groupAdapter.setOnItemClickListener { _, itemView ->
@@ -76,6 +77,11 @@ class ProfileFragment : BaseFragment(R.layout.fragment_profile) {
                 1 -> calcMargin()
                 2 -> shareApp()
                 3 -> logoutFromApp(dialog)
+                4 -> {
+                    findNavController().navigate(R.id.action_profileFragment_to_addNewProductFragment, Bundle().apply {
+                        putString("barcode", firebaseHelper.getNewBarcode())
+                    })
+                }
             }
         }
 

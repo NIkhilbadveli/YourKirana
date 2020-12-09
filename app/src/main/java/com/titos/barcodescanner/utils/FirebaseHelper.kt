@@ -64,19 +64,9 @@ class FirebaseHelper(val shopName: String) {
         return ldProductDetails
     }
 
-/*    fun addOrUpdateLooseItem(barcode: String){
-        val date = Date()
-        val dateFormat = simpleDateFormat.format(date)
-        val timeFormat = simpleTimeFormat.format(date)
-
-        firestore.collection("stores/$shopName/inventoryData")
-                .document(barcode)
-                .set(productDetails)
-                .addOnSuccessListener { Log.d("TAG", "addProduct: $barcode") }
-                .addOnFailureListener { Log.d("TAG", "failedToAdd: $barcode") }
-
-        updateQty("$dateFormat $timeFormat", barcode, productDetails.qty ,mode)
-    }*/
+    fun getNewBarcode(): String{
+        return firestore.collection("stores/$shopName/inventoryData").document().id
+    }
 
     fun removeProduct(barcode: String){
         firestore.collection("stores/$shopName/inventoryData")
@@ -101,15 +91,28 @@ class FirebaseHelper(val shopName: String) {
         return ldProductDetails
     }
 
-    fun updateIntToDouble(){
-        firestore.collection("stores/$shopName/inventoryData")
+    fun getNameToBarcodeMap(): LiveData<Map<String, String>>{
+        val ldProductDetails = MutableLiveData<Map<String, String>>()
+        firestore.collection("productData")
                 .get()
                 .addOnSuccessListener {
-                    val map = mutableMapOf<String,ProductDetails>()
-                    for (doc in it.documents)
-                        map[doc.id] = doc.toObject(ProductDetails::class.java)!!
+                    val map = mutableMapOf<String, String>()
+                    for (doc in it.documents){
+                        map[doc.getString("name")!!] = doc.id
+                    }
+                    firestore.collection("stores/$shopName/inventoryData")
+                            .get()
+                            .addOnSuccessListener { qs ->
+                                for (doc in qs.documents){
+                                    if (!map.containsKey(doc.getString("name")!!))
+                                        map[doc.getString("name")!!] = doc.id
+                                }
+                                ldProductDetails.value = map
+                            }
                 }
                 .addOnFailureListener { Log.d("TAG", "failedToGetTransactions") }
+
+        return ldProductDetails
     }
 
     //Handling transaction stuff

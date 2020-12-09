@@ -44,6 +44,7 @@ import com.google.firebase.storage.FirebaseStorage
 import com.ismaeldivita.chipnavigation.ChipNavigationBar
 import com.titos.barcodescanner.base.BaseActivity
 import com.titos.barcodescanner.dashboardFeature.BarcodeAndQty
+import com.titos.barcodescanner.utils.FirebaseHelper
 import java.io.File
 
 class MainActivity : BaseActivity(R.layout.activity_main) {

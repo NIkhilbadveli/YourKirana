@@ -17,12 +17,12 @@ class KhataItem(val refKey: String, val kd: KhataDetails, val onItemRemoveClick:
 
     override fun bind(viewHolder: GroupieViewHolder, position: Int){
         viewHolder.apply {
-            val tvCustomerName = containerView.findViewById<TextView>(R.id.tv_mobile_number)
+            val tvMobile = containerView.findViewById<TextView>(R.id.tv_mobile_number)
             val tvDueAmount = containerView.findViewById<TextView>(R.id.tv_due_amount)
 
-            tvCustomerName.text = kd.mobileNumber
+            tvMobile.text = kd.mobileNumber
             tvDueAmount.text = "\u20B9 ${kd.amountDue}"
-
+            containerView.findViewById<TextView>(R.id.tv_optional).text = kd.optionalNote
             val clear = containerView.findViewById<TextView>(R.id.clear)
 
             val builder = AlertDialog.Builder(containerView.context)

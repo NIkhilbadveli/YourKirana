@@ -32,7 +32,7 @@ class AgreementFragment : BaseFragment(R.layout.fragment_agreement) {
         val khataDetails = KhataDetails()
         layoutView.findViewById<Button>(R.id.saveButton).setOnClickListener {
 
-            if (etMobileNumber.text.isNotEmpty()
+            if (etMobileNumber.text.isNotEmpty() && etMobileNumber.text.length == 10
                     && etAmountDue.text.isNotEmpty()) {
                 val addedTime = simpleDateFormat.format(Date())
 
@@ -46,6 +46,8 @@ class AgreementFragment : BaseFragment(R.layout.fragment_agreement) {
                 Toast.makeText(context, "Added to database", Toast.LENGTH_SHORT).show()
                 findNavController().navigateUp()
             }
+            else if (etMobileNumber.text.length !=10)
+                showToast("Mobile number not correct")
             else
                 Toast.makeText(context, "Please enter all the values", Toast.LENGTH_SHORT).show()
         }

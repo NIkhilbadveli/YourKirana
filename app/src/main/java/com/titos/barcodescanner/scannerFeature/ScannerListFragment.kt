@@ -28,6 +28,7 @@ import com.titos.barcodescanner.base.BaseFragment
 import com.titos.barcodescanner.dashboardFeature.BarcodeAndQty
 import com.titos.barcodescanner.utils.BillDetails
 import com.titos.barcodescanner.utils.PrintUtility
+import com.titos.barcodescanner.utils.ProductDetails
 import com.titos.barcodescanner.utils.TransactionDetails
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
@@ -36,6 +37,7 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
                           val btnInv: Button) : BaseFragment(R.layout.fragment_list_scanner) {
 
     private var listValues = ArrayList<ScannerItem>()
+
     private lateinit var recyclerView:RecyclerView
     private lateinit var scannerItemAdapter: ScannerItemAdapter
     private lateinit var model: MainActivity.SharedViewModel
@@ -146,12 +148,13 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
         val toolbar = requireActivity().findViewById<Toolbar>(R.id.toolbar_main)
         val switch = toolbar.findViewById<SwitchCompat>(R.id.inventory_scanner_switch)
         firebaseHelper.searchBarcode(barcode).observe(this) { productDetails ->
-                if (productDetails.name.isNotEmpty())
-                    addToListView(barcode, productDetails.name, productDetails.sellingPrice, productDetails.type , "dummyURL")
-                else if (productDetails.name.isEmpty() && switch.isChecked)
-                    showSnackBar("Item not found.")
-                else if (productDetails.name.isEmpty() && !switch.isChecked)
-                    showNewProductDialog(barcode)
+            if (productDetails.name.isNotEmpty()) {
+                addToListView(barcode, productDetails.name, productDetails.sellingPrice, productDetails.type, productDetails.url)
+            }
+            else if (productDetails.name.isEmpty() && switch.isChecked)
+                showSnackBar("Item not found.")
+            else if (productDetails.name.isEmpty() && !switch.isChecked)
+                showNewProductDialog(barcode)
         }
     }
 

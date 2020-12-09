@@ -1,5 +1,6 @@
 package com.titos.barcodescanner.historyFeature
 
+import android.widget.Button
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
@@ -8,10 +9,14 @@ import android.widget.TextView
 import androidx.lifecycle.observe
 
 import androidx.navigation.fragment.findNavController
+import com.titos.barcodescanner.BillFragment
 
 
 import com.titos.barcodescanner.R
 import com.titos.barcodescanner.base.BaseFragment
+import com.titos.barcodescanner.scannerFeature.ScannerItem
+import com.titos.barcodescanner.utils.BillDetails
+import com.titos.barcodescanner.utils.PrintUtility
 
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
@@ -55,6 +60,7 @@ class OrderItemsFragment : BaseFragment(R.layout.fragment_items_order){
         val barcodeList = arguments?.getStringArrayList("barcodeList")!!
         val qtyList = arguments?.getStringArrayList("qtyList")!!
 
+        val billItems = ArrayList<ScannerItem>()
         firebaseHelper.getMultipleProductDetails(barcodeList).observe(this) {pdMap ->
             for(pd in pdMap) {
                 val sp = pd.value.sellingPrice
@@ -73,7 +79,13 @@ class OrderItemsFragment : BaseFragment(R.layout.fragment_items_order){
 
                 val loose = pd.value.type == "kgs"
                 groupAdapter.add(OrderItem(name, qtyList[barcodeList.indexOf(pd.key)], sp, loose))
+                billItems.add(ScannerItem(pd.key, pd.value.name, qtyList[barcodeList.indexOf(pd.key)], pd.value.sellingPrice, loose,pd.value.url))
             }
+        }
+
+        val billDetails = BillDetails(contact, orderValue, billItems)
+        layoutView.findViewById<Button>(R.id.btn_print).setOnClickListener {
+            PrintUtility(requireContext(), billDetails)
         }
     }
 

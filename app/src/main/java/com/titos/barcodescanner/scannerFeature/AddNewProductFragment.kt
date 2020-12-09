@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.MediaStore
 import android.text.InputType
+import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.lifecycle.observe
@@ -106,12 +107,13 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
         if (edit){
             showProgress("Please wait...")
             add.text = "Update"
+
             firebaseHelper.getProductDetails(barcode).observe(this) { p0->
                 pName.setText(p0.name)
                 sp.setText(p0.sellingPrice)
                 cp.setText(p0.costPrice)
                 spinType.setSelection(type.indexOf(p0.type))
-
+                showSnackBar("Barcode is $barcode")
                 if (p0.type=="kgs")
                     etQuantity.setText(p0.qty.toString())
                 else {
