@@ -10,7 +10,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:layout_gravity="center"
     android:gravity="center">
 
     <androidx.cardview.widget.CardView
@@ -73,6 +72,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/name1"
+                    android:inputType="textShortMessage"
+                    android:imeOptions="actionNext"
                     android:layout_margin="10dp" />
 
                 <TextView
@@ -91,7 +92,8 @@
                     android:layout_height="wrap_content"
                     android:layout_below="@id/edit_name"
                     android:layout_marginStart="50dp"
-                    android:layout_toEndOf="@id/type"
+                    android:layout_marginEnd="20dp"
+                    android:layout_alignParentEnd="true"
                     android:orientation="horizontal">
 
                     <TextView
@@ -113,17 +115,6 @@
                         android:textSize="12sp" />
                 </LinearLayout>
 
-                <ImageView
-                    android:id="@+id/imageBtn"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:layout_marginStart="30dp"
-                    android:layout_marginTop="20dp"
-                    android:layout_toEndOf="@+id/quant"
-                    android:layout_above="@id/linear"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/ic_photo_camera_black_24dp" />
-
                 <Spinner
                     android:id="@+id/spinner"
                     android:layout_width="120dp"
@@ -136,12 +127,11 @@
 
                 <EditText
                     android:id="@+id/edit_quantity"
-                    android:layout_width="wrap_content"
+                    android:layout_width="100dp"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/quant"
                     android:layout_margin="10dp"
-                    android:layout_toStartOf="@id/imageBtn"
-                    android:layout_toEndOf="@id/spinner"
+                    android:layout_alignParentEnd="true"
                     android:backgroundTint="#999999"
                     android:inputType="numberDecimal" />
 
@@ -215,7 +205,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="#277553"
                 android:textSize="12sp"
-                android:text="Selling Price (INR)"
+                android:text="Selling Price (\u20B9)"
                 android:layout_marginStart="10dp"
                 />
             <EditText
@@ -231,7 +221,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="#277553"
                 android:textSize="12sp"
-                android:text="Cost Price (INR)"
+                android:text="Cost Price (\u20B9)"
                 android:layout_marginStart="10dp"
                 />
             <EditText
@@ -279,5 +269,5 @@
             />
     </LinearLayout>
 
-</LinearLayout>
+    </LinearLayout>
 </ScrollView>

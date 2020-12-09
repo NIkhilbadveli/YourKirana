@@ -60,27 +60,6 @@ class HistoryFragment : BaseFragment(R.layout.fragment_history){
             adapter = groupAdapter
         }
 
-        val swipeHandler = object : SwipeToAgreement(requireContext()) {
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val tvOrderNumber = viewHolder.itemView.findViewById<TextView>(R.id.history_order_number)
-                if(tvOrderNumber!=null) {
-                    val orderNumber = tvOrderNumber.text.toString()
-                    val pos = orderNumber.split(" ").last().toInt() - 1
-
-                    val bundle = Bundle()
-                    bundle.putString("amountDue", orderValueList[pos])
-                    bundle.putString("contact", contactList[pos])
-                    findNavController().navigate(R.id.action_historyFragment_to_agreementFragment, bundle)
-                }
-                else{
-                    Toast.makeText(requireContext(), "Don't swipe here :)", Toast.LENGTH_SHORT).show()
-                    findNavController().navigate(R.id.historyFragment)
-                }
-            }
-        }
-        val itemTouchHelper = ItemTouchHelper(swipeHandler)
-        itemTouchHelper.attachToRecyclerView(recyclerView)
-
         populateView(view, groupAdapter)
 
         val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy hh:mm:ss a", Locale.US)
@@ -89,18 +68,16 @@ class HistoryFragment : BaseFragment(R.layout.fragment_history){
             dialogBuilder.setMessage("Are you sure?")
                     .setCancelable(false)
                     .setPositiveButton("Yes") { _, _ ->
-
-                        firebaseHelper.deleteTransaction(keys[deletePosition]).observe(this) { deleted ->
-                            if (deleted) {
-                                val date = Date()
-                                val dateFormat = simpleDateFormat.format(date)
-                                firebaseHelper.getTransactionDetails(keys[deletePosition]).observe(this){
-                                    //Adding back all the products to Inventory in this particular transaction
-                                    it.items.forEach { item ->
-                                        firebaseHelper.updateQty(dateFormat, item.key, item.value.toDouble(), 0)
-                                    }
-                                }
+                        val date = Date()
+                        val dateFormat = simpleDateFormat.format(date)
+                        showProgress("Deleting transaction $dateFormat")
+                        firebaseHelper.getTransactionDetails(keys[deletePosition]).observe(this){
+                            //Adding back all the products to Inventory in this particular transaction
+                            it.items.forEach { item ->
+                                firebaseHelper.updateQty(dateFormat, item.key, item.value.toDouble(), 0)
                             }
+                            firebaseHelper.deleteTransaction(keys[deletePosition])
+                            dismissProgress()
                         }
 
                         groupAdapter.removeGroupAtAdapterPosition(pos)

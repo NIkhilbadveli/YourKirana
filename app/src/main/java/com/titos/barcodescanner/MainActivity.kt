@@ -15,11 +15,10 @@ import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.os.Build
-import android.os.Bundle
+import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.widget.*
-import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
@@ -28,13 +27,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.observe
 import androidx.navigation.NavController
-import androidx.navigation.Navigation
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
@@ -43,30 +40,32 @@ import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
 import com.google.firebase.storage.FirebaseStorage
 import com.ismaeldivita.chipnavigation.ChipNavigationBar
 import com.titos.barcodescanner.base.BaseActivity
-import com.titos.barcodescanner.dashboardFeature.BarcodeAndQty
+import com.titos.barcodescanner.utils.FirebaseHelper
+import com.titos.barcodescanner.utils.UserDetails
 import java.io.File
+
 
 class MainActivity : BaseActivity(R.layout.activity_main) {
 
-    //private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var btnBluetooth: ImageButton
     private lateinit var sharedPref: SharedPreferences
     private lateinit var noInternetDialog: NoInternetDialog
     companion object {
-
         private const val MY_CAMERA_REQUEST_CODE = 100
     }
 
     override fun initView() {
         setSupportActionBar(findViewById(R.id.toolbar_main))
-        //add locaton permission later
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(arrayOf(Manifest.permission.CAMERA), MY_CAMERA_REQUEST_CODE)
+            if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                    || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), MY_CAMERA_REQUEST_CODE)
             }
         }
 
-        //fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         val navController: NavController = (supportFragmentManager.findFragmentById(R.id.fragment) as NavHostFragment).navController
         val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottomNav)
@@ -87,14 +86,13 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         NavigationUI.setupWithNavController(bottomNavigationView, navController)
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar_main)
-        val user = FirebaseAuth.getInstance().currentUser
+        val user = FirebaseAuth.getInstance().currentUser!!
 
         //Adding member count to storeStats in realtime database & sharedPref
         sharedPref = getSharedPreferences("sharedPref", Context.MODE_PRIVATE) ?: return
 
         //Setting Profile Avatar
         val profileAvatar = toolbar.findViewById<AvatarView>(R.id.profile_avatar)
-        val userRef = FirebaseDatabase.getInstance().reference.child("userData").child(user?.uid!!)
         val picassoLoader = PicassoLoader()
 
         firebaseHelper.getUserDetails(user.uid).observe(this){
@@ -105,7 +103,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
                 putString("userName", it.userName)
                 commit()
             }
-
+            setShopLocation(user.uid, it)
             if (it.userName!="null") {
                 picassoLoader.loadImage(profileAvatar, user.photoUrl.toString(), it.userName)
             } else
@@ -114,7 +112,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
 
         profileAvatar.setOnClickListener { findNavController(R.id.fragment).navigate(R.id.profileFragment) }
 
-        //setShopLocation(userRef)
+
 
         //Handling firebase dynamic links
         FirebaseDynamicLinks.getInstance()
@@ -205,7 +203,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             111 -> if (resultCode == Activity.RESULT_OK)
-                    startActivity(Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS))
+                startActivity(Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS))
 
         }
     }
@@ -214,56 +212,68 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         val sharedPref = getSharedPreferences("sharedPref", Context.MODE_PRIVATE) ?: return
 
         FirebaseDatabase.getInstance().reference.child("productInfoData")
-                .addValueEventListener(object : ValueEventListener{
-            override fun onDataChange(p0: DataSnapshot) {
-                val data = ArrayList<String>()
-                for (barcode in p0.children){
-                    data.add(barcode.child("name").value.toString())
-                }
-                val file = File(filesDir, "productData.csv")
-                csvWriter().writeAll(listOf(data), file)
-                sharedPref.edit{
-                    putBoolean("alreadySaved", true)
-                    commit()
-                }
-            }
+                .addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(p0: DataSnapshot) {
+                        val data = ArrayList<String>()
+                        for (barcode in p0.children) {
+                            data.add(barcode.child("name").value.toString())
+                        }
+                        val file = File(filesDir, "productData.csv")
+                        csvWriter().writeAll(listOf(data), file)
+                        sharedPref.edit {
+                            putBoolean("alreadySaved", true)
+                            commit()
+                        }
+                    }
 
-            override fun onCancelled(p0: DatabaseError) {
-            }
-        })
+                    override fun onCancelled(p0: DatabaseError) {
+                    }
+                })
     }
 
-/*    private fun setShopLocation(userDataRef:DatabaseReference){
+    private fun setShopLocation(uid: String, userDetails: UserDetails){
+            if (userDetails.latitude==0.0 || userDetails.longitude==0.0) {
+                val locationRequest = LocationRequest.create()
+                locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
 
-        userDataRef.addValueEventListener(object : ValueEventListener{
-            override fun onDataChange(p0: DataSnapshot) {
-                if (!p0.child("latitude").exists() || !p0.child("longitude").exists()){
-                    Log.d("locYourKirana","success")
-                    if (ActivityCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                            ActivityCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-                        return
-                    }
-                    fusedLocationClient.lastLocation
-                            .addOnSuccessListener { location->
-                                if (location != null) {
-                                    userDataRef.child("latitude").setValue(location.latitude)
-                                    userDataRef.child("longitude").setValue(location.longitude)
-                                }
+                val locationCallback = object : LocationCallback() {
+                    override fun onLocationResult(locationResult: LocationResult?) {
+                        if (locationResult == null) {
+                            return
+                        }
+                        for (location in locationResult.locations) {
+                            if (location != null) {
+                                FirebaseHelper(shopName).updateLocation(uid, location.latitude, location.longitude)
+                                fusedLocationClient.removeLocationUpdates(this)
                             }
+                        }
+                    }
                 }
-            }
 
-            override fun onCancelled(p0: DatabaseError) {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                        && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    return
+                }
+
+                fusedLocationClient.lastLocation
+                        .addOnSuccessListener { location ->
+                            if (location != null) {
+                                Log.d("fucked", location.longitude.toString())
+                                FirebaseHelper(shopName).updateLocation(uid, location.latitude, location.longitude)
+                            }
+                            else{
+                                Log.d("fucked", "Requesting for location updates")
+                                fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+                            }
+                        }
             }
-        })
-    }*/
+    }
 
     private fun checkForUpdates() {
         val updateDialog = Dialog(this)
         updateDialog.setContentView(R.layout.dialog_update)
         updateDialog.setCanceledOnTouchOutside(false)
-        FirebaseDatabase.getInstance().reference.child("appVersion").addValueEventListener(object : ValueEventListener{
+        FirebaseDatabase.getInstance().reference.child("appVersion").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(p0: DataSnapshot) {
                 val appVersion = packageManager.getPackageInfo(packageName, 0).versionName
                 /*if (appVersion=="null") {
@@ -273,7 +283,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
                     }
                 }
                 else */
-                if (appVersion!=p0.value.toString()){
+                if (appVersion != p0.value.toString()) {
                     updateDialog.findViewById<TextView>(R.id.tv_title).text = "New Update Available! V${p0.value.toString()}"
                     updateDialog.show()
                 }
@@ -370,6 +380,5 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         fun resumeScanner(){
             isScannerPaused.value = false
         }
-
     }
 }

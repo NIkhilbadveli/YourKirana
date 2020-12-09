@@ -116,7 +116,7 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
         cp = layoutView.findViewById(R.id.edit_cp)
         etQuantity = layoutView.findViewById(R.id.edit_quantity)
 
-        url = "https://google.com"
+        url = "https://google.co.in"
 
         //If edit is true... get data from firestore
         val edit = if(arguments?.getBoolean("edit")!=null) arguments?.getBoolean("edit")!! else false
@@ -143,20 +143,23 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
                 Timer().schedule(100){
                     requireActivity().runOnUiThread { spinSubCategory.setSelection(subCategoryList[index].indexOf(p0.subCategory)) }
                 }
+
+                spinCategory.isEnabled = false
+                spinSubCategory.isEnabled = false
+                spinType.isEnabled = false
                 dismissProgress()
             }
         }
 
         add.setOnClickListener {
-
-            if (pName.text.isNotEmpty()&&sp.text.isNotEmpty()&&cp.text.isNotEmpty()
-                    &&etQuantity.text.isNotEmpty()&&barcode!="00000") {
-                if(sp.text.toString().toDouble()>=cp.text.toString().toDouble()) {
+            if (pName.text.isNotEmpty()&&sp.text.isNotEmpty()&&barcode!="00000"&&
+                    cp.text.isNotEmpty() &&etQuantity.text.isNotEmpty()) {
 
                     prodInfo.name=(pName.text.toString())
                     prodInfo.sellingPrice=(sp.text.toString())
                     prodInfo.costPrice=(cp.text.toString())
 
+                //Checking if the qty is same
                     var equal = true
                     if (prodInfo.qty!=etQuantity.text.toString().toDouble()) {
                         prodInfo.qty = (etQuantity.text.toString().toDouble())
@@ -166,7 +169,7 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
                     prodInfo.url=(url)
                     prodInfo.type=(spinType.selectedItem.toString())
                     prodInfo.category=(spinCategory.selectedItem.toString())
-                    prodInfo.subCategory=(spinSubCategory.selectedItem.toString())
+                    prodInfo.subCategory = spinSubCategory.selectedItem.toString()
 
                     if(edit){
                         if (equal) //If the qty is same, don't trigger updateQty
@@ -181,9 +184,6 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
                         Toast.makeText(context, "Added to Inventory", Toast.LENGTH_SHORT).show()
                     }
                     findNavController().navigateUp()
-                }
-                else
-                    Toast.makeText(context, "Selling Price should be greater than cost price", Toast.LENGTH_SHORT).show()
             }
             else
                 Toast.makeText(context, "Please enter all the required values", Toast.LENGTH_SHORT).show()
@@ -191,58 +191,5 @@ class AddNewProductFragment : BaseFragment(R.layout.fragment_add_new_product) {
 
         layoutView.findViewById<Button>(R.id.cancelBtn).setOnClickListener { findNavController().navigateUp() }
 
-        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        layoutView.findViewById<ImageView>(R.id.imageBtn).setOnClickListener {
-            if (takePictureIntent.resolveActivity(activity?.packageManager!!) != null) {
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
-            }
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
-            val extras = data?.extras
-            val imageBitmap = extras!!["data"] as Bitmap?
-            layoutView.findViewById<ImageView>(R.id.imageBtn).setImageBitmap(imageBitmap)
-            uploadImageAndUpdateUrl(imageBitmap!!)
-            detectAndProcessTxt(imageBitmap)
-        }
-        super.onActivityResult(requestCode, resultCode, data)
-    }
-
-    private fun detectAndProcessTxt(imageBitmap: Bitmap?){
-        val firebaseVisionImage = FirebaseVisionImage.fromBitmap(imageBitmap!!)
-        val textRecognizer = FirebaseVision.getInstance().onDeviceTextRecognizer
-        var detectedText = ""
-
-        textRecognizer.processImage(firebaseVisionImage)
-                .addOnSuccessListener {
-                    detectedText = it.text.replace(System.getProperty("line.separator")!!," ")
-                    pName.setText(detectedText)
-                }
-                .addOnFailureListener { Toast.makeText(context,"Failed to detect any text... add manually",Toast.LENGTH_SHORT).show() }
-    }
-
-    private fun uploadImageAndUpdateUrl(bitmap: Bitmap){
-
-        val file = createTempFile(barcode, ".jpg")
-        val fOut: OutputStream = FileOutputStream(file)
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fOut)
-        fOut.flush()
-        fOut.close()
-        MediaStore.Images.Media.insertImage(activity?.contentResolver, file.absolutePath, file.name, file.name)
-
-        val imageRef = FirebaseStorage.getInstance().reference.child( "$shopName/${Uri.fromFile(file).lastPathSegment}")
-        val uploadTask = imageRef.putFile(Uri.fromFile(file))
-
-        //Toast.makeText(requireContext(),"Started uploading",Toast.LENGTH_SHORT).show()
-
-        uploadTask.addOnSuccessListener {
-            Toast.makeText(requireContext(),"Successfully uploaded",Toast.LENGTH_SHORT).show()
-        }.addOnFailureListener { Toast.makeText(requireContext(),it.toString(),Toast.LENGTH_SHORT).show() }
-
-        imageRef.downloadUrl.addOnSuccessListener {
-            url = it.toString()
-        }.addOnFailureListener { Toast.makeText(requireContext(),it.toString(),Toast.LENGTH_SHORT).show() }
     }
 }

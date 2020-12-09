@@ -3,6 +3,7 @@ package com.titos.barcodescanner.khataFeature
 import android.view.View
 import android.widget.SearchView
 import android.widget.TextView
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.titos.barcodescanner.R
@@ -37,6 +38,7 @@ class KhataFragmentInside : BaseFragment(R.layout.fragment_khata_inside), Search
         val onItemRemoveClick :((String, Int)->Unit) = { time, pos ->
             firebaseHelper.updateKhataStatus(time)
             groupAdapter.removeGroupAtAdapterPosition(pos)
+            findNavController().navigate(R.id.khataFragment)
         }
 
         val kdList = arguments?.getSerializable("kdList")!! as HashMap<String, KhataDetails>
@@ -70,7 +72,7 @@ class KhataFragmentInside : BaseFragment(R.layout.fragment_khata_inside), Search
         if (lowerCaseText.isNotEmpty())
         {
             groupAdapter.clear()
-            groupAdapter.addAll(customerList.filter { it.kd.customerName.toLowerCase(getDefault()).contains(lowerCaseText) })
+            groupAdapter.addAll(customerList.filter { it.kd.mobileNumber.toLowerCase(getDefault()).contains(lowerCaseText) })
         }
         else
         {

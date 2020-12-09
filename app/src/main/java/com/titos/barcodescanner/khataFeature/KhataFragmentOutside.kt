@@ -10,9 +10,11 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.observe
+import androidx.navigation.fragment.findNavController
 
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.database.DataSnapshot
@@ -53,6 +55,10 @@ class KhataFragmentOutside : BaseFragment(R.layout.fragment_khata_outside) {
 
             }.attach()
             dismissProgress()
+        }
+
+        layoutView.findViewById<FloatingActionButton>(R.id.btn_new_khata).setOnClickListener {
+            findNavController().navigate(R.id.action_khataFragment_to_agreementFragment)
         }
     }
 

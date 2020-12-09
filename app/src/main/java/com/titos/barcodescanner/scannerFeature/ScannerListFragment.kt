@@ -28,6 +28,7 @@ import com.titos.barcodescanner.base.BaseFragment
 import com.titos.barcodescanner.dashboardFeature.BarcodeAndQty
 import com.titos.barcodescanner.utils.BillDetails
 import com.titos.barcodescanner.utils.PrintUtility
+import com.titos.barcodescanner.utils.ProductDetails
 import com.titos.barcodescanner.utils.TransactionDetails
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
@@ -36,13 +37,13 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
                           val btnInv: Button) : BaseFragment(R.layout.fragment_list_scanner) {
 
     private var listValues = ArrayList<ScannerItem>()
+    private val pdMap = mutableMapOf<String, ProductDetails>()
     private lateinit var recyclerView:RecyclerView
     private lateinit var model: MainActivity.SharedViewModel
     private lateinit var scannerItemAdapter: ScannerItemAdapter
     private lateinit var onItemClick:((Int,String,Double)->Unit)
     private lateinit var onItemRemoveClick:((Int)->Unit)
     private var emptyView: LinearLayout? = null
-
     private lateinit var sharedPref: SharedPreferences
 
     private var phoneNum = "1234567890"
@@ -53,7 +54,7 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
 
         val view = layoutView
         model = ViewModelProvider(requireParentFragment()).get(MainActivity.SharedViewModel::class.java)
-        
+
         handleSwitching(view)
 
         model.selected.observe(viewLifecycleOwner, Observer { s -> searchForProduct(s) })
@@ -73,6 +74,7 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
         }
 
         onItemRemoveClick = { pos ->
+            pdMap.remove(listValues[pos].barcode)
             listValues.removeAt(pos)
             recyclerView.adapter = scannerItemAdapter
 
@@ -109,7 +111,6 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
             dialog.show()
             model.pauseScanner()
         }
-
     }
 
     private fun handleSwitching(view: View){
@@ -146,8 +147,10 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
         val toolbar = requireActivity().findViewById<Toolbar>(R.id.toolbar_main)
         val switch = toolbar.findViewById<SwitchCompat>(R.id.inventory_scanner_switch)
         firebaseHelper.searchBarcode(barcode).observe(this) { productDetails ->
-                if (productDetails.name.isNotEmpty())
-                    addToListView(barcode, productDetails.name, productDetails.sellingPrice, productDetails.type , "dummyURL")
+                if (productDetails.name.isNotEmpty()) {
+                    pdMap[barcode] = productDetails
+                    addToListView(barcode, productDetails.name, productDetails.sellingPrice, productDetails.type, productDetails.url)
+                }
                 else if (productDetails.name.isEmpty() && switch.isChecked)
                     showSnackBar("Item not found.")
                 else if (productDetails.name.isEmpty() && !switch.isChecked)
@@ -168,7 +171,7 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
             val item = ScannerItem(barcode, name, "1.0", price, false, url)
             if (type=="kgs")
                 item.loose = true
-            listValues.add(item)
+
             scannerItemAdapter.addItem(item)
             recyclerView.scrollToPosition(listValues.size - 1)
         }
@@ -204,8 +207,10 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
             billItems.add(listValues[i])
         }
 
-        firebaseHelper.addTransaction(TransactionDetails(phoneNum, tvTotal.text.toString().split(' ').last(), items))
+        firebaseHelper.addTransaction(TransactionDetails(phoneNum, tvTotal.text.toString().split(' ').last(), items), pdMap)
+        pdMap.clear()
         scannerItemAdapter.clear()
+
         tvTotal.text = "Rs."
 
         val snack = Snackbar.make(requireView(), "Added to Transaction History!", Snackbar.LENGTH_SHORT)
@@ -218,11 +223,11 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
     }
 
     private fun addToInventoryData(){
-        val itemCount = recyclerView!!.childCount
+        val itemCount = recyclerView.childCount
 
         val bqList = ArrayList<BarcodeAndQty>()
         for (i in 0 until itemCount) {
-            val itemView = recyclerView!!.getChildAt(i)
+            val itemView = recyclerView.getChildAt(i)
             if (itemView != null) {
                 if(listValues[i].loose) {
                     val qty = itemView.findViewById<EditText>(R.id.et_quantity)
@@ -235,7 +240,7 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
             }
         }
 
-        firebaseHelper.addInventory(bqList)
+        firebaseHelper.addInventory(bqList, pdMap)
 
         val snack = Snackbar.make(requireView(), "Added to Inventory!", Snackbar.LENGTH_SHORT)
         snack.setActionTextColor(Color.parseColor("#ffffff"))
@@ -243,7 +248,7 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
             findNavController().navigate(R.id.myStoreFragment)
         }
         snack.show()
-
+        pdMap.clear()
         scannerItemAdapter.clear()
     }
 }

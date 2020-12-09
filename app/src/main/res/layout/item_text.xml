@@ -12,7 +12,9 @@
         android:layout_height="wrap_content"
         android:id="@+id/text1"
         android:text="Britannia - Good day"
-        android:textSize="12sp"
+        android:textSize="14sp"
+        android:textColor="@color/black"
+        android:layout_marginBottom="5dp"
         />
     <View
         android:layout_width="match_parent"

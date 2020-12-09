@@ -6,13 +6,21 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Filter
 import android.widget.Filterable
+import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.google.firebase.database.FirebaseDatabase
 import com.titos.barcodescanner.R
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import com.xwray.groupie.kotlinandroidextensions.Item
 import kotlinx.android.synthetic.main.item_inventory.*
 import kotlinx.android.synthetic.main.item_inventory.view.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jsoup.Jsoup
+import java.io.IOException
 import java.util.*
 class InventoryAdapter(var inventoryList: MutableList<InventoryFragmentOutside.InventoryDetails>, val context: Context) :
         RecyclerView.Adapter<RecyclerView.ViewHolder>(), Filterable {
@@ -45,6 +53,7 @@ class InventoryAdapter(var inventoryList: MutableList<InventoryFragmentOutside.I
             val inventoryDetails = countryFilterList[position]
             itemView.mystore_item_price.text = inventoryDetails.pd.sellingPrice
             itemView.mystore_item_name.text = inventoryDetails.pd.name
+            val mThumbnail = itemView.inventory_imageview
 
             if(inventoryDetails.pd.type=="units")
                 itemView.mystore_item_qty.text = inventoryDetails.pd.qty.toInt().toString() + " units"
@@ -63,20 +72,18 @@ class InventoryAdapter(var inventoryList: MutableList<InventoryFragmentOutside.I
                 onItemEditClick.invoke(position)
             }
 
-            /*subtract_quantity_button.setOnClickListener {
-                val updatedQty = mystore_item_qty.text.toString().toInt() - 1
-                if (updatedQty>0){
-                    itemQty = updatedQty.toString()
-                    itemRef.child("qty").setValue(itemQty)
-                    notifyChanged()
-                }
-            }
+            /*GlobalScope.launch {
+                val imageUrl = if (!inventoryList[position].pd.url.contains("https://www.google."))
+                    inventoryList[position].pd.url
+                else
+                    getFirstImageUrl(inventoryList[position].pd.name)
 
-            add_quantity_button.setOnClickListener {
-                val updatedQty = mystore_item_qty.text.toString().toInt() + 1
-                itemQty = updatedQty.toString()
-                itemRef.child("qty").setValue(itemQty)
-                notifyChanged()
+                withContext(Dispatchers.Main){
+                    Glide.with(context).load(imageUrl)
+                            .override(120, 120)
+                            .placeholder(R.drawable.ic_broken_image_black_24dp)
+                            .into(mThumbnail)
+                }
             }*/
         }
     }
@@ -106,6 +113,34 @@ class InventoryAdapter(var inventoryList: MutableList<InventoryFragmentOutside.I
                 notifyDataSetChanged()
             }
         }
+    }
+
+    private fun getFirstImageUrl(itemName: String): String {
+        val width = 140
+        val height = 300
+        val webURL = ("https://www.google.com/search?tbm=isch&q="
+                + itemName
+                + "&tbs=isz:ex,iszw:"
+                + width
+                + ",iszh:"
+                + height)
+
+        var url = "https://www.google.co.in"
+        try {
+            val doc = Jsoup.connect(webURL)
+                    .userAgent("Mozilla")
+                    .get()
+            val img = doc.getElementsByTag("img")
+            url = img[1].absUrl("src")
+            /*for (el in img) {
+                val src: String = el.absUrl("src")
+                println("src attribute is: $src")
+            }*/
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+        return url
     }
 
 }

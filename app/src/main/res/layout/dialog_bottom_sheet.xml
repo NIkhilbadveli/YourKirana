@@ -23,12 +23,21 @@
         android:layout_marginBottom="20dp"
         android:padding="10dp"
         android:background="@drawable/thin_border"/>
+    <TextView
+        android:id="@+id/tv_error"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="* This shop name is already taken!"
+        android:layout_below="@id/edit_shop_name"
+        android:textSize="12sp"
+        android:visibility="gone"
+        android:textColor="@color/red"/>
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_marginTop="20dp"
-        android:layout_below="@id/edit_shop_name">
+        android:layout_below="@id/tv_error">
         <Button
             android:id="@+id/btn_add_shop"
             android:layout_width="wrap_content"

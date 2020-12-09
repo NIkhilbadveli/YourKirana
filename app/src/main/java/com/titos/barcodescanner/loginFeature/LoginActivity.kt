@@ -9,8 +9,10 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
@@ -143,15 +145,26 @@ class LoginActivity : BaseActivity(-1) {
 
         val editShopName = dialog.findViewById<EditText>(R.id.edit_shop_name)
         val addButton = dialog.findViewById<Button>(R.id.btn_add_shop)
+        val tvError = dialog.findViewById<TextView>(R.id.tv_error)!!
 
         addButton!!.setOnClickListener {
-            if(editShopName!!.text.isNotEmpty()){
-                userDetails.shopName = editShopName.text.toString()
-                firebaseHelper.addNewUser(user.uid, userDetails)
+            val shopName = editShopName!!.text.trim().toString()
+            if(shopName.isNotEmpty()){
+                showProgress("Checking for availability...")
+                firebaseHelper.checkIfShopAlreadyExists(shopName).observe(this){ available ->
+                    dismissProgress()
+                    if (available) {
+                        tvError.visibility = View.GONE
+                        userDetails.shopName = shopName
+                        firebaseHelper.addNewUser(user.uid, userDetails)
 
-                dialog.dismiss()
-                startActivity(Intent(this, MainActivity::class.java))
-                finish()
+                        dialog.dismiss()
+                        startActivity(Intent(this, MainActivity::class.java))
+                        finish()
+                    }
+                    else
+                        tvError.visibility = View.VISIBLE
+                }
             }
             else
                 Toast.makeText(this,"Please enter the shop name", Toast.LENGTH_SHORT).show()
@@ -163,5 +176,4 @@ class LoginActivity : BaseActivity(-1) {
             finish()
         }
     }
-
 }

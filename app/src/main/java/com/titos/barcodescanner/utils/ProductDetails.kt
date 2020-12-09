@@ -9,7 +9,7 @@ data class ProductDetails(
                 var sellingPrice: String = "",
                 var costPrice: String = "",
                 var qty: Double = 0.0,
-                var url: String = "",
+                var url: String = "https://www.google.co.in",
                 var type: String = "",
                 var category: String = "",
                 var subCategory: String = "",
