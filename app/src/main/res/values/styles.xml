@@ -25,4 +25,9 @@
         <item name="cornerRadius">10dp</item>
         <item name="android:drawablePadding">10dp</item>
     </style>
+
+    <style name="WideDialog" parent="Base.Theme.AppCompat.Dialog">
+        <item name="android:windowMinWidthMajor">100%</item>
+        <item name="android:windowMinWidthMinor">90%</item>
+    </style>
 </resources>

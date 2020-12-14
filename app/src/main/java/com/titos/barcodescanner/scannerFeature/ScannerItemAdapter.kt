@@ -83,7 +83,7 @@ class ScannerItemAdapter(val scannerItemList: ArrayList<ScannerItem>, val contex
 
             //Setting thumbnail
             GlobalScope.launch {
-                val imageUrl = getFirstImageUrl(scannerItemList[position].name)
+                val imageUrl = getFirstImageUrl(scannerItemList[position].name.replace('.', ' '))
 
                 withContext(Dispatchers.Main){
                     Glide.with(context).load(imageUrl)

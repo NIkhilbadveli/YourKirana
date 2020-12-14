@@ -80,6 +80,23 @@ class FirebaseHelper(val shopName: String) {
 
     fun getNameToBarcodeMap(): LiveData<Map<String, String>>{
         val ldProductDetails = MutableLiveData<Map<String, String>>()
+        firestore.collection("stores/$shopName/inventoryData")
+                .get()
+                .addOnSuccessListener {
+                    val map = mutableMapOf<String, String>()
+                    for (doc in it.documents){
+                        map[doc.getString("name")!!] = doc.id
+                    }
+
+                    ldProductDetails.value = map
+                }
+                .addOnFailureListener { Log.d("TAG", "failedToGetTransactions") }
+
+        return ldProductDetails
+    }
+
+    fun getCommonProductsMap(): LiveData<Map<String, String>>{
+        val ldProductDetails = MutableLiveData<Map<String, String>>()
         firestore.collection("productData")
                 .get()
                 .addOnSuccessListener {
@@ -87,18 +104,9 @@ class FirebaseHelper(val shopName: String) {
                     for (doc in it.documents){
                         map[doc.getString("name")!!] = doc.id
                     }
-                    firestore.collection("stores/$shopName/inventoryData")
-                            .get()
-                            .addOnSuccessListener { qs ->
-                                for (doc in qs.documents){
-                                    if (!map.containsKey(doc.getString("name")!!))
-                                        map[doc.getString("name")!!] = doc.id
-                                }
-                                ldProductDetails.value = map
-                            }
-                }
-                .addOnFailureListener { Log.d("TAG", "failedToGetTransactions") }
 
+                    ldProductDetails.value = map
+                }
         return ldProductDetails
     }
 
@@ -125,11 +133,12 @@ class FirebaseHelper(val shopName: String) {
         return ldProductDetails
     }
 
-    //Handling transaction stuff
-    fun addInventory(barcodeList: List<BarcodeAndQty>, pdMap: Map<String, ProductDetails>){
+    //Handling inventory stuff
+    fun addInventory(barcodeList: List<BarcodeAndQty>, pdMap: Map<String, ProductDetails>):LiveData<Boolean>{
         val date = Date()
         val dateFormat = simpleDateFormat.format(date)
         val timeFormat = simpleTimeFormat.format(date)
+        val ldBoolean = MutableLiveData<Boolean>()
 
         firestore.collection("stores/$shopName/inventoryData")
                 .get()
@@ -151,14 +160,18 @@ class FirebaseHelper(val shopName: String) {
                             updateQty("$dateFormat $timeFormat", bq.barcode, bq.qty, 0)
                         }
                     }
+                    ldBoolean.value = true
                 }
+
+        return ldBoolean
     }
 
     //Handling transaction stuff
-    fun addTransaction(transactionDetails: TransactionDetails, pdMap: Map<String, ProductDetails>){
+    fun addTransaction(transactionDetails: TransactionDetails, pdMap: Map<String, ProductDetails>):LiveData<Boolean>{
         val date = Date()
         val dateFormat = simpleDateFormat.format(date)
         val timeFormat = simpleTimeFormat.format(date)
+        val ldBoolean = MutableLiveData<Boolean>()
 
         //adding to Transaction data
         firestore.collection("stores/$shopName/transactionData")
@@ -180,17 +193,20 @@ class FirebaseHelper(val shopName: String) {
                         if (map.containsKey(td.key))
                             updateQty("$dateFormat $timeFormat", td.key, td.value.toDouble(), 1)
                         else{
-                            val pd = pdMap[td.key] ?: error("")
+                            val pd = pdMap[td.key]!!
                             pd.qty = 0.0
                             pd.costPrice = pd.sellingPrice
                             addOrUpdateProduct(td.key, pd, 3)
                             updateQty("$dateFormat $timeFormat", td.key, td.value.toDouble(), 1)
                         }
                     }
+                    ldBoolean.value = true
                 }
 
         //Adding this transaction to corresponding customer
-        addTransactionToCustomer(transactionDetails.contact, "$dateFormat $timeFormat")
+        //addTransactionToCustomer(transactionDetails.contact, "$dateFormat $timeFormat")
+
+        return ldBoolean
     }
 
     fun getAllTransactions(): LiveData<Map<String,TransactionDetails>>{

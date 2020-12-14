@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.media.ToneGenerator
@@ -19,11 +20,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.*
+import androidx.core.content.edit
 import androidx.core.content.getSystemService
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.*
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import com.google.zxing.ResultPoint
 import com.google.zxing.client.android.BeepManager
 import com.google.zxing.integration.android.IntentIntegrator
@@ -34,7 +35,10 @@ import com.journeyapps.barcodescanner.ViewfinderView
 import com.titos.barcodescanner.MainActivity
 import com.titos.barcodescanner.R
 import com.titos.barcodescanner.base.BaseFragment
-import androidx.lifecycle.observe
+import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
+import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
+import java.io.File
+import java.text.SimpleDateFormat
 
 import java.util.*
 import kotlin.concurrent.schedule
@@ -46,11 +50,13 @@ class BarcodeFragment : BaseFragment(R.layout.fragment_barcode) {
     private var lastText: String? = null
     private var qrScan: IntentIntegrator? = null
     private var model: MainActivity.SharedViewModel? = null
-    private var nbMap = mapOf<String, String>()
+    private var nbMap = mutableMapOf<String, String>()
     private var confirmCounter = 0
     private var modelPreviousText: String? = null
     private var volumeLevel: Int = 100
     private var isFlashOn: Boolean = false
+    private val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.US)
+    private lateinit var sharedPref: SharedPreferences
 
     private val callback = object : BarcodeCallback {
         override fun barcodeResult(result: BarcodeResult) {
@@ -81,6 +87,14 @@ class BarcodeFragment : BaseFragment(R.layout.fragment_barcode) {
         model = ViewModelProvider(requireParentFragment()).get(MainActivity.SharedViewModel::class.java)
         barcodeScannerView = barcode_view!!.findViewById(R.id.zxing_barcode_scanner)
         viewfinderView = barcode_view!!.findViewById(R.id.zxing_viewfinder_view)
+        sharedPref = activity?.getSharedPreferences("sharedPref", Context.MODE_PRIVATE)!!
+
+        //Saving common database to csv if it is 3 days older
+        val lastUpdated = sharedPref.getString("lastUpdated", "00-00-0000")!!
+        val date = simpleDateFormat.parse(lastUpdated)!!
+        val days = ((Date().time - date.time).toDouble()/ (1000 * 60 * 60 * 24))
+
+        val condition = (sharedPref.contains("lastUpdated")&&days>3) || !sharedPref.contains("lastUpdated")
 
         //Getting nbMap
         val viewGroup = layoutView.findViewById<ViewGroup>(android.R.id.content)
@@ -88,10 +102,39 @@ class BarcodeFragment : BaseFragment(R.layout.fragment_barcode) {
 
         val etProductName = dialogView.findViewById<AutoCompleteTextView>(R.id.et_product_name)
 
-        firebaseHelper.getNameToBarcodeMap().observe(this){
-            nbMap = it
-            val adapter = ArrayAdapter(requireContext(), R.layout.item_text,R.id.text1, nbMap.keys.toList())
-            etProductName.setAdapter(adapter)
+        val file = File(requireActivity().filesDir, "commonData.csv")
+        if (!condition) {
+            csvReader().open(file) {
+                readAllAsSequence().forEach { row: List<String> ->
+                    if (row.size==2)
+                        nbMap[row[0]] = row[1]
+                }
+            }
+            firebaseHelper.getNameToBarcodeMap().observe(this){ map ->
+                //Saving product from inventory map if it's not already there in nbmap
+                map.forEach {
+                    nbMap[it.key] = it.value
+                }
+
+                val adapter = ArrayAdapter(requireContext(), R.layout.item_text,R.id.text1, nbMap.keys.toList())
+                etProductName.setAdapter(adapter)
+            }
+        }
+        else{
+            Log.d("fucked", "file doesn't exist... calling save function")
+            saveCommonDatabaseToCsv().observe(this){
+                if (it){
+                    firebaseHelper.getNameToBarcodeMap().observe(this){ map ->
+                        //Saving product from inventory map if it's not already there in nbmap
+                        map.forEach {
+                            nbMap[it.key] = it.value
+                        }
+
+                        val adapter = ArrayAdapter(requireContext(), R.layout.item_text,R.id.text1, nbMap.keys.toList())
+                        etProductName.setAdapter(adapter)
+                    }
+                }
+            }
         }
 
         //intializing scan object
@@ -185,7 +228,7 @@ class BarcodeFragment : BaseFragment(R.layout.fragment_barcode) {
         }
 
         btnAddProduct.setOnClickListener {
-            val name = etProductName.text.toString().trim()
+            val name = etProductName.text.toString()
             if (name.isNotEmpty()&&nbMap[name]!=null)
                 nbMap[name]?.let { barcode ->
                     model!!.select(barcode)
@@ -234,4 +277,25 @@ class BarcodeFragment : BaseFragment(R.layout.fragment_barcode) {
         }
     }
 
+    private fun saveCommonDatabaseToCsv():LiveData<Boolean>{
+
+        val file = File(requireActivity().filesDir, "commonData.csv")
+        val ldBoolean = MutableLiveData<Boolean>()
+
+        firebaseHelper.getCommonProductsMap().observe(this){
+            csvWriter().open(file) {
+                it.forEach { br ->
+                    nbMap[br.key] = br.value
+                    writeRow(listOf(br.key, br.value))
+                }
+            }
+            sharedPref.edit {
+                putString("lastUpdated", simpleDateFormat.format(Date()))
+                apply()
+            }
+            ldBoolean.value = true
+        }
+
+        return ldBoolean
+    }
 }

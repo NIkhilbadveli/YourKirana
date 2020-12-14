@@ -56,25 +56,25 @@ class ProfileFragment : BaseFragment(R.layout.fragment_profile) {
         }
 
         groupAdapter.add(ProfileItem(R.drawable.icons8_administrator_male_48px_2, "Edit Profile"))
-        groupAdapter.add(ProfileItem(R.drawable.ic_rupee_indian, "Calculate Margin"))
+        groupAdapter.add(ProfileItem(R.drawable.ic_baseline_product_add_24, "Add New Product"))
         groupAdapter.add(ProfileItem(R.drawable.ic_call_black_24dp, "Contact Us"))
         groupAdapter.add(ProfileItem(R.drawable.icons8_share_48px, "Share App"))
+        groupAdapter.add(ProfileItem(R.drawable.ic_rupee_indian, "Calculate Margin"))
         groupAdapter.add(ProfileItem(R.drawable.icons8_logout_rounded_left_48px, "Logout"))
-        groupAdapter.add(ProfileItem(R.drawable.ic_baseline_product_add_24, "Add New Product"))
 
         val dialog = ProgressDialog(requireContext(), "Logging out...")
         groupAdapter.setOnItemClickListener { _, itemView ->
             when (recyclerView.getChildAdapterPosition(itemView)) {
                 0 -> editProfile(user)
-                1 -> calcMargin()
+                4 -> calcMargin()
                 2 -> {
                     val intent = Intent(Intent.ACTION_DIAL)
                     intent.data = Uri.parse("tel:8309572197")
                     startActivity(intent)
                 }
                 3 -> shareApp()
-                4 -> logoutFromApp(dialog)
-                5 -> {
+                5 -> logoutFromApp(dialog)
+                1 -> {
                     findNavController().navigate(R.id.action_profileFragment_to_addNewProductFragment, Bundle().apply {
                         putString("barcode", firebaseHelper.getNewBarcode())
                     })
@@ -151,12 +151,8 @@ class ProfileFragment : BaseFragment(R.layout.fragment_profile) {
 
         firebaseHelper.getUserDetails(user.uid).observe(this) {
 
-            if (it.userName!="null"&&it.shopName!="null") {
-                etName.setText(it.userName)
-                etStore.setText(it.shopName)
-            }
-            else if (it.userName=="null"&&it.shopName!="null")
-                etStore.setText(it.shopName)
+            if (it.userName!="null") { etName.setText(it.userName) }
+            etStore.setText(it.shopName)
         }
 
         val sharedPref = activity?.getSharedPreferences("sharedPref", Context.MODE_PRIVATE)!!

@@ -34,6 +34,12 @@ import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import com.google.android.gms.location.*
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.play.core.appupdate.AppUpdateManager
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.install.InstallStateUpdatedListener
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.InstallStatus
+import com.google.android.play.core.install.model.UpdateAvailability
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
@@ -43,6 +49,9 @@ import com.titos.barcodescanner.base.BaseActivity
 import com.titos.barcodescanner.utils.FirebaseHelper
 import com.titos.barcodescanner.utils.UserDetails
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class MainActivity : BaseActivity(R.layout.activity_main) {
@@ -51,11 +60,15 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
     private lateinit var btnBluetooth: ImageButton
     private lateinit var sharedPref: SharedPreferences
     private lateinit var noInternetDialog: NoInternetDialog
+    private lateinit var appUpdateManager: AppUpdateManager
+    private lateinit var listener: InstallStateUpdatedListener
+
     companion object {
         private const val MY_CAMERA_REQUEST_CODE = 100
     }
 
     override fun initView() {
+        appUpdateManager = AppUpdateManagerFactory.create(this)
         setSupportActionBar(findViewById(R.id.toolbar_main))
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -112,8 +125,6 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
 
         profileAvatar.setOnClickListener { findNavController(R.id.fragment).navigate(R.id.profileFragment) }
 
-
-
         //Handling firebase dynamic links
         FirebaseDynamicLinks.getInstance()
                 .getDynamicLink(intent)
@@ -149,13 +160,15 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
                 startActivityForResult(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), 111)
         }
 
-        //Saving all products name
+        //Saving all products name SPAR data
         if (!sharedPref.getBoolean("alreadySaved", false))
             saveDataToCsv()
 
         //No Internet dialog
-        noInternetDialog = NoInternetDialog.Builder(this).build()
-        noInternetDialog.setCancelable(false)
+        //noInternetDialog = NoInternetDialog.Builder(this).build()
+
+        //Checking for updates
+        //checkForUpdates()
     }
 
 
@@ -202,6 +215,12 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
             111 -> if (resultCode == Activity.RESULT_OK)
                 startActivity(Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS))
 
+            144 -> {
+                if (resultCode != Activity.RESULT_OK) {
+                    appUpdateManager.unregisterListener(listener)
+                    showToast("Update cancelled!")
+                }
+            }
         }
     }
 
@@ -268,11 +287,59 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
 
     //Add playstore built-in update dialog
     private fun checkForUpdates() {
+
+        listener = InstallStateUpdatedListener{ state ->
+
+            if (state.installStatus() == InstallStatus.DOWNLOADED) {
+                Snackbar.make(findViewById(R.id.bottomNav), "An update has just been downloaded.", Snackbar.LENGTH_INDEFINITE).apply {
+                    setAction("RESTART") { appUpdateManager.completeUpdate() }.show()
+                }
+            }
+            else if (state.installStatus() == InstallStatus.DOWNLOADING){
+                showProgress("Downloading Update")
+            }
+        }
+        appUpdateManager.registerListener(listener)
+
+        val appUpdateInfoTask = appUpdateManager.appUpdateInfo
+
+        appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+                    && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
+                // Request the update.
+                Log.d("fucked", "Update available")
+                appUpdateManager.startUpdateFlowForResult(
+                        appUpdateInfo,
+                        AppUpdateType.FLEXIBLE,
+                        this,
+                        144)
+            } else {
+                Log.d("fucked", "No Update available")
+            }
+        }
     }
+
+
 
     override fun onDestroy() {
         super.onDestroy()
         noInternetDialog.onDestroy()
+        //appUpdateManager.unregisterListener(listener)
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        appUpdateManager
+                .appUpdateInfo
+                .addOnSuccessListener { appUpdateInfo ->
+
+                    if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
+                        Snackbar.make(findViewById(R.id.bottomNav), "An update has just been downloaded.", Snackbar.LENGTH_INDEFINITE).apply {
+                            setAction("RESTART") { appUpdateManager.completeUpdate() }.show()
+                        }
+                    }
+                }
     }
 
     class SharedViewModel : ViewModel() {

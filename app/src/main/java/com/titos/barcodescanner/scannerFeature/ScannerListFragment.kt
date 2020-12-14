@@ -146,7 +146,9 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
     private fun searchForProduct(barcode: String) {
         val toolbar = requireActivity().findViewById<Toolbar>(R.id.toolbar_main)
         val switch = toolbar.findViewById<SwitchCompat>(R.id.inventory_scanner_switch)
+        showProgress("Searching...")
         firebaseHelper.searchBarcode(barcode).observe(this) { productDetails ->
+            dismissProgress()
                 if (productDetails.name.isNotEmpty()) {
                     pdMap[barcode] = productDetails
                     addToListView(barcode, productDetails.name, productDetails.sellingPrice, productDetails.type, productDetails.url)
@@ -207,8 +209,11 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
             billItems.add(listValues[i])
         }
 
-        firebaseHelper.addTransaction(TransactionDetails(phoneNum, tvTotal.text.toString().split(' ').last(), items), pdMap)
-        pdMap.clear()
+        Log.d("fucked", pdMap.toString())
+        firebaseHelper.addTransaction(TransactionDetails(phoneNum, tvTotal.text.toString().split(' ').last(), items), pdMap).observe(this){
+            if (it) pdMap.clear()
+        }
+
         scannerItemAdapter.clear()
 
         tvTotal.text = "Rs."
@@ -240,7 +245,9 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
             }
         }
 
-        firebaseHelper.addInventory(bqList, pdMap)
+        firebaseHelper.addInventory(bqList, pdMap).observe(this){
+            if (it) pdMap.clear()
+        }
 
         val snack = Snackbar.make(requireView(), "Added to Inventory!", Snackbar.LENGTH_SHORT)
         snack.setActionTextColor(Color.parseColor("#ffffff"))
@@ -248,7 +255,6 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
             findNavController().navigate(R.id.myStoreFragment)
         }
         snack.show()
-        pdMap.clear()
         scannerItemAdapter.clear()
     }
 }

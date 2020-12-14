@@ -2,20 +2,16 @@ package com.titos.barcodescanner.loginFeature
 
 import android.app.Activity
 import android.app.Dialog
-import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.os.Bundle
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.edit
 import androidx.lifecycle.observe
 import com.firebase.ui.auth.AuthMethodPickerLayout
 import com.firebase.ui.auth.AuthUI
@@ -23,13 +19,9 @@ import com.firebase.ui.auth.ErrorCodes
 import com.firebase.ui.auth.IdpResponse
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 import com.titos.barcodescanner.*
 import com.titos.barcodescanner.base.BaseActivity
-import com.titos.barcodescanner.utils.ProgressDialog
 import com.titos.barcodescanner.utils.UserDetails
 
 
@@ -64,8 +56,7 @@ class LoginActivity : BaseActivity(-1) {
 
         if(auth.currentUser!=null){ //If user is signed in
             //Toast.makeText(this,"Sign In successful",Toast.LENGTH_SHORT).show()
-            startActivity(Intent(this@LoginActivity, MainActivity::class.java))
-            finish()
+            handleLogin(false)
         }
         else {
             startActivityForResult(
@@ -87,48 +78,46 @@ class LoginActivity : BaseActivity(-1) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             RC_SIGN_IN -> {
-                    val response = IdpResponse.fromResultIntent(data)
-                    if (resultCode == Activity.RESULT_OK) {
-                        handleLogin()
-                        //Toast.makeText(this,"Sign In successful",Toast.LENGTH_SHORT).show()
+                val response = IdpResponse.fromResultIntent(data)
+                if (resultCode == Activity.RESULT_OK) {
+                    handleLogin(true)
+                    //Toast.makeText(this,"Sign In successful",Toast.LENGTH_SHORT).show()
+
+                    return
+                } else {
+                    if (response == null) {
+                        //If no response from the Server
+                        return
+                    }
+                    if (response.error!!.errorCode == ErrorCodes.NO_NETWORK) {
+                        //If there was a network problem the user's phone
 
                         return
-                    } else {
-                        if (response == null) {
-                            //If no response from the Server
-                            return
-                        }
-                        if (response.error!!.errorCode == ErrorCodes.NO_NETWORK) {
-                            //If there was a network problem the user's phone
-
-                            return
-                        }
-                        if (response.error!!.errorCode == ErrorCodes.UNKNOWN_ERROR) {
-                            //If the error cause was unknown
-
-                            Toast.makeText(this,response.error!!.errorCode,Toast.LENGTH_SHORT).show()
-                            return
-                        }
                     }
+                    if (response.error!!.errorCode == ErrorCodes.UNKNOWN_ERROR) {
+                        //If the error cause was unknown
+
+                        Toast.makeText(this, response.error!!.errorCode, Toast.LENGTH_SHORT).show()
+                        return
+                    }
+                }
             }
         }
     }
 
-    private fun handleLogin(){
+    private fun handleLogin(show: Boolean){
         showProgress("Logging in ...")
         val user = auth.currentUser!!
 
         val view = layoutInflater.inflate(R.layout.dialog_bottom_sheet, null)
-        val dialog = BottomSheetDialog(this)
+        val dialog = Dialog(this, R.style.WideDialog)
         dialog.setContentView(view)
         dialog.setCanceledOnTouchOutside(false)
 
         val userDetails = UserDetails()
-        if (user.phoneNumber!=null)
-            userDetails.phoneNumber = user.phoneNumber.toString()
-
-        userDetails.userName = user.displayName.toString()
-        userDetails.userEmail = user.email.toString()
+        if (user.phoneNumber!=null) userDetails.phoneNumber = user.phoneNumber.toString()
+        if (user.displayName!=null) userDetails.userName = user.displayName.toString()
+        if (user.email!=null) userDetails.userEmail = user.email.toString()
 
         firebaseHelper.isUserOld(user.uid).observe(this){ old ->
             if (isShowing())
@@ -167,13 +156,19 @@ class LoginActivity : BaseActivity(-1) {
                 }
             }
             else
-                Toast.makeText(this,"Please enter the shop name", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please enter the shop name", Toast.LENGTH_SHORT).show()
         }
-
-        dialog.findViewById<Button>(R.id.btn_join_later)!!.setOnClickListener {
+        dialog.setOnKeyListener { arg0, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                showToast("Please enter the shop name!")
+            }
+            true
+        }
+        /*dialog.findViewById<Button>(R.id.btn_join_later)!!.setOnClickListener {
             dialog.dismiss()
             startActivity(Intent(this, MainActivity::class.java))
             finish()
-        }
+        }*/
     }
+
 }
