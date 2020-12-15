@@ -110,11 +110,16 @@ class FirebaseHelper(val shopName: String) {
         return ldProductDetails
     }
 
-    fun removeProduct(barcode: String){
+    fun removeProduct(barcode: String):LiveData<Boolean>{
+        val ldBoolean = MutableLiveData<Boolean>()
         firestore.collection("stores/$shopName/inventoryData")
                 .document(barcode)
                 .delete()
-                .addOnSuccessListener { Log.d("TAG", "deleteSuccess: $barcode") }
+                .addOnSuccessListener {
+                    ldBoolean.value = true
+                    Log.d("TAG", "deleteSuccess: $barcode")
+                }
+        return ldBoolean
     }
 
     fun getAllInventory(): LiveData<Map<String,ProductDetails>>{
@@ -161,6 +166,7 @@ class FirebaseHelper(val shopName: String) {
                         }
                     }
                     ldBoolean.value = true
+                    Log.d("kir","Added successfully")
                 }
 
         return ldBoolean

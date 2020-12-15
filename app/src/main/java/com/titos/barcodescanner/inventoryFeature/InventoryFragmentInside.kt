@@ -4,6 +4,7 @@ package com.titos.barcodescanner.inventoryFeature
 import android.app.AlertDialog
 import android.os.Bundle
 import android.widget.*
+import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -39,11 +40,17 @@ class InventoryFragmentInside : BaseFragment(R.layout.fragment_inventory_inside)
             dialogBuilder.setMessage("Are you sure?")
                     .setCancelable(false)
                     .setPositiveButton("Yes") { _, _ ->
-                        inventoryAdapter.countryFilterList.removeAt(pos)
-                        inventoryAdapter.notifyItemRemoved(pos)
-                        inventoryAdapter.notifyItemRangeChanged(pos, inventoryList.size)
-                        firebaseHelper.removeProduct(inventoryList[pos].barcode)
-                        Snackbar.make(requireView(),"Inventory Item deleted",Snackbar.LENGTH_SHORT).show()
+                        showProgress("Deleting ${inventoryList[pos].pd.name}...")
+                        firebaseHelper.removeProduct(inventoryList[pos].barcode).observe(this){
+                            if (it) {
+                                dismissProgress()
+                                /*inventoryAdapter.countryFilterList.removeAt(pos)
+                                inventoryAdapter.notifyItemRemoved(pos)
+                                inventoryAdapter.notifyItemRangeChanged(pos, inventoryList.size)*/
+                                findNavController().navigate(R.id.myStoreFragment)
+                                Snackbar.make(requireView(),"Inventory Item deleted",Snackbar.LENGTH_SHORT).show()
+                            }
+                        }
                     }
                     .setNegativeButton("No") { dialog, id -> dialog.cancel()
                     }

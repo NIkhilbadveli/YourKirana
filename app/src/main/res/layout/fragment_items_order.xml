@@ -57,7 +57,8 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp">
+        android:layout_marginTop="10dp"
+        android:visibility="gone">
 
 
         <TextView
@@ -80,7 +81,7 @@
             android:layout_alignParentEnd="true"
             android:layout_marginTop="10dp"
             android:paddingEnd="15dp"
-            android:text="₹164.00"
+            android:text="₹000.00"
             android:textColor="@color/black"
             android:textSize="15sp" />
 
@@ -119,16 +120,19 @@
         </TextView>
 
     </RelativeLayout>
-
-
-
-
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/greyLighterShade"
+            android:layout_marginEnd="5dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginBottom="5dp"
+            />
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp">
-
-
+        >
         <TextView
             android:id="@+id/tvGrandTotal"
             android:layout_width="wrap_content"
@@ -136,8 +140,9 @@
             android:paddingStart="15dp"
             android:textSize="18sp"
             android:layout_marginTop="10dp"
-            android:drawableEnd="@drawable/money"
+            android:drawableStart="@drawable/money"
             android:text="Grand Total - "
+            android:drawablePadding="10dp"
             android:layout_centerVertical="true"
             android:textColor="@color/black">
         </TextView>
@@ -150,18 +155,14 @@
             android:textSize="18sp"
             android:layout_alignParentEnd="true"
             android:layout_marginTop="10dp"
-            android:text="₹149.00"
+            android:text="₹ 000.00"
             android:layout_centerVertical="true"
             android:textColor="@color/black">
         </TextView>
 
     </RelativeLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/greyLighterShade"
-        android:layout_margin="5dp"/>
+
 
     <TextView
         android:layout_width="match_parent"
@@ -171,13 +172,15 @@
         android:textColor="@color/greyBaseShade"
         android:paddingLeft="15dp"
         android:layout_marginTop="20dp"
+        android:visibility="gone"
         >
     </TextView>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp">
+        android:layout_marginTop="10dp"
+        android:visibility="gone">
 
         <TextView
             android:id="@+id/tvCustName"
@@ -203,7 +206,8 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp">
+        android:layout_marginTop="10dp"
+        android:visibility="gone">
 
         <TextView
             android:id="@+id/tvCust"
@@ -230,21 +234,23 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@color/greyLighterShade"
-            android:layout_margin="10dp"/>
+            android:layout_margin="10dp"
+            android:visibility="gone"/>
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_above="@id/go_back"
+            android:layout_above="@id/btnShareBill"
             android:layout_marginEnd="5dp"
             android:layout_marginTop="5dp"
-            android:layout_marginBottom="150dp">
+            android:layout_marginBottom="150dp"
+            android:visibility="gone">
 
             <TextView
                 android:id="@+id/dealerShop"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Shop Dealer : "
+                android:text="Shop : "
                 android:textSize="17sp"
                 android:textColor="@color/black"
                 android:paddingStart="15dp">
@@ -265,15 +271,18 @@
 </ScrollView>
 
     <Button
-        android:id="@+id/go_back"
-        android:layout_width="match_parent"
+        android:id="@+id/btnShareBill"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Go Back"
-        android:textSize="18sp"
-        android:textColor="@color/textColorWhite"
-        android:background="@drawable/button_background"
-        android:layout_centerHorizontal="true"
         android:layout_alignParentBottom="true"
-        android:layout_margin="10dp"
-        android:padding="5dp"/>
+        android:layout_centerHorizontal="true"
+        android:text="Share Bill on WhatsApp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/button_background"
+        android:drawableStart="@drawable/whatsapp"
+        android:padding="10dp"
+        android:drawablePadding="30dp"
+        android:textColor="@color/textColorWhite"/>
 </RelativeLayout>

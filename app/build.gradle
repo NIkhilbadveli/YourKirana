@@ -20,8 +20,8 @@ android {
         applicationId "com.titos.barcodescanner"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 13
-        versionName "2.0.4"
+        versionCode 14
+        versionName "2.0.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.releaseconfig
     }

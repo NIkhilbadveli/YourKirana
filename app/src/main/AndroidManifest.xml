@@ -4,7 +4,7 @@
     package="com.titos.barcodescanner">
     <queries>
         <package android:name="com.android.chrome" />
-        <package android:name="com.whatsapp.w4b" />
+        <package android:name="com.whatsapp" />
     </queries>
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />

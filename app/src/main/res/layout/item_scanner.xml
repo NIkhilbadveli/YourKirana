@@ -15,11 +15,12 @@
 
         <ImageView
             android:id="@+id/product_thumbnail"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
             android:padding="2dp"
+            android:scaleType="centerCrop"
             android:src="@drawable/ic_broken_image_black_24dp"
             />
         <LinearLayout

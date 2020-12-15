@@ -7,5 +7,6 @@ import kotlinx.android.parcel.Parcelize
 @Parcelize
 data class BillDetails(
                 var contact: String = "",
+                var time: String = "",
                 var orderValue: String = "",
                 var billItems: ArrayList<ScannerItem> = ArrayList()): Parcelable

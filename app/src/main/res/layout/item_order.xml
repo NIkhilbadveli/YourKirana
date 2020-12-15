@@ -4,62 +4,60 @@
     android:layout_gravity="center"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:padding="6dp">
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal">
     <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:id="@+id/img"
         android:src="@drawable/ic_baseline_image_24"
         android:layout_marginTop="10dp"
+        android:scaleType="centerCrop"
         />
-
-    <TextView
-        android:id="@+id/tvProductName"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingStart="15dp"
-        android:textSize="15sp"
-        android:text="  Nestle Masala Maggi 100g"
-        android:layout_marginTop="10dp"
-        android:textColor="@color/black"/>
-</LinearLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:orientation="vertical">
         <TextView
-            android:id="@+id/tvProductQuantity"
-            android:layout_width="wrap_content"
+            android:id="@+id/tvProductName"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="40dp"
-            android:textSize="13sp"
-            android:layout_marginTop="10dp"
-            android:text="2 units × 12.00 INR"
-            android:layout_centerVertical="true"
-            android:textColor="@color/greyBaseShade">
-        </TextView>
-
-        <TextView
-            android:id="@+id/tvTotalPrice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingEnd="15dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
             android:textSize="15sp"
-            android:layout_alignParentEnd="true"
+            android:text="Nestle Masala Maggi 100g"
             android:layout_marginTop="10dp"
-            android:text="₹24.00"
-            android:layout_centerVertical="true"
-            android:textColor="@color/black">
-        </TextView>
+            android:textColor="@color/black"/>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp">
+            <TextView
+                android:id="@+id/tvProductQuantity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:layout_marginTop="10dp"
+                android:text="2 units × 12.00 INR"
+                android:layout_centerVertical="true"
+                android:textColor="@color/greyBaseShade">
+            </TextView>
 
-    </RelativeLayout>
+            <TextView
+                android:id="@+id/tvTotalPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="10dp"
+                android:text="₹24.00"
+                android:layout_centerVertical="true"
+                android:textColor="@color/black">
+            </TextView>
 
-
+        </RelativeLayout>
+    </LinearLayout>
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"

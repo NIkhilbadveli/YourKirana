@@ -209,7 +209,6 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
             billItems.add(listValues[i])
         }
 
-        Log.d("fucked", pdMap.toString())
         firebaseHelper.addTransaction(TransactionDetails(phoneNum, tvTotal.text.toString().split(' ').last(), items), pdMap).observe(this){
             if (it) pdMap.clear()
         }
@@ -228,21 +227,9 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
     }
 
     private fun addToInventoryData(){
-        val itemCount = recyclerView.childCount
-
-        val bqList = ArrayList<BarcodeAndQty>()
-        for (i in 0 until itemCount) {
-            val itemView = recyclerView.getChildAt(i)
-            if (itemView != null) {
-                if(listValues[i].loose) {
-                    val qty = itemView.findViewById<EditText>(R.id.et_quantity)
-                    bqList.add(BarcodeAndQty(listValues[i].barcode, qty.text.toString().toDouble()))
-                }
-                else{
-                    val qty = itemView.findViewById<TextView>(R.id.item_quantity)
-                    bqList.add(BarcodeAndQty(listValues[i].barcode, qty.text.toString().toDouble()))
-                }
-            }
+        val bqList = ArrayList<BarcodeAndQty>()//Adding items to data
+        for (i in 0 until listValues.size) {
+            bqList.add(BarcodeAndQty(listValues[i].barcode,listValues[i].quantity.toDouble()))
         }
 
         firebaseHelper.addInventory(bqList, pdMap).observe(this){

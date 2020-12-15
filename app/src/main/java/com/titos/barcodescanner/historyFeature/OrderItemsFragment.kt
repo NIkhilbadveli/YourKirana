@@ -8,10 +8,13 @@ import android.widget.TextView
 import androidx.lifecycle.observe
 
 import androidx.navigation.fragment.findNavController
+import com.titos.barcodescanner.BillFragment
 
 
 import com.titos.barcodescanner.R
 import com.titos.barcodescanner.base.BaseFragment
+import com.titos.barcodescanner.scannerFeature.ScannerItem
+import com.titos.barcodescanner.utils.BillDetails
 
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
@@ -48,33 +51,32 @@ class OrderItemsFragment : BaseFragment(R.layout.fragment_items_order){
             adapter = groupAdapter
         }
 
-        view.findViewById<TextView>(R.id.go_back).setOnClickListener {
-            findNavController().navigateUp()
-        }
-
         val barcodeList = arguments?.getStringArrayList("barcodeList")!!
         val qtyList = arguments?.getStringArrayList("qtyList")!!
+
+        val billDetails = BillDetails()
+        billDetails.orderValue = orderValue
+        billDetails.contact = contact
+        billDetails.time = refKey
 
         firebaseHelper.getMultipleProductDetails(barcodeList).observe(this) {pdMap ->
             for(pd in pdMap) {
                 val sp = pd.value.sellingPrice
                 val name = pd.value.name
-
-                val total = view.findViewById<TextView>(R.id.tvItemTotalval)
-                val savings = view.findViewById<TextView>(R.id.tvDiscountVal)
-                val grandTotal = view.findViewById<TextView>(R.id.tvGrandTotalVal)
-                view.findViewById<TextView>(R.id.dealerName).text = shopName
-
-                val discount = 0.02 * orderValue.toDouble().round(2)
-
-                total.text = "₹ $orderValue"
-                savings.text = "- ₹ 0.0"
-                grandTotal.text = "₹ ${orderValue.toFloat()}"
-
                 val loose = pd.value.type == "kgs"
                 groupAdapter.add(OrderItem(name, qtyList[barcodeList.indexOf(pd.key)], sp, loose))
+                billDetails.billItems.add(ScannerItem(pd.key, name, qtyList[barcodeList.indexOf(pd.key)], sp, loose, "https://www.google.co.in"))
+            }
+
+            val billFragment = BillFragment(billDetails, requireContext())
+            view.findViewById<TextView>(R.id.btnShareBill).setOnClickListener {
+                billFragment.shareBill()
             }
         }
+
+        view.findViewById<TextView>(R.id.dealerName).text = shopName
+        val grandTotal = view.findViewById<TextView>(R.id.tvGrandTotalVal)
+        grandTotal.text = "₹ ${orderValue.toFloat()}"
     }
 
 }

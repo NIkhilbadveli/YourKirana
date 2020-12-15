@@ -323,11 +323,11 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
 
     override fun onDestroy() {
         super.onDestroy()
-        noInternetDialog.onDestroy()
+        //noInternetDialog.onDestroy()
         //appUpdateManager.unregisterListener(listener)
     }
 
-    override fun onResume() {
+    /*override fun onResume() {
         super.onResume()
 
         appUpdateManager
@@ -340,7 +340,7 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
                         }
                     }
                 }
-    }
+    }*/
 
     class SharedViewModel : ViewModel() {
         val selected = MutableLiveData<String>()
