@@ -90,6 +90,9 @@
         <action
             android:id="@+id/action_khataFragment_to_agreementFragment"
             app:destination="@id/agreementFragment" />
+        <action
+            android:id="@+id/action_khataFragment_to_khataFragmentInside"
+            app:destination="@id/khataFragmentInside" />
     </fragment>
     <fragment
         android:id="@+id/addNewProductFragment"
@@ -106,4 +109,9 @@
         android:name="com.titos.barcodescanner.BillFragment"
         android:label="fragment_bill"
         tools:layout="@layout/fragment_bill" />
+    <fragment
+        android:id="@+id/khataFragmentInside"
+        android:name="com.titos.barcodescanner.khataFeature.KhataFragmentInside"
+        android:label="fragment_khata_inside"
+        tools:layout="@layout/fragment_khata_inside" />
 </navigation>

@@ -27,6 +27,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.observe
 import androidx.navigation.NavController
+import androidx.navigation.Navigation
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
@@ -104,6 +105,17 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         //Adding member count to storeStats in realtime database & sharedPref
         sharedPref = getSharedPreferences("sharedPref", Context.MODE_PRIVATE) ?: return
 
+        //Trying to solve weird error (not able to add new product right after login but working if you switch to other fragments)
+        //All the logs show that it should've been added
+        if(!sharedPref.contains("firstTime")){
+            navController.navigate(R.id.historyFragment)
+            navController.navigate(R.id.scannerFragment)
+            sharedPref.edit(){
+                putBoolean("firstTime", false)
+                apply()
+            }
+        }
+
         //Setting Profile Avatar
         val profileAvatar = toolbar.findViewById<AvatarView>(R.id.profile_avatar)
         val picassoLoader = PicassoLoader()
@@ -151,14 +163,14 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
         this.registerReceiver(mReceiver, filter)
 
-        btnBluetooth = toolbar.findViewById<ImageButton>(R.id.btn_bluetooth)
+        /*btnBluetooth = toolbar.findViewById<ImageButton>(R.id.btn_bluetooth)
         btnBluetooth.setOnClickListener {
             if (BluetoothAdapter.getDefaultAdapter().isEnabled){
                 startActivity(Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS))
             }
             else
                 startActivityForResult(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), 111)
-        }
+        }*/
 
         //Saving all products name SPAR data
         if (!sharedPref.getBoolean("alreadySaved", false))
@@ -169,8 +181,30 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
 
         //Checking for updates
         //checkForUpdates()
-    }
 
+        //Setting up whatsapp help
+        val sendIntent = Intent("android.intent.action.MAIN")
+
+        sendIntent.action = Intent.ACTION_SEND
+        sendIntent.setPackage("com.whatsapp")
+        sendIntent.type = "text/plain"
+        val phone = "918309572197"
+
+        val message = "Hi, I have some questions regarding YourKirana App."
+        findViewById<ImageView>(R.id.btn_help).setOnClickListener {
+            try {
+                sendIntent.putExtra("jid", "$phone@s.whatsapp.net")
+                sendIntent.putExtra(Intent.EXTRA_TEXT, message)
+
+                if (sendIntent.resolveActivity(packageManager) != null) {
+                    startActivity(sendIntent)
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this, "No app installed", Toast.LENGTH_SHORT).show()
+                e.printStackTrace()
+            }
+        }
+    }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)

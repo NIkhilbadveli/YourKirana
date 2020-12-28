@@ -9,7 +9,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:layout_above="@id/btn_new_khata"
+        >
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -74,18 +76,37 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tab_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:tabIndicatorColor="@color/textColorBlack"/>
-
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/pagerKhata"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1">
-        </androidx.viewpager2.widget.ViewPager2>
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:orientation="vertical">
+                <SearchView
+                    android:id="@+id/search_bar_khata"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:queryHint="Search for customers"
+                    android:background="@drawable/thin_border"
+                    android:iconifiedByDefault="false"
+                    />
+                <TextView
+                    android:id="@+id/tv_empty"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="It's so empty here :)"
+                    android:textSize="24sp"
+                    android:visibility="gone"
+                    android:textColor="@color/textColorBlack"
+                    />
+                <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/rv_khata_customers"
+                    tools:listitem="@layout/item_khata"
+                    />
+            </LinearLayout>
     </LinearLayout>
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btn_new_khata"

@@ -1,84 +1,86 @@
 package com.titos.barcodescanner.khataFeature
 
-import android.view.View
-import android.widget.SearchView
-import android.widget.TextView
-import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import android.app.Activity
+import android.view.*
+import androidx.appcompat.widget.SwitchCompat
+import androidx.appcompat.widget.Toolbar
+
 import com.titos.barcodescanner.R
+import android.app.DatePickerDialog
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.util.Log
+
+import android.widget.*
+import androidx.core.content.ContextCompat
+import androidx.navigation.fragment.findNavController
+import com.deepakkumardk.kontactpickerlib.KontactPicker
+import com.deepakkumardk.kontactpickerlib.model.KontactPickerItem
+import com.deepakkumardk.kontactpickerlib.model.SelectionMode
+import com.deepakkumardk.kontactpickerlib.model.SelectionTickView
+
 import com.titos.barcodescanner.base.BaseFragment
 import com.titos.barcodescanner.utils.KhataDetails
-import com.xwray.groupie.GroupAdapter
-import com.xwray.groupie.GroupieViewHolder
-import java.util.Locale.getDefault
-import kotlin.collections.ArrayList
+import org.threeten.bp.LocalDateTime
+import org.threeten.bp.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.HashMap
 
-class KhataFragmentInside : BaseFragment(R.layout.fragment_khata_inside), SearchView.OnQueryTextListener {
-
-    private  val groupAdapter = GroupAdapter<GroupieViewHolder>()
-    private val customerList = ArrayList<KhataItem>()
+class KhataFragmentInside : BaseFragment(R.layout.fragment_khata_inside) {
 
     override fun initView() {
+        val mobile = arguments?.getString("mobile")!!
+        val name = arguments?.getString("name")!!
+        val amountDue = arguments?.getDouble("amountDue")!!
+        val changes = arguments?.getSerializable("changes")!! as HashMap<String, String>
 
-        val status = when(arguments?.getInt("khataNumber"))
-        {
-            0 -> "notPaid"
-            1 -> "paid"
-            else -> "wrong"
-        }
+        val tvDetails = layoutView.findViewById<TextView>(R.id.tv_details)
+        tvDetails.text = "Details for $name ($mobile)"
 
-        val recyclerView = layoutView.findViewById<RecyclerView>(R.id.rv_khata_customers)
+        val sendIntent = Intent("android.intent.action.MAIN")
+        val packageManager: PackageManager = requireContext().packageManager
 
-        recyclerView.apply {
-            adapter = groupAdapter
-            layoutManager = LinearLayoutManager(requireContext())
-        }
+        sendIntent.action = Intent.ACTION_SEND
+        sendIntent.setPackage("com.whatsapp")
+        sendIntent.type = "text/plain"
+        val phone = "91$mobile"
 
-        val onItemRemoveClick :((String, Int)->Unit) = { time, pos ->
-            firebaseHelper.updateKhataStatus(time)
-            groupAdapter.removeGroupAtAdapterPosition(pos)
-            findNavController().navigate(R.id.khataFragment)
-        }
+        val message = "This is a reminder for paying the amount due (Rs. $amountDue). Kindly clear the due as soon as possible."
+        layoutView.findViewById<ImageView>(R.id.btn_whatsapp).setOnClickListener {
+            try {
+                sendIntent.putExtra("jid", "$phone@s.whatsapp.net")
+                sendIntent.putExtra(Intent.EXTRA_TEXT, message)
 
-        val kdList = arguments?.getSerializable("kdList")!! as HashMap<String, KhataDetails>
-
-                if (kdList.isEmpty())
-                    layoutView.findViewById<TextView>(R.id.tv_empty).visibility = View.VISIBLE
-
-                for (kd in kdList) {
-                    if (kd.value.status==status)
-                        customerList.add(KhataItem(kd.key, kd.value, onItemRemoveClick))
+                if (sendIntent.resolveActivity(packageManager) != null) {
+                    requireContext().startActivity(sendIntent)
                 }
-                groupAdapter.addAll(customerList)
-
-        val searchView = layoutView.findViewById<SearchView>(R.id.search_bar_khata)
-        searchView.setOnQueryTextListener(this)
-
-    }
-
-    override fun onQueryTextSubmit(query: String?): Boolean {
-        return false
-    }
-
-    override fun onQueryTextChange(newText: String): Boolean {
-        filter(newText)
-        return false
-    }
-
-    private fun filter(charText: String) {
-        val lowerCaseText = charText.toLowerCase(getDefault())
-
-        if (lowerCaseText.isNotEmpty())
-        {
-            groupAdapter.clear()
-            groupAdapter.addAll(customerList.filter { it.kd.mobileNumber.toLowerCase(getDefault()).contains(lowerCaseText) })
-        }
-        else
-        {
-            groupAdapter.clear()
-            groupAdapter.addAll(customerList)
+            } catch (e: Exception) {
+                Toast.makeText(context, "No app installed", Toast.LENGTH_SHORT).show()
+                e.printStackTrace()
+            }
         }
 
+        val timeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss a", Locale.ENGLISH)
+
+        val listView = layoutView.findViewById<ListView>(R.id.lv_changes)
+        val changeList = ArrayList<String>()
+        changes.forEach { changeList.add(it.key)}
+        changeList.sortByDescending { LocalDateTime.parse(it, timeFormatter) }
+
+        listView.adapter  = KhataAdapter(requireContext(), changeList, changes )
+
+        val etAmountPaid = layoutView.findViewById<EditText>(R.id.etAmountPaid)
+        layoutView.findViewById<Button>(R.id.btnSettle).setOnClickListener {
+            etAmountPaid.clearFocus()
+            if (etAmountPaid.text.isNotEmpty()) {
+                firebaseHelper.updateKhataStatus(mobile, etAmountPaid.text.toString().toDouble())
+                showSnackBar("Amount settled is \u20B9 ${etAmountPaid.text}")
+                findNavController().navigateUp()
+            }
+            else
+                showToast("Please enter a value!")
+        }
     }
+
 }

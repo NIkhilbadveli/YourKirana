@@ -30,9 +30,9 @@ class FirebaseHelper(val shopName: String) {
                 .set(pd)
                 .addOnSuccessListener {
                     updateQty("$dateFormat $timeFormat", barcode, pd.qty ,mode)
-                    Log.d("TAG", "addProduct: $barcode")
+                    Log.d("titos", "addProduct: $barcode")
                 }
-                .addOnFailureListener { Log.d("TAG", "failedToAdd: $barcode") }
+                .addOnFailureListener { Log.d("titos", "failedToAdd: $barcode") }
 
         //Saving to common database only if it is from eldorado account
         if (FirebaseAuth.getInstance().currentUser!!.email=="eldorado.studios1@gmail.com") {
@@ -166,7 +166,7 @@ class FirebaseHelper(val shopName: String) {
                         }
                     }
                     ldBoolean.value = true
-                    Log.d("kir","Added successfully")
+                    Log.d("titos","Added successfully $dateFormat $timeFormat")
                 }
 
         return ldBoolean
@@ -183,8 +183,8 @@ class FirebaseHelper(val shopName: String) {
         firestore.collection("stores/$shopName/transactionData")
                 .document("$dateFormat $timeFormat")
                 .set(transactionDetails)
-                .addOnSuccessListener { Log.d("TAG", "addTransaction: $dateFormat $timeFormat") }
-                .addOnFailureListener { Log.d("TAG", "failedToAdd: $dateFormat $timeFormat") }
+                .addOnSuccessListener { Log.d("titos", "addTransaction: $dateFormat $timeFormat") }
+                .addOnFailureListener { Log.d("titos", "failedToAdd: $dateFormat $timeFormat") }
 
         //Updating changes in inventory
         firestore.collection("stores/$shopName/inventoryData")
@@ -302,13 +302,32 @@ class FirebaseHelper(val shopName: String) {
     }
 
     //Handling khata related stuff
-    fun addToKhata(time: String, khataDetails: KhataDetails){
-        firestore.document("stores/$shopName")
-                .collection("khataBook")
-                .document(time)
-                .set(khataDetails)
-                .addOnSuccessListener { Log.d("TAG", "addedToKhata: $time") }
-                .addOnFailureListener { Log.d("TAG", "failedToAdd: $it") }
+    fun addToKhata(time: String, mobile: String, optionalNote: String, khataDetails: KhataDetails):LiveData<Boolean>{
+        val ldBoolean = MutableLiveData<Boolean>()
+        val doc = firestore.collection("stores/$shopName/khataBook")
+                .document(mobile)
+        doc.get().addOnSuccessListener {
+            //Creating the khata entry for this particular mobile number
+            val map = mutableMapOf<String, String>()
+            map[time] = "$optionalNote (\u20B9 ${khataDetails.amountDue})"
+            if (!it.exists()){
+                khataDetails.changes = map
+                doc.set(khataDetails)
+                Log.d("titos", "addedToKhata: $time")
+            }
+            else{
+                //Increasing the amount due
+                doc.update("amountDue", FieldValue.increment(khataDetails.amountDue))
+                doc.set(mapOf("changes" to map), SetOptions.merge())
+                Log.d("titos", "incrementAmountDue: $time")
+            }
+
+            ldBoolean.value = true
+        }.addOnFailureListener {
+            ldBoolean.value = false
+            Log.d("TAG", "failedToAdd: $it") }
+
+        return ldBoolean
     }
 
     fun getAllKhata(): LiveData<Map<String, KhataDetails>>{
@@ -327,12 +346,20 @@ class FirebaseHelper(val shopName: String) {
         return ldKhataDetails
     }
 
-    fun updateKhataStatus(time: String){
-        firestore.collection("stores/$shopName/khataBook")
-                .document(time)
-                .update("status", "paid")
-                .addOnSuccessListener { Log.d("TAG", "UpdatedKhata: $time") }
-                .addOnFailureListener { Log.d("TAG", "failedToAdd: $it") }
+    fun updateKhataStatus(mobile: String, amountPaid: Double){
+        val date = Date()
+        val dateFormat = simpleDateFormat.format(date)
+        val timeFormat = simpleTimeFormat.format(date)
+
+        val doc = firestore.collection("stores/$shopName/khataBook")
+                .document(mobile)
+
+        doc.update("amountPaid", FieldValue.increment(amountPaid))
+        doc.update("amountDue", FieldValue.increment(0-amountPaid))
+
+        val map = mutableMapOf<String, String>()
+        map["$dateFormat $timeFormat"] = "Paid \u20B9 $amountPaid"
+        doc.set(mapOf("changes" to map), SetOptions.merge())
     }
 
     //Handling scannerlistfragment stuff

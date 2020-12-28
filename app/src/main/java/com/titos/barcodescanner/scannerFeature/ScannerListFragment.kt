@@ -20,6 +20,7 @@ import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.work.impl.Schedulers.schedule
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.titos.barcodescanner.MainActivity
@@ -30,8 +31,11 @@ import com.titos.barcodescanner.utils.BillDetails
 import com.titos.barcodescanner.utils.PrintUtility
 import com.titos.barcodescanner.utils.ProductDetails
 import com.titos.barcodescanner.utils.TransactionDetails
-import com.xwray.groupie.GroupAdapter
-import com.xwray.groupie.GroupieViewHolder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.concurrent.schedule
 
 class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButton,
                           val btnInv: Button) : BaseFragment(R.layout.fragment_list_scanner) {
@@ -86,7 +90,7 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
         scannerItemAdapter = ScannerItemAdapter(listValues, requireContext(), onItemClick, onItemRemoveClick)
         scannerItemAdapter.setHasStableIds(true)
 
-        recyclerView!!.apply {
+        recyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, true)
             adapter = scannerItemAdapter
         }
@@ -179,16 +183,21 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
         }
         else {
             val matchedItem = listValues.first { it.name == name }
+            //showToast("Matched Item is : ${matchedItem.name} and at ${listValues.indexOf(matchedItem)}")
             matchedItem.quantity = (matchedItem.quantity.toDouble() + 1).toString()
 
-            val item = recyclerView?.getChildAt(listValues.indexOf(matchedItem))!!
-            if (!matchedItem.loose) {
-                item.findViewById<ImageButton>(R.id.add_quantity_button).performClick()
-            }
-            else{
-                val etQuantity = item.findViewById<EditText>(R.id.et_quantity)
-                val updatedQty = etQuantity.text.toString().toDouble() + 1
-                etQuantity.setText(updatedQty.toString())
+            recyclerView.scrollToPosition(listValues.indexOf(matchedItem))
+            Timer().schedule(300){
+                requireActivity().runOnUiThread {
+                    val item = recyclerView.findViewHolderForAdapterPosition(listValues.indexOf(matchedItem))!!.itemView
+                    if (!matchedItem.loose) {
+                        item.findViewById<ImageButton>(R.id.add_quantity_button).performClick()
+                    } else {
+                        val etQuantity = item.findViewById<EditText>(R.id.et_quantity)
+                        val updatedQty = etQuantity.text.toString().toDouble() + 1
+                        etQuantity.setText(updatedQty.toString())
+                    }
+                }
             }
         }
 
@@ -209,9 +218,10 @@ class ScannerListFragment(val tvTotal: TextView, val btnTick: FloatingActionButt
             billItems.add(listValues[i])
         }
 
-        firebaseHelper.addTransaction(TransactionDetails(phoneNum, tvTotal.text.toString().split(' ').last(), items), pdMap).observe(this){
-            if (it) pdMap.clear()
-        }
+        firebaseHelper.addTransaction(TransactionDetails(phoneNum, tvTotal.text.toString().split(' ').last(), items), pdMap)
+                .observe(this) {
+                    if (it) pdMap.clear()
+                }
 
         scannerItemAdapter.clear()
 

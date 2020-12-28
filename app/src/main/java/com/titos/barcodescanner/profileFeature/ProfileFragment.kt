@@ -6,6 +6,7 @@ import agency.tango.android.avatarview.views.AvatarView
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -31,7 +32,7 @@ import com.xwray.groupie.GroupieViewHolder
 
 
 class ProfileFragment : BaseFragment(R.layout.fragment_profile) {
-
+    private lateinit var sharedPref: SharedPreferences
     override fun initView() {
 
         val profileAvatar = layoutView.findViewById<AvatarView>(R.id.profile_avatar)
@@ -39,7 +40,7 @@ class ProfileFragment : BaseFragment(R.layout.fragment_profile) {
 
         val picassoLoader = PicassoLoader()
 
-        val sharedPref = activity?.getSharedPreferences("sharedPref", Context.MODE_PRIVATE)
+        sharedPref = activity?.getSharedPreferences("sharedPref", Context.MODE_PRIVATE)!!
         val shopName = sharedPref?.getString("shopName", "shop")!!
         val userName = sharedPref.getString("userName", "UserName")!!
 
@@ -202,6 +203,10 @@ class ProfileFragment : BaseFragment(R.layout.fragment_profile) {
                 .signOut(requireContext())
                 .addOnCompleteListener{
                     dialog.dismiss()
+                    sharedPref.edit(){
+                        remove("firstTime")
+                        apply()
+                    }
                     startActivity(Intent(requireContext(), LoginActivity::class.java))
                     activity?.finish()
                 }

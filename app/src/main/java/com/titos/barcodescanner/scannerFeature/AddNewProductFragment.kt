@@ -25,8 +25,6 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.ml.vision.FirebaseVision
-import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.google.firebase.storage.FirebaseStorage
 import com.titos.barcodescanner.R
 import com.titos.barcodescanner.base.BaseFragment

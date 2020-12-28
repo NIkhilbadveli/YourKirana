@@ -38,7 +38,7 @@
             android:layout_margin="10dp"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_above="@+id/tv_login">
+            android:layout_above="@+id/google_signin_button">
             <Button
                 android:id="@+id/otp_signin_button"
                 android:layout_width="match_parent"
@@ -57,9 +57,9 @@
                 android:background="@color/colorPrimaryDark"/>
     </LinearLayout>
 
-    <TextView
+<!--    <TextView
             android:id="@+id/tv_login"
-            android:layout_above="@+id/login_container"
+            android:layout_above="@+id/google_signin_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Or Log in with"
@@ -67,15 +67,26 @@
             android:textAllCaps="true"
             android:fontFamily="sans-serif-black"
             android:layout_centerInParent="true"
-            android:layout_marginTop="40dp"/>
+            android:layout_marginTop="40dp"/>-->
 
-    <LinearLayout
+    <Button
+        android:id="@+id/google_signin_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="GOOGLE Sign-In"
+        android:layout_margin="20dp"
+        android:background="@color/textColorWhite"
+        android:elevation="5dp"
+        android:drawableStart="@drawable/googleg_standard_color_18"
+        android:paddingStart="10dp"
+        android:layout_above="@id/tv_terms_cond"/>
+
+    <!--<LinearLayout
         android:id="@+id/login_container"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
+        android:layout_margin="20dp"
         android:layout_above="@+id/tv_terms_cond">
         <LinearLayout
             android:id="@+id/google_signin_button"
@@ -102,13 +113,15 @@
             android:background="@color/greyBaseShade"
             android:layout_gravity="center"
             android:layout_marginStart="30dp"
-            android:layout_marginEnd="30dp"/>
+            android:layout_marginEnd="30dp"
+            android:visibility="gone"/>
 
         <LinearLayout
             android:id="@+id/facebook_signin_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp">
+            android:layout_margin="10dp"
+            android:visibility="gone">
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -122,7 +135,7 @@
                 android:layout_gravity="center"
                 android:layout_marginStart="6dp"/>
         </LinearLayout>
-    </LinearLayout>
+    </LinearLayout>-->
 
     <TextView
         android:id="@+id/tv_terms_cond"

@@ -49,7 +49,6 @@ class LoginActivity : BaseActivity(-1) {
                 .Builder(R.layout.activity_login)
                 .setGoogleButtonId(R.id.google_signin_button)
                 .setEmailButtonId(R.id.email_signin_button)
-                .setFacebookButtonId(R.id.facebook_signin_button)
                 .setPhoneButtonId(R.id.otp_signin_button)
                 .build()
 
@@ -66,7 +65,6 @@ class LoginActivity : BaseActivity(-1) {
                             .setIsSmartLockEnabled(false)
                             .setAvailableProviders(listOf(AuthUI.IdpConfig.GoogleBuilder().build(),
                                     AuthUI.IdpConfig.EmailBuilder().build(),
-                                    AuthUI.IdpConfig.FacebookBuilder().build(),
                                     AuthUI.IdpConfig.PhoneBuilder().setDefaultCountryIso("in").setWhitelistedCountries(listOf("+91")).build()))
                             .setTheme(R.style.AppThemeFirebaseAuth)
                             .build(),

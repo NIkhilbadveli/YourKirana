@@ -59,18 +59,20 @@ class OrderItemsFragment : BaseFragment(R.layout.fragment_items_order){
         billDetails.contact = contact
         billDetails.time = refKey
 
-        firebaseHelper.getMultipleProductDetails(barcodeList).observe(this) {pdMap ->
-            for(pd in pdMap) {
-                val sp = pd.value.sellingPrice
-                val name = pd.value.name
-                val loose = pd.value.type == "kgs"
-                groupAdapter.add(OrderItem(name, qtyList[barcodeList.indexOf(pd.key)], sp, loose))
-                billDetails.billItems.add(ScannerItem(pd.key, name, qtyList[barcodeList.indexOf(pd.key)], sp, loose, "https://www.google.co.in"))
-            }
-
-            val billFragment = BillFragment(billDetails, requireContext())
-            view.findViewById<TextView>(R.id.btnShareBill).setOnClickListener {
-                billFragment.shareBill()
+        for (i in 0 until barcodeList.size) {
+            val bd = barcodeList[i]
+            firebaseHelper.getProductDetails(bd).observe(this) {pd ->
+                val sp = pd.sellingPrice
+                val name = pd.name
+                val loose = pd.type == "kgs"
+                groupAdapter.add(OrderItem(name, qtyList[barcodeList.indexOf(bd)], sp, loose))
+                billDetails.billItems.add(ScannerItem(bd, name, qtyList[barcodeList.indexOf(bd)], sp, loose, "https://www.google.co.in"))
+                if (billDetails.billItems.size == barcodeList.size) {
+                    val billFragment = BillFragment(billDetails, requireContext())
+                    view.findViewById<TextView>(R.id.btnShareBill).setOnClickListener {
+                        billFragment.shareBill()
+                    }
+                }
             }
         }
 
