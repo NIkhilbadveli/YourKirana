@@ -191,8 +191,8 @@ class ProfileFragment : BaseFragment(R.layout.fragment_profile) {
     private fun shareApp(){
         ShareCompat.IntentBuilder.from(requireActivity())
                 .setType("text/plain")
-                .setChooserTitle("Share the apk link via...")
-                .setText("Download the latest version of YourKirana app using this link. \n " +
+                .setChooserTitle("Share the app link via...")
+                .setText("Download the latest version of Medihelp4u app using this link. \n " +
                         "https://play.google.com/store/apps/details?id=com.titos.barcodescanner&hl=en")
                 .startChooser()
     }
